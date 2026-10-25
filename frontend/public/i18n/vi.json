@@ -1,0 +1,57 @@
+{
+  "app": { "workspace": "Lab workspace", "switchLanguage": "Đổi ngôn ngữ" },
+  "nav": {
+    "main": "Điều hướng chính", "groupWorkspace": "Workspace", "groupScan": "Quét", "groupSecurity": "Bảo mật", "groupAdmin": "Quản trị",
+    "dashboard": "Dashboard", "projects": "Projects", "targets": "Targets", "scans": "Scans", "vulnerabilities": "Vulnerabilities",
+    "reports": "Reports", "users": "Người dùng", "roles": "Vai trò", "aiAssistant": "AI Assistant"
+  },
+  "auth": { "logout": "Đăng xuất" },
+  "login": {
+    "kicker": "VULNERABILITY MANAGEMENT · LAB EDITION",
+    "headline": "Mọi lỗ hổng của lab, gọn trong một thư mục.",
+    "sub": "Mỗi project là một thư mục: target, scan và finding nằm bên trong. Chỉ quét trong phạm vi được ủy quyền.",
+    "title": "Đăng nhập", "userName": "Tên đăng nhập hoặc email", "password": "Mật khẩu", "submit": "Đăng nhập",
+    "devHint": "DEV: xem README để lấy tài khoản seed cục bộ"
+  },
+  "common": {
+    "loading": "Đang tải…", "retry": "Thử lại", "empty": "Chưa có dữ liệu.", "search": "Tìm kiếm…", "edit": "Sửa", "delete": "Xoá",
+    "save": "Lưu", "cancel": "Huỷ", "status": "Trạng thái", "createdDate": "Ngày tạo", "viewAll": "Xem tất cả",
+    "prev": "Trước", "next": "Sau", "pagination": "Phân trang", "comingLater": "Tính năng này sẽ có ở milestone sau."
+  },
+  "validation": {
+    "required": "Trường này là bắt buộc.", "code": "Chỉ gồm chữ, số, - và _ (tối đa 50 ký tự).", "url": "Nhập URL http(s) hợp lệ."
+  },
+  "errors": { "network": "Không kết nối được tới API.", "unknown": "Đã xảy ra lỗi không xác định." },
+  "dashboard": {
+    "title": "Tổng quan bảo mật", "newScan": "Scan mới", "projects": "Projects", "targets": "Targets", "scans": "Scans",
+    "findings": "Findings", "recentScans": "Scan gần đây", "noScans": "Chưa có scan nào.", "bySeverity": "Theo severity"
+  },
+  "projects": {
+    "new": "Tạo project", "edit": "Sửa project", "code": "Mã", "name": "Tên", "description": "Mô tả", "empty": "Chưa có project nào. Hãy tạo project đầu tiên."
+  },
+  "projectStatus": { "Active": "Đang hoạt động", "Archived": "Lưu trữ" },
+  "targets": {
+    "new": "Thêm target", "edit": "Sửa target", "name": "Tên", "baseUrl": "Base URL", "environment": "Môi trường", "scopeMode": "Phạm vi",
+    "scope": "Phạm vi / quyền", "lastScan": "Lần quét cuối", "isEnabled": "Bật target",
+    "isAuthorized": "Tôi sở hữu hoặc được ủy quyền kiểm thử target này",
+    "isAuthorizedHint": "Scan chỉ được tạo khi target được bật và đã xác nhận ủy quyền.",
+    "enabled": "Đang bật", "disabled": "Đã tắt", "authorized": "Đã xác nhận ủy quyền", "notAuthorized": "Chưa xác nhận ủy quyền",
+    "startScan": "Quét", "empty": "Chưa có target nào.", "manageInProject": "Thêm, sửa và quét target trong trang chi tiết project."
+  },
+  "scopeMode": { "SameHostPathPrefix": "Cùng host + đường dẫn con", "ExactUrl": "Chỉ đúng URL" },
+  "scans": {
+    "target": "Target", "progress": "Tiến độ", "findings": "Findings", "urls": "URL", "requests": "Request", "cancel": "Huỷ scan",
+    "noFindings": "Chưa có finding.", "startFromProject": "Bắt đầu scan từ trang chi tiết project.",
+    "mockNotice": "MOCK ENGINE: không gửi request mạng; findings là dữ liệu mẫu."
+  },
+  "scanStatus": {
+    "Pending": "Chờ", "Queued": "Trong hàng đợi", "Running": "Đang chạy", "Cancelling": "Đang huỷ", "Completed": "Hoàn tất",
+    "Failed": "Thất bại", "Cancelled": "Đã huỷ"
+  },
+  "severity": { "Critical": "Critical", "High": "High", "Medium": "Medium", "Low": "Low", "Info": "Info" },
+  "confidence": { "Low": "độ tin cậy thấp", "Medium": "độ tin cậy trung bình", "High": "độ tin cậy cao" },
+  "ai": {
+    "explain": "AI giải thích", "remediate": "AI gợi ý khắc phục",
+    "advisoryLabel": "AI-ASSISTED · CHỈ MANG TÍNH THAM KHẢO, CẦN NGƯỜI XÁC MINH"
+  }
+}

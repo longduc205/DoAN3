@@ -1,0 +1,57 @@
+{
+  "app": { "workspace": "Lab workspace", "switchLanguage": "Switch language" },
+  "nav": {
+    "main": "Main navigation", "groupWorkspace": "Workspace", "groupScan": "Scanning", "groupSecurity": "Security", "groupAdmin": "Admin",
+    "dashboard": "Dashboard", "projects": "Projects", "targets": "Targets", "scans": "Scans", "vulnerabilities": "Vulnerabilities",
+    "reports": "Reports", "users": "Users", "roles": "Roles", "aiAssistant": "AI Assistant"
+  },
+  "auth": { "logout": "Sign out" },
+  "login": {
+    "kicker": "VULNERABILITY MANAGEMENT · LAB EDITION",
+    "headline": "Every lab vulnerability, in one folder.",
+    "sub": "Each project is a folder: targets, scans and findings live inside. Scan only what you are authorized to test.",
+    "title": "Sign in", "userName": "Username or email", "password": "Password", "submit": "Sign in",
+    "devHint": "DEV: see README for local seed accounts"
+  },
+  "common": {
+    "loading": "Loading…", "retry": "Retry", "empty": "No data yet.", "search": "Search…", "edit": "Edit", "delete": "Delete",
+    "save": "Save", "cancel": "Cancel", "status": "Status", "createdDate": "Created", "viewAll": "View all",
+    "prev": "Previous", "next": "Next", "pagination": "Pagination", "comingLater": "This feature is coming in a later milestone."
+  },
+  "validation": {
+    "required": "This field is required.", "code": "Letters, digits, - and _ only (max 50).", "url": "Enter a valid http(s) URL."
+  },
+  "errors": { "network": "Cannot reach the API.", "unknown": "An unknown error occurred." },
+  "dashboard": {
+    "title": "Security overview", "newScan": "New scan", "projects": "Projects", "targets": "Targets", "scans": "Scans",
+    "findings": "Findings", "recentScans": "Recent scans", "noScans": "No scans yet.", "bySeverity": "By severity"
+  },
+  "projects": {
+    "new": "New project", "edit": "Edit project", "code": "Code", "name": "Name", "description": "Description", "empty": "No projects yet. Create your first one."
+  },
+  "projectStatus": { "Active": "Active", "Archived": "Archived" },
+  "targets": {
+    "new": "Add target", "edit": "Edit target", "name": "Name", "baseUrl": "Base URL", "environment": "Environment", "scopeMode": "Scope",
+    "scope": "Scope / authorization", "lastScan": "Last scan", "isEnabled": "Target enabled",
+    "isAuthorized": "I own or am authorized to test this target",
+    "isAuthorizedHint": "Scans can only be created when the target is enabled and authorization is confirmed.",
+    "enabled": "Enabled", "disabled": "Disabled", "authorized": "Authorization confirmed", "notAuthorized": "Authorization not confirmed",
+    "startScan": "Scan", "empty": "No targets yet.", "manageInProject": "Add, edit and scan targets from the project detail page."
+  },
+  "scopeMode": { "SameHostPathPrefix": "Same host + sub-paths", "ExactUrl": "Exact URL only" },
+  "scans": {
+    "target": "Target", "progress": "Progress", "findings": "Findings", "urls": "URLs", "requests": "Requests", "cancel": "Cancel scan",
+    "noFindings": "No findings yet.", "startFromProject": "Start a scan from a project detail page.",
+    "mockNotice": "MOCK ENGINE: no network requests are sent; findings are sample data."
+  },
+  "scanStatus": {
+    "Pending": "Pending", "Queued": "Queued", "Running": "Running", "Cancelling": "Cancelling", "Completed": "Completed",
+    "Failed": "Failed", "Cancelled": "Cancelled"
+  },
+  "severity": { "Critical": "Critical", "High": "High", "Medium": "Medium", "Low": "Low", "Info": "Info" },
+  "confidence": { "Low": "low confidence", "Medium": "medium confidence", "High": "high confidence" },
+  "ai": {
+    "explain": "AI explain", "remediate": "AI remediation",
+    "advisoryLabel": "AI-ASSISTED · ADVISORY ONLY, VERIFY BEFORE ACTING"
+  }
+}
