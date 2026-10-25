@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>01 Login</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+*{box-sizing:border-box}
+input:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid #4c8dff;outline-offset:2px}
+.lg{min-height:100vh;display:flex;flex-direction:column;padding:28px 5vw;background-color:#EDEDEF;background-image:radial-gradient(rgba(20,20,22,.13) 1.1px,transparent 1.4px);background-size:22px 22px;color:#141416;font-family:ui-sans-serif,system-ui,-apple-system,'SF Pro Text','Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif}
+.lg-main{flex:1;display:grid;grid-template-columns:1fr 470px;align-items:center;gap:64px;padding:40px 0}
+.lg-h1{margin:0 0 20px;font-size:clamp(40px,4.6vw,68px);line-height:1.02;font-weight:600;letter-spacing:-.035em}
+.lg-obj{position:relative;padding-top:110px}
+.lg-back{position:absolute;left:0;right:0;top:0;height:300px;border-radius:28px;overflow:hidden;clip-path:path('M0 72A28 28 0 0 1 28 44L200 44C232 44 236 0 270 0L442 0A28 28 0 0 1 470 28L470 300L0 300Z');box-shadow:0 0 0 .5px rgba(0,0,0,.1)}
+.lg-back img{width:100%;height:100%;object-fit:cover;display:block}
+.lg-front{position:relative;border-radius:26px;padding:30px 30px 28px;display:flex;flex-direction:column;gap:16px;background:linear-gradient(180deg,rgba(255,255,255,.28) 0%,rgba(255,255,255,.72) 34%,rgba(252,252,252,.94) 100%);-webkit-backdrop-filter:blur(22px) saturate(1.5);backdrop-filter:blur(22px) saturate(1.5);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.95),0 0 0 .5px rgba(0,0,0,.1),0 30px 60px -24px rgba(10,12,20,.45)}
+.lg-shadow{position:absolute;left:24px;right:24px;bottom:-10px;height:70px;border-radius:40px;background:rgba(16,18,24,.3);filter:blur(26px)}
+.lg-input{height:46px;padding:0 14px;border:1px solid rgba(20,20,22,.14);border-radius:12px;background:rgba(255,255,255,.85);font:inherit;font-size:15px;color:#141416}
+.lg-key{display:flex;align-items:center;justify-content:center;gap:10px;height:50px;border-radius:16px;color:#fff;text-decoration:none;font-size:15px;font-weight:500;background:radial-gradient(120% 90% at 50% 0%,#3a3a3f 0%,#121214 55%,#050506 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 -3px 8px rgba(0,0,0,.7),0 0 0 1px rgba(0,0,0,.75),0 14px 22px -8px rgba(0,0,0,.55);transition:transform .35s cubic-bezier(.34,1.36,.5,1)}
+.lg-key:hover{color:#fff;transform:translateY(-2px)}.lg-key:active{transform:scale(.97);transition-duration:.12s}
+.lg-mono{font-family:ui-monospace,'SF Mono',SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;letter-spacing:.03em;color:rgba(20,20,22,.62)}
+@media(max-width:960px){.lg{padding:20px}.lg-main{grid-template-columns:1fr;gap:28px;padding:28px 0}.lg-sub{display:none}.lg-obj{max-width:470px;width:100%;justify-self:center}.lg-h1{font-size:34px}}
+@media(prefers-reduced-motion:reduce){.lg-key{transition:none}}
+</style>
+</helmet>
+<div class="lg">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 16px">
+<span style="display: inline-flex; align-items: center; gap: 10px"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 26 26"><path d="M3 6.5l5 14 5-10 5 10 5-14" fill="none" stroke="#141416" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="13" cy="4" r="2.2" fill="#EF4A2B"/></svg><b style="font-size: 17px; font-weight: 600; letter-spacing: -0.02em">WebSec AI</b></span>
+<span class="lg-mono" style="display: inline-flex; align-items: center; gap: 8px"><span aria-hidden="true" style="width: 7px; height: 7px; border-radius: 4px; background: #16A34A"></span>SYSTEM OK</span>
+</div>
+
+<main class="lg-main">
+<div>
+<p class="lg-mono" style="margin: 0 0 18px">VULNERABILITY MANAGEMENT · LAB EDITION</p>
+<h1 class="lg-h1">Mọi lỗ hổng của lab,<br>gọn trong một thư mục.</h1>
+<p class="lg-sub" style="margin: 0; max-width: 470px; font-size: 16px; line-height: 1.6; color: #55555c">Mỗi project là một thư mục: target, scan, lỗ hổng và report nằm bên trong. Quét trong phạm vi được ủy quyền, giao việc, xác minh rồi mới đóng.</p>
+<div class="lg-sub" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px">
+<span class="lg-mono" style="padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,.7); box-shadow: 0 0 0 .5px rgba(0,0,0,.12)">SCAN CÓ PHẠM VI</span>
+<span class="lg-mono" style="padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,.7); box-shadow: 0 0 0 .5px rgba(0,0,0,.12)">TRIAGE · XÁC MINH</span>
+<span class="lg-mono" style="padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,.7); box-shadow: 0 0 0 .5px rgba(0,0,0,.12)">AI ADVISOR</span>
+</div>
+</div>
+
+<div class="lg-obj">
+<div class="lg-shadow" aria-hidden="true"></div>
+<div class="lg-back" aria-hidden="true"><img src="art/aurora-8.png" alt="" width="470" height="300"></div>
+<section class="lg-front" aria-labelledby="login-title">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px"><h2 id="login-title" style="margin: 0; font-size: 26px; font-weight: 600; letter-spacing: -0.02em">Đăng nhập</h2><span class="lg-mono">LAB WORKSPACE</span></div>
+<p style="margin: -8px 0 0; font-size: 14px; color: #55555c">Dùng tài khoản do quản trị viên cấp.</p>
+
+<sc-if value="{{ isError }}" hint-placeholder-val="{{ false }}">
+<div role="alert" style="display: flex; gap: 10px; padding: 12px 14px; background: rgba(254, 236, 235, .9); color: #831C1E; border-radius: 12px; font-size: 14px; line-height: 21px"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex: none; margin-top: 2px"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span><b style="font-weight: 600">Email hoặc mật khẩu không đúng.</b> Còn 3 lần thử trước khi bị khoá 15 phút.</span></div>
+</sc-if>
+<sc-if value="{{ isLocked }}" hint-placeholder-val="{{ false }}">
+<div role="alert" style="display: flex; gap: 10px; padding: 12px 14px; background: rgba(255, 244, 214, .92); color: #7A4A00; border-radius: 12px; font-size: 14px; line-height: 21px"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex: none; margin-top: 2px"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span><b style="font-weight: 600">Tài khoản đang bị khoá.</b> Liên hệ quản trị viên để được mở khoá.</span></div>
+</sc-if>
+
+<div style="display: flex; flex-direction: column; gap: 7px"><label for="email" style="font-size: 13px; font-weight: 500">Email công việc</label><input id="email" class="lg-input" type="email" autocomplete="username" value="an.tran@lab.local"></div>
+<div style="display: flex; flex-direction: column; gap: 7px">
+<span style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px"><label for="pw" style="font-size: 13px; font-weight: 500">Mật khẩu</label><span style="font-size: 12px; color: #55555c">Quên? Hỏi Admin</span></span>
+<span style="display: flex; align-items: center; height: 46px; padding: 0 6px 0 14px; border: 1px solid {{ pwBorder }}; border-radius: 12px; background: rgba(255,255,255,.85)"><input id="pw" type="password" autocomplete="current-password" value="password" aria-describedby="{{ pwHintId }}" style="flex: 1; min-width: 0; border: none; background: transparent; font: inherit; font-size: 15px; color: #141416"><button type="button" aria-label="Hiện mật khẩu" style="height: 34px; padding: 0 10px; border: none; border-radius: 10px; background: transparent; font: inherit; font-size: 13px; color: #3f3f46">Hiện</button></span>
+<sc-if value="{{ isError }}" hint-placeholder-val="{{ false }}"><span id="pw-hint" style="font-size: 13px; color: #B42318">Mật khẩu đã được xoá, hãy nhập lại.</span></sc-if>
+</div>
+<sc-if value="{{ isLoading }}" hint-placeholder-val="{{ false }}"><button type="button" disabled aria-busy="true" class="lg-key" style="width: 100%; border: none; font: inherit; font-size: 15px; opacity: .7">Đang đăng nhập…</button></sc-if>
+<sc-if value="{{ notLoading }}" hint-placeholder-val="{{ true }}"><a href="W02-Dashboard.dc.html" class="lg-key">Mở workspace<span aria-hidden="true">→</span></a></sc-if>
+<p class="lg-mono" style="margin: 0">PHIÊN TỰ HẾT HẠN SAU 30 PHÚT</p>
+</section>
+</div>
+</main>
+<p class="lg-mono" style="margin: 0; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap"><span>© 2026 WEBSEC AI</span><span>CHỈ DÙNG CHO MÔI TRƯỜNG LAB ĐÃ ỦY QUYỀN</span></p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["default","loading","error","locked"],"default":"default"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+const s = this.props.state ?? 'default';
+return { isError: s === 'error', isLocked: s === 'locked', isLoading: s === 'loading', notLoading: s !== 'loading', pwBorder: s === 'error' ? '#D92D20' : 'rgba(20,20,22,.14)', pwHintId: s === 'error' ? 'pw-hint' : '' };
+}
+}
+</script>
+</body>
+</html>
