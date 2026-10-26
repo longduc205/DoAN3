@@ -36,11 +36,11 @@ body{font-variant-numeric:tabular-nums}
 
 <main style="flex: 1; box-sizing: border-box; margin: 0; background: transparent; padding: 20px 28px 32px; display: flex; flex-direction: column; gap: 20px">
 
-<section style="background: #FFFFFF; border: 1px solid #E6E4E5; border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 20px">
+<div style="position: relative; padding-top: 40px"><div aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 0; height: 150px; border-radius: 24px; overflow: hidden; clip-path: path('M0 64A24 24 0 0 1 24 40L190 40C218 40 222 0 252 0L1400 0L1400 150L0 150Z'); box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.1)"><img src="art/ember-41.png" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block"></div><section aria-label="Scan #128" style="position: relative; background: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(252, 252, 252, 0.9) 45%); -webkit-backdrop-filter: blur(22px) saturate(1.5); backdrop-filter: blur(22px) saturate(1.5); border: 1px solid rgba(255, 255, 255, 0.85); box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, 0.95), 0 0 0 0.5px rgba(0, 0, 0, 0.1), 0 18px 40px -18px rgba(10, 12, 20, 0.35); border-radius: 24px; padding: 24px; display: flex; flex-direction: column; gap: 20px">
 <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
 <span style="flex: none; width: 52px; height: 52px; border-radius: 12px; background: #E0F2FE; color: #075985; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 12l6-6"/></svg></span>
 <div style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 4px">
-<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px"><h1 style="margin: 0; font-size: 24px; line-height: 32px; letter-spacing: -0.01em">Scan #128</h1><span style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; padding: 4px 10px; background: #E0F2FE; color: #075985; border: 1px solid #A5D8F5; border-radius: 999px"><span style="width: 7px; height: 7px; border-radius: 4px; background: #075985"></span>Running</span></div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px"><h1 style="margin: 0; font-size: 28px; line-height: 34px; font-weight: 600; letter-spacing: -0.02em">Scan #128</h1><span style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; padding: 4px 10px; background: #E0F2FE; color: #075985; border: 1px solid #A5D8F5; border-radius: 999px"><span style="width: 7px; height: 7px; border-radius: 4px; background: #075985"></span>Running</span></div>
 <span style="font-size: 14px; color: #686164"><span style="font-family: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace; color: #141416">shop-staging.lab.local</span> · Shop Lab · Standard · bắt đầu 10:24 · đã chạy 9 phút</span>
 </div>
 <div style="display: flex; flex-wrap: wrap; gap: 8px">
@@ -52,7 +52,7 @@ body{font-variant-numeric:tabular-nums}
 
 <div style="display: flex; flex-direction: column; gap: 10px">
 <div style="display: flex; justify-content: space-between; font-size: 14px"><b>Phase 2/3 · Detect</b><span style="font-family: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace; font-weight: 600">64%</span></div>
-<div role="progressbar" aria-label="Tiến độ scan" aria-valuenow="64" aria-valuemin="0" aria-valuemax="100" style="height: 10px; background: #F0EFEF; border-radius: 5px; overflow: hidden"><div style="height: 10px; width: 64%; background: #141416; border-radius: 5px"></div></div>
+<div role="progressbar" aria-label="Tiến độ scan" aria-valuenow="64" aria-valuemin="0" aria-valuemax="100" style="height: 12px; background: rgba(20, 20, 22, 0.08); border-radius: 6px; overflow: hidden"><div style="height: 12px; width: 64%; background: url(art/ember-41.png) center / cover; border-radius: 6px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35)"></div></div>
 <ol style="margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; font-size: 13px">
 <li style="display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: #E3F4EA; color: #146C3B; border-radius: 10px"><b>1</b> Crawl · tìm URL &amp; form <span style="margin-left: auto; font-size: 13px">xong</span></li>
 <li style="display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: #E0F2FE; color: #075985; border-radius: 10px"><b>2</b> Detect · chạy check <span style="margin-left: auto; font-size: 13px">đang chạy</span></li>
@@ -60,13 +60,14 @@ body{font-variant-numeric:tabular-nums}
 </ol>
 </div>
 
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; padding-top: 18px; border-top: 1px solid #F0EFEF">
-<div style="display: flex; align-items: center; gap: 12px"><span style="display: flex; flex-direction: column"><span style="font-size: 13px; color: #686164">URL đã tìm</span><b style="font-size: 20px">212</b></span></div>
-<div style="display: flex; align-items: center; gap: 12px"><span style="display: flex; flex-direction: column"><span style="font-size: 13px; color: #686164">Form</span><b style="font-size: 20px">18</b></span></div>
-<div style="display: flex; align-items: center; gap: 12px"><span style="display: flex; flex-direction: column"><span style="font-size: 13px; color: #686164">Request đã gửi</span><b style="font-size: 20px">1840</b></span></div>
-<div style="display: flex; align-items: center; gap: 12px"><span style="display: flex; flex-direction: column"><span style="font-size: 13px; color: #686164">Finding</span><b style="font-size: 20px">8</b></span></div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; padding-top: 18px; border-top: 1px solid rgba(20, 20, 22, 0.08)">
+<div style="display: flex; align-items: center; gap: 12px"><span style="display: flex; flex-direction: column"><span style="font-size: 13px; color: #686164">URL đã tìm</span><b style="font-size: 24px; font-weight: 600; letter-spacing: -0.02em">212</b></span></div>
+<div style="display: flex; align-items: center; gap: 12px"><span style="display: flex; flex-direction: column"><span style="font-size: 13px; color: #686164">Form</span><b style="font-size: 24px; font-weight: 600; letter-spacing: -0.02em">18</b></span></div>
+<div style="display: flex; align-items: center; gap: 12px"><span style="display: flex; flex-direction: column"><span style="font-size: 13px; color: #686164">Request đã gửi</span><b style="font-size: 24px; font-weight: 600; letter-spacing: -0.02em">1840</b></span></div>
+<div style="display: flex; align-items: center; gap: 12px"><span style="display: flex; flex-direction: column"><span style="font-size: 13px; color: #686164">Finding</span><b style="font-size: 24px; font-weight: 600; letter-spacing: -0.02em">8</b></span></div>
 </div>
 </section>
+</div>
 
 
 
@@ -91,14 +92,14 @@ body{font-variant-numeric:tabular-nums}
 </section>
 
 
-<section aria-label="Sự kiện" style="flex: 2 1 320px; min-width: 0; background: #F5F5F5; color: #484245; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
-<div style="display: flex; justify-content: space-between; align-items: center"><h2 style="margin: 0; font-size: 15px; color: #141416">Nhật ký sự kiện</h2><span style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #696366"><span style="width: 6px; height: 6px; border-radius: 3px; background: #141416"></span>tự cập nhật</span></div>
+<section aria-label="Sự kiện" style="flex: 2 1 320px; min-width: 0; align-self: stretch; background: linear-gradient(180deg, rgba(30, 30, 34, 0.86) 0%, rgba(10, 10, 12, 0.94) 100%); -webkit-backdrop-filter: blur(22px) saturate(1.5); backdrop-filter: blur(22px) saturate(1.5); color: #D4D4D8; border-radius: 20px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 0 0 0.5px rgba(255, 255, 255, 0.08), 0 18px 36px -14px rgba(0, 0, 0, 0.5); padding: 18px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; justify-content: space-between; align-items: center"><h2 style="margin: 0; font-size: 15px; color: #FAFAFA">Nhật ký sự kiện</h2><span style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #9A9AA2"><span style="width: 6px; height: 6px; border-radius: 3px; background: #141416"></span>tự cập nhật</span></div>
 <div style="font-family: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; line-height: 22px">
-<div><span style="color: #696366">10:24:02</span> Scan được tạo, vào hàng đợi</div>
-<div><span style="color: #696366">10:24:09</span> Worker nhận job, bắt đầu <span style="color: #141416">Crawl</span></div>
-<div><span style="color: #696366">10:31:40</span> Crawl xong: 212 URL, 18 form</div>
-<div><span style="color: #696366">10:31:41</span> Bắt đầu <span style="color: #141416">Detect</span> (4 nhóm check)</div>
-<div><span style="color: #696366">10:33:12</span> <span style="color: #B42318">Finding</span> SQLi tại /search?q</div>
+<div><span style="color: #9A9AA2">10:24:02</span> Scan được tạo, vào hàng đợi</div>
+<div><span style="color: #9A9AA2">10:24:09</span> Worker nhận job, bắt đầu <span style="color: #FAFAFA">Crawl</span></div>
+<div><span style="color: #9A9AA2">10:31:40</span> Crawl xong: 212 URL, 18 form</div>
+<div><span style="color: #9A9AA2">10:31:41</span> Bắt đầu <span style="color: #FAFAFA">Detect</span> (4 nhóm check)</div>
+<div><span style="color: #9A9AA2">10:33:12</span> <span style="color: #FF8A5C">Finding</span> SQLi tại /search?q</div>
 </div>
 </section>
 </div>
