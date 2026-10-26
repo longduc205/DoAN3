@@ -56,6 +56,45 @@
   }
   .btn-primary:hover { @apply text-white; background: radial-gradient(120% 90% at 50% 0%, #46464c 0%, #1b1b1e 55%, #050506 100%); }
   .btn-danger { @apply text-danger; }
+  /* Big "keyboard key" button from the login design (.si-key). */
+  .btn-key {
+    @apply flex w-full items-center justify-center gap-2.5 p-4 rounded-2xl text-[15px] font-medium text-white cursor-pointer
+      disabled:opacity-70 disabled:cursor-wait;
+    background: radial-gradient(120% 90% at 50% 0%, #3a3a3f 0%, #121214 55%, #050506 100%);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.22), inset 0 -3px 8px rgb(0 0 0 / 0.7), 0 0 0 1px rgb(0 0 0 / 0.75),
+      0 14px 22px -8px rgb(0 0 0 / 0.55);
+    transition: transform 0.35s cubic-bezier(0.34, 1.36, 0.5, 1);
+  }
+  .btn-key:not(:disabled):hover { transform: translateY(-2px); }
+  .btn-key:not(:disabled):active { transform: scale(0.98); transition-duration: 0.12s; }
+  /* Glass input shell: put a borderless <input> (and optional icon button) inside. */
+  .field-glass {
+    @apply flex items-center rounded-2xl border border-line bg-white/55;
+    backdrop-filter: blur(10px);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9);
+    transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+  }
+  .field-glass:focus-within {
+    @apply border-focus/70 bg-focus/5;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 0 0 4px rgb(76 141 255 / 0.12);
+  }
+  .field-glass input { @apply flex-1 min-w-0 p-4 bg-transparent text-[15px] text-ink outline-none placeholder:text-ink-muted; }
+  .check {
+    @apply grid place-items-center size-5 m-0 rounded-[7px] border border-ink/20 bg-white/70 cursor-pointer appearance-none
+      checked:bg-ink checked:border-ink;
+  }
+  .check:checked::after {
+    content: '';
+    width: 9px;
+    height: 5px;
+    border: 2px solid #fff;
+    border-top: 0;
+    border-right: 0;
+    transform: translate(0, -1px) rotate(-45deg);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .btn-key, .field-glass { transition: none; }
+  }
   .input {
     @apply w-full h-10 px-3 rounded-xl border border-line bg-white/85 text-sm text-ink;
   }

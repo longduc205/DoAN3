@@ -24,7 +24,10 @@ public class BaseSearchParam
     }
 }
 
-public class ProjectSearchParam : BaseSearchParam;
+public class ProjectSearchParam : BaseSearchParam
+{
+    public ProjectStatus? Status { get; set; }
+}
 
 public class TargetSearchParam : BaseSearchParam
 {

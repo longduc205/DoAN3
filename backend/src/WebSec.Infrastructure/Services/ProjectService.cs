@@ -5,6 +5,7 @@ using WebSec.Infrastructure.Interfaces;
 using WebSec.Infrastructure.Mapping;
 using WebSec.Shared.DTOs;
 using WebSec.Shared.Entities;
+using WebSec.Shared.Enums;
 using WebSec.Shared.Errors;
 using WebSec.Shared.Models;
 using WebSec.Shared.Params;
@@ -19,9 +20,12 @@ public class ProjectService(AppDbContext db, ICurrentUser currentUser) : IProjec
         ["code"] = p => p.Code,
         ["name"] = p => p.Name,
         ["createdDate"] = p => p.CreatedDate,
+        ["updatedDate"] = p => p.UpdatedDate ?? p.CreatedDate,
     };
 
-    public Task<PagedResult<ProjectModel>> GetAllAsync(ProjectSearchParam param, CancellationToken ct)
+    private static readonly ScanStatus[] ActiveScanStatuses = [ScanStatus.Pending, ScanStatus.Queued, ScanStatus.Running, ScanStatus.Cancelling];
+
+    public async Task<PagedResult<ProjectModel>> GetAllAsync(ProjectSearchParam param, CancellationToken ct)
     {
         param.Normalize();
         var query = db.AccessibleProjects(currentUser);
@@ -31,7 +35,49 @@ public class ProjectService(AppDbContext db, ICurrentUser currentUser) : IProjec
             query = query.Where(p => EF.Functions.ILike(p.Name, pattern) || EF.Functions.ILike(p.Code, pattern));
         }
         if (param.IsActive is { } active) query = query.Where(p => p.IsActive == active);
-        return query.SortBy(param, Sorts, "createdDate").ToPagedAsync(param, AppMapper.ToModel, ct);
+        if (param.Status is { } status) query = query.Where(p => p.Status == status);
+        var page = await query.SortBy(param, Sorts, "createdDate").ToPagedAsync(param, AppMapper.ToModel, ct);
+        await FillSummaryAsync(page.Items, ct);
+        return page;
+    }
+
+    /// <summary>One grouped query per metric for the whole page (no N+1).</summary>
+    private async Task FillSummaryAsync(IReadOnlyList<ProjectModel> items, CancellationToken ct)
+    {
+        if (items.Count == 0) return;
+        var ids = items.Select(p => p.Id).ToList();
+
+        var targets = await db.Targets.Where(t => ids.Contains(t.ProjectId))
+            .GroupBy(t => t.ProjectId)
+            .Select(g => new
+            {
+                ProjectId = g.Key,
+                Total = g.Count(),
+                Unauthorized = g.Count(t => t.IsEnabled && !t.IsAuthorized),
+                LastScanAt = g.Max(t => t.LastScanAt),
+            })
+            .ToDictionaryAsync(x => x.ProjectId, ct);
+
+        var scanning = (await db.Scans.Where(s => ids.Contains(s.ProjectId) && ActiveScanStatuses.Contains(s.Status))
+            .Select(s => s.ProjectId).Distinct().ToListAsync(ct)).ToHashSet();
+
+        var findings = await db.ScanFindings
+            .Join(db.Targets.Where(t => ids.Contains(t.ProjectId)), f => f.TargetId, t => t.Id, (f, t) => new { t.ProjectId, f.Fingerprint })
+            .GroupBy(x => x.ProjectId)
+            .Select(g => new { ProjectId = g.Key, Count = g.Select(x => x.Fingerprint).Distinct().Count() })
+            .ToDictionaryAsync(x => x.ProjectId, x => x.Count, ct);
+
+        foreach (var p in items)
+        {
+            if (targets.TryGetValue(p.Id, out var t))
+            {
+                p.TargetCount = t.Total;
+                p.UnauthorizedTargetCount = t.Unauthorized;
+                p.LastScanAt = t.LastScanAt;
+            }
+            p.IsScanning = scanning.Contains(p.Id);
+            p.FindingCount = findings.GetValueOrDefault(p.Id);
+        }
     }
 
     public async Task<ProjectModel> GetByIdAsync(Guid id, CancellationToken ct) => (await FindAsync(id, ct)).ToModel();

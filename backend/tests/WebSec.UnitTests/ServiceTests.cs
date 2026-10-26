@@ -73,6 +73,29 @@ public class ServiceTests
     }
 
     [Fact]
+    public async Task ProjectGetAll_ReturnsSummaryCounts()
+    {
+        var (db, scan, _) = SeedQueuedScan();
+        var projectId = scan.ProjectId;
+        var other = new Target { Id = Guid.NewGuid(), ProjectId = projectId, Name = "b", BaseUrl = "http://127.0.0.1:4000/", IsEnabled = true };
+        db.Targets.Add(other);
+        db.ScanFindings.AddRange(
+            new ScanFinding { Id = Guid.NewGuid(), ScanId = scan.Id, TargetId = scan.TargetId, Fingerprint = "a" },
+            new ScanFinding { Id = Guid.NewGuid(), ScanId = scan.Id, TargetId = scan.TargetId, Fingerprint = "a" },
+            new ScanFinding { Id = Guid.NewGuid(), ScanId = scan.Id, TargetId = other.Id, Fingerprint = "b" });
+        await db.SaveChangesAsync();
+
+        var page = await new Infrastructure.Services.ProjectService(db, new FakeUser(UserId, Roles.SecurityAnalyst))
+            .GetAllAsync(new Shared.Params.ProjectSearchParam(), default);
+
+        var p = Assert.Single(page.Items);
+        Assert.Equal(2, p.TargetCount);
+        Assert.Equal(1, p.UnauthorizedTargetCount);
+        Assert.Equal(2, p.FindingCount);
+        Assert.True(p.IsScanning); // seeded scan is Queued
+    }
+
+    [Fact]
     public async Task ProjectDelete_IsSoftDelete()
     {
         var db = NewDb();

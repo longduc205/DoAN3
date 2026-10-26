@@ -13,7 +13,8 @@ interface Session {
 
 const STORAGE_KEY = 'websec.session';
 
-// shortcut: access token kept in sessionStorage (no refresh token yet); move to HttpOnly refresh cookie when refresh is implemented.
+// shortcut: access token kept in sessionStorage, or localStorage when "remember me" is ticked (no refresh token yet);
+// move to HttpOnly refresh cookie when refresh is implemented.
 @Injectable({ providedIn: 'root' })
 export class AuthService extends BaseApiService {
   protected readonly resource = 'auth';
@@ -31,12 +32,12 @@ export class AuthService extends BaseApiService {
     return this.user()?.permissions.includes(code) ?? false;
   }
 
-  login(userName: string, password: string): Observable<ApiResponse<LoginResult>> {
+  login(userName: string, password: string, remember = false): Observable<ApiResponse<LoginResult>> {
     return this.post<ApiResponse<LoginResult>>('login', { userName, password }).pipe(
       tap((res) => {
         if (!res.data) return;
         const s: Session = { token: res.data.accessToken, expiresAt: res.data.expiresAt, user: res.data.user };
-        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+        (remember ? localStorage : sessionStorage).setItem(STORAGE_KEY, JSON.stringify(s));
         this.session.set(s);
       }),
     );
@@ -44,13 +45,15 @@ export class AuthService extends BaseApiService {
 
   logout(): void {
     sessionStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(STORAGE_KEY);
     this.session.set(null);
     this.router.navigateByUrl('/login');
   }
 
   private static load(): Session | null {
     try {
-      const s = JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? 'null') as Session | null;
+      const raw = sessionStorage.getItem(STORAGE_KEY) ?? localStorage.getItem(STORAGE_KEY);
+      const s = JSON.parse(raw ?? 'null') as Session | null;
       return s && new Date(s.expiresAt) > new Date() ? s : null;
     } catch {
       return null;

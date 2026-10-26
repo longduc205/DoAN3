@@ -7,11 +7,25 @@
   },
   "auth": { "logout": "Sign out" },
   "login": {
-    "kicker": "VULNERABILITY MANAGEMENT · LAB EDITION",
-    "headline": "Every lab vulnerability, in one folder.",
-    "sub": "Each project is a folder: targets, scans and findings live inside. Scan only what you are authorized to test.",
-    "title": "Sign in", "userName": "Username or email", "password": "Password", "submit": "Sign in",
-    "devHint": "DEV: see README for local seed accounts"
+    "systemOk": "SYSTEM OK", "welcome": "Welcome", "welcomeBold": "back",
+    "sub": "Open your lab workspace to keep scanning, triaging and verifying vulnerabilities.",
+    "userName": "Email or username", "userNamePh": "name@lab.local",
+    "password": "Password", "passwordPh": "Enter your password", "showPw": "Show password", "hidePw": "Hide password",
+    "pwCleared": "Your password was cleared, please enter it again.",
+    "remember": "Remember me on this device", "forgot": "Forgot password?", "askAdmin": "Ask an admin",
+    "submit": "Sign in", "submitting": "Opening workspace…",
+    "sessionSecurity": "SESSION SECURITY",
+    "securityNote": "Sessions expire after 60 minutes. Repeated failed sign-ins are temporarily blocked.",
+    "noAccount": "No account yet?", "noAccountBold": "An administrator will create one for you.",
+    "authorizedOnly": "AUTHORIZED LABS ONLY",
+    "devHint": "DEV: see README for local seed accounts",
+    "heroLabel": "Recent workspace activity",
+    "quote": "Each project is a folder: targets, scans, vulnerabilities and reports live inside. Scan within authorized scope, verify before closing.",
+    "cards": {
+      "scan": { "title": "Scan #128 completed", "meta": "SHOP-STAGING · 10:41", "body": "8 new findings, 1 critical SQL Injection to triage." },
+      "dev": { "title": "Phạm Long", "meta": "VULN-0118 · DEVELOPER", "body": "Output encoded, resubmitted for verification." },
+      "ai": { "title": "AI Advisor", "meta": "SUGGESTION · SECRETS MASKED", "body": "Use a parameterized query for /search?q." }
+    }
   },
   "common": {
     "loading": "Loading…", "retry": "Retry", "empty": "No data yet.", "search": "Search…", "edit": "Edit", "delete": "Delete",
@@ -27,7 +41,21 @@
     "findings": "Findings", "recentScans": "Recent scans", "noScans": "No scans yet.", "bySeverity": "By severity"
   },
   "projects": {
-    "new": "New project", "edit": "Edit project", "code": "Code", "name": "Name", "description": "Description", "empty": "No projects yet. Create your first one."
+    "new": "New project", "edit": "Edit project", "code": "Code", "name": "Name", "description": "Description", "empty": "No projects yet. Create your first one.",
+    "subtitle": "{{count}} projects", "needScope": "{{count}} targets awaiting scope confirmation",
+    "tabAll": "All", "tabActive": "Active", "tabArchived": "Archived",
+    "searchPh": "Search by name or code", "sortLabel": "Sort",
+    "sortNewest": "Newest first", "sortUpdated": "Recently updated", "sortName": "Name A–Z",
+    "targetCount": "{{count}} TARGETS", "findingCount": "{{count}} findings",
+    "lastScan": "last scan {{date}}", "neverScanned": "never scanned",
+    "scanning": "Scanning", "needsScope": "Scope needs confirmation", "archivedOn": "ARCHIVED {{date}}",
+    "addTarget": "Add a target to {{name}}", "openFolder": "Open project {{name}}, {{count}} targets",
+    "emptyTitle": "No projects yet",
+    "emptyBody": "A project groups the target websites of one system. Get started in 3 steps:",
+    "step1": "Create a project", "step2": "Add a target and confirm scope", "step3": "Run the first scan",
+    "createFirst": "Create your first project",
+    "noResults": "No projects match \"{{keyword}}\"", "noResultsFilter": "No projects with this status",
+    "noResultsHint": "Try another keyword or remove some filters.", "clearFilters": "Clear filters"
   },
   "projectStatus": { "Active": "Active", "Archived": "Archived" },
   "targets": {

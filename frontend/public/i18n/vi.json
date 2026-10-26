@@ -7,11 +7,25 @@
   },
   "auth": { "logout": "Đăng xuất" },
   "login": {
-    "kicker": "VULNERABILITY MANAGEMENT · LAB EDITION",
-    "headline": "Mọi lỗ hổng của lab, gọn trong một thư mục.",
-    "sub": "Mỗi project là một thư mục: target, scan và finding nằm bên trong. Chỉ quét trong phạm vi được ủy quyền.",
-    "title": "Đăng nhập", "userName": "Tên đăng nhập hoặc email", "password": "Mật khẩu", "submit": "Đăng nhập",
-    "devHint": "DEV: xem README để lấy tài khoản seed cục bộ"
+    "systemOk": "SYSTEM OK", "welcome": "Chào mừng", "welcomeBold": "trở lại",
+    "sub": "Mở workspace của lab để tiếp tục scan, triage và xác minh lỗ hổng.",
+    "userName": "Email hoặc tên đăng nhập", "userNamePh": "ten@lab.local",
+    "password": "Mật khẩu", "passwordPh": "Nhập mật khẩu", "showPw": "Hiện mật khẩu", "hidePw": "Ẩn mật khẩu",
+    "pwCleared": "Mật khẩu đã được xoá, hãy nhập lại.",
+    "remember": "Ghi nhớ trên máy này", "forgot": "Quên mật khẩu?", "askAdmin": "Hỏi Admin",
+    "submit": "Đăng nhập", "submitting": "Đang mở workspace…",
+    "sessionSecurity": "BẢO MẬT PHIÊN",
+    "securityNote": "Phiên hết hạn sau 60 phút. Đăng nhập sai nhiều lần liên tiếp sẽ bị tạm chặn.",
+    "noAccount": "Chưa có tài khoản?", "noAccountBold": "Quản trị viên sẽ cấp cho bạn.",
+    "authorizedOnly": "CHỈ DÙNG CHO LAB ĐÃ ỦY QUYỀN",
+    "devHint": "DEV: xem README để lấy tài khoản seed cục bộ",
+    "heroLabel": "Hoạt động gần đây trong workspace",
+    "quote": "Mỗi project là một thư mục: target, scan, lỗ hổng và report nằm bên trong. Quét trong phạm vi được ủy quyền, xác minh rồi mới đóng.",
+    "cards": {
+      "scan": { "title": "Scan #128 hoàn tất", "meta": "SHOP-STAGING · 10:41", "body": "8 finding mới, 1 SQL Injection Critical cần triage." },
+      "dev": { "title": "Phạm Long", "meta": "VULN-0118 · DEVELOPER", "body": "Đã encode output, gửi lại để xác minh." },
+      "ai": { "title": "AI Advisor", "meta": "GỢI Ý · ĐÃ CHE SECRET", "body": "Dùng truy vấn tham số hoá cho /search?q." }
+    }
   },
   "common": {
     "loading": "Đang tải…", "retry": "Thử lại", "empty": "Chưa có dữ liệu.", "search": "Tìm kiếm…", "edit": "Sửa", "delete": "Xoá",
@@ -27,7 +41,21 @@
     "findings": "Findings", "recentScans": "Scan gần đây", "noScans": "Chưa có scan nào.", "bySeverity": "Theo severity"
   },
   "projects": {
-    "new": "Tạo project", "edit": "Sửa project", "code": "Mã", "name": "Tên", "description": "Mô tả", "empty": "Chưa có project nào. Hãy tạo project đầu tiên."
+    "new": "Tạo project", "edit": "Sửa project", "code": "Mã", "name": "Tên", "description": "Mô tả", "empty": "Chưa có project nào. Hãy tạo project đầu tiên.",
+    "subtitle": "{{count}} project", "needScope": "{{count}} target chưa xác nhận scope",
+    "tabAll": "Tất cả", "tabActive": "Active", "tabArchived": "Archived",
+    "searchPh": "Tìm theo tên hoặc code", "sortLabel": "Sắp xếp",
+    "sortNewest": "Mới tạo trước", "sortUpdated": "Mới cập nhật", "sortName": "Tên A–Z",
+    "targetCount": "{{count}} TARGET", "findingCount": "{{count}} finding",
+    "lastScan": "scan gần nhất {{date}}", "neverScanned": "chưa scan lần nào",
+    "scanning": "Đang scan", "needsScope": "Cần xác nhận scope", "archivedOn": "ARCHIVED {{date}}",
+    "addTarget": "Thêm target vào {{name}}", "openFolder": "Mở project {{name}}, {{count}} target",
+    "emptyTitle": "Chưa có project nào",
+    "emptyBody": "Project gom các website mục tiêu của cùng một hệ thống. Bắt đầu bằng 3 bước:",
+    "step1": "Tạo project", "step2": "Thêm target và xác nhận scope", "step3": "Chạy scan đầu tiên",
+    "createFirst": "Tạo project đầu tiên",
+    "noResults": "Không có project khớp \"{{keyword}}\"", "noResultsFilter": "Không có project nào ở trạng thái này",
+    "noResultsHint": "Thử từ khoá khác hoặc bỏ bớt bộ lọc.", "clearFilters": "Xoá bộ lọc"
   },
   "projectStatus": { "Active": "Đang hoạt động", "Archived": "Lưu trữ" },
   "targets": {

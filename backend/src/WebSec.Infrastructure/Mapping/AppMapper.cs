@@ -9,6 +9,12 @@ namespace WebSec.Infrastructure.Mapping;
 [Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Target)]
 public static partial class AppMapper
 {
+    // Summary counts are filled by ProjectService.GetAllAsync.
+    [MapperIgnoreTarget(nameof(ProjectModel.TargetCount))]
+    [MapperIgnoreTarget(nameof(ProjectModel.UnauthorizedTargetCount))]
+    [MapperIgnoreTarget(nameof(ProjectModel.FindingCount))]
+    [MapperIgnoreTarget(nameof(ProjectModel.IsScanning))]
+    [MapperIgnoreTarget(nameof(ProjectModel.LastScanAt))]
     public static partial ProjectModel ToModel(this Project entity);
 
     [MapperIgnoreSource(nameof(Target.Project))]

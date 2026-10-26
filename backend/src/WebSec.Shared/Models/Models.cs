@@ -29,6 +29,15 @@ public sealed class ProjectModel
     public ProjectStatus Status { get; set; }
     public DateTimeOffset CreatedDate { get; set; }
     public DateTimeOffset? UpdatedDate { get; set; }
+
+    // Summary, only filled by the list endpoint.
+    public int TargetCount { get; set; }
+    /// <summary>Enabled targets the owner has not yet confirmed authorization for.</summary>
+    public int UnauthorizedTargetCount { get; set; }
+    /// <summary>Distinct findings (by fingerprint) across all scans.</summary>
+    public int FindingCount { get; set; }
+    public bool IsScanning { get; set; }
+    public DateTimeOffset? LastScanAt { get; set; }
 }
 
 public sealed class TargetModel

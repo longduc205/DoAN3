@@ -59,6 +59,12 @@ export interface Project {
   status: ProjectStatus;
   createdDate: string;
   updatedDate: string | null;
+  // Summary, only filled by projects/get-all.
+  targetCount: number;
+  unauthorizedTargetCount: number;
+  findingCount: number;
+  isScanning: boolean;
+  lastScanAt: string | null;
 }
 
 export interface Target {
