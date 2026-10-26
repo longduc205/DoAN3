@@ -11,75 +11,114 @@
 <style>
 body{margin:0;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
 *{box-sizing:border-box}
-input:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid #4c8dff;outline-offset:2px}
-.lg{min-height:100vh;display:flex;flex-direction:column;padding:28px 5vw;background-color:#EDEDEF;background-image:radial-gradient(rgba(20,20,22,.13) 1.1px,transparent 1.4px);background-size:22px 22px;color:#141416;font-family:ui-sans-serif,system-ui,-apple-system,'SF Pro Text','Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif}
-.lg-main{flex:1;display:grid;grid-template-columns:1fr 470px;align-items:center;gap:64px;padding:40px 0}
-.lg-h1{margin:0 0 20px;font-size:clamp(40px,4.6vw,68px);line-height:1.02;font-weight:600;letter-spacing:-.035em}
-.lg-obj{position:relative;padding-top:110px}
-.lg-back{position:absolute;left:0;right:0;top:0;height:300px;border-radius:28px;overflow:hidden;clip-path:path('M0 72A28 28 0 0 1 28 44L200 44C232 44 236 0 270 0L442 0A28 28 0 0 1 470 28L470 300L0 300Z');box-shadow:0 0 0 .5px rgba(0,0,0,.1)}
-.lg-back img{width:100%;height:100%;object-fit:cover;display:block}
-.lg-front{position:relative;border-radius:26px;padding:30px 30px 28px;display:flex;flex-direction:column;gap:16px;background:linear-gradient(180deg,rgba(255,255,255,.28) 0%,rgba(255,255,255,.72) 34%,rgba(252,252,252,.94) 100%);-webkit-backdrop-filter:blur(22px) saturate(1.5);backdrop-filter:blur(22px) saturate(1.5);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.95),0 0 0 .5px rgba(0,0,0,.1),0 30px 60px -24px rgba(10,12,20,.45)}
-.lg-shadow{position:absolute;left:24px;right:24px;bottom:-10px;height:70px;border-radius:40px;background:rgba(16,18,24,.3);filter:blur(26px)}
-.lg-input{height:46px;padding:0 14px;border:1px solid rgba(20,20,22,.14);border-radius:12px;background:rgba(255,255,255,.85);font:inherit;font-size:15px;color:#141416}
-.lg-key{display:flex;align-items:center;justify-content:center;gap:10px;height:50px;border-radius:16px;color:#fff;text-decoration:none;font-size:15px;font-weight:500;background:radial-gradient(120% 90% at 50% 0%,#3a3a3f 0%,#121214 55%,#050506 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 -3px 8px rgba(0,0,0,.7),0 0 0 1px rgba(0,0,0,.75),0 14px 22px -8px rgba(0,0,0,.55);transition:transform .35s cubic-bezier(.34,1.36,.5,1)}
-.lg-key:hover{color:#fff;transform:translateY(-2px)}.lg-key:active{transform:scale(.97);transition-duration:.12s}
-.lg-mono{font-family:ui-monospace,'SF Mono',SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;letter-spacing:.03em;color:rgba(20,20,22,.62)}
-@media(max-width:960px){.lg{padding:20px}.lg-main{grid-template-columns:1fr;gap:28px;padding:28px 0}.lg-sub{display:none}.lg-obj{max-width:470px;width:100%;justify-self:center}.lg-h1{font-size:34px}}
-@media(prefers-reduced-motion:reduce){.lg-key{transition:none}}
+:focus-visible{outline:2px solid #4c8dff;outline-offset:2px}
+.si{min-height:100vh;display:flex;background-color:#EDEDEF;background-image:radial-gradient(rgba(20,20,22,.13) 1.1px,transparent 1.4px);background-size:22px 22px;color:#141416;font-family:ui-sans-serif,system-ui,-apple-system,'SF Pro Text','Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif}
+.si-form{flex:1;min-width:0;display:flex;flex-direction:column;padding:28px 40px}
+.si-inner{flex:1;display:flex;align-items:center;justify-content:center}
+.si-box{width:100%;max-width:420px;display:flex;flex-direction:column;gap:22px}
+.si-h1{margin:0;font-size:48px;line-height:1.08;font-weight:300;letter-spacing:-.045em}
+.si-h1 b{font-weight:600}
+.si-label{display:block;margin-bottom:8px;font-size:13px;font-weight:500;color:#55555c}
+.si-glass{display:flex;align-items:center;border-radius:16px;border:1px solid rgba(20,20,22,.12);background:rgba(255,255,255,.55);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:inset 0 1px 0 rgba(255,255,255,.9);transition:border-color .2s,background .2s,box-shadow .2s}
+.si-glass:focus-within{border-color:rgba(76,141,255,.7);background:rgba(76,141,255,.06);box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 0 0 4px rgba(76,141,255,.12)}
+.si-glass input{flex:1;min-width:0;padding:16px;border:none;background:transparent;font:inherit;font-size:15px;color:#141416;outline:none}
+.si-glass input::placeholder{color:#6b6b72}
+.si-eye{all:unset;display:grid;place-items:center;width:40px;height:40px;margin-right:6px;border-radius:12px;color:#55555c;cursor:pointer}
+.si-eye:hover{color:#141416;background:rgba(20,20,22,.05)}
+.si-key{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:16px;border:none;border-radius:16px;color:#fff;text-decoration:none;font:inherit;font-size:15px;font-weight:500;cursor:pointer;background:radial-gradient(120% 90% at 50% 0%,#3a3a3f 0%,#121214 55%,#050506 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 -3px 8px rgba(0,0,0,.7),0 0 0 1px rgba(0,0,0,.75),0 14px 22px -8px rgba(0,0,0,.55);transition:transform .35s cubic-bezier(.34,1.36,.5,1)}
+.si-key:hover{color:#fff;transform:translateY(-2px)}.si-key:active{transform:scale(.98);transition-duration:.12s}
+.si-check{appearance:none;-webkit-appearance:none;width:20px;height:20px;margin:0;border-radius:7px;border:1px solid rgba(20,20,22,.22);background:rgba(255,255,255,.7);display:grid;place-items:center;cursor:pointer}
+.si-check:checked{background:#141416;border-color:#141416}
+.si-check:checked::after{content:"";width:9px;height:5px;border:2px solid #fff;border-top:0;border-right:0;transform:translate(0,-1px) rotate(-45deg)}
+.si-mono{font-family:ui-monospace,'SF Mono',SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;letter-spacing:.03em;color:#5f5f66}
+.si-hero{flex:1.05;min-width:0;position:relative;padding:14px 14px 14px 0}
+.si-art{position:absolute;inset:14px 14px 14px 0;border-radius:30px;overflow:hidden;box-shadow:0 0 0 .5px rgba(0,0,0,.1),0 30px 60px -30px rgba(10,12,20,.45)}
+.si-art img{width:100%;height:100%;object-fit:cover;display:block}
+.si-art::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 45%,rgba(0,0,0,.28) 100%)}
+.si-cards{position:absolute;left:0;right:14px;bottom:44px;display:flex;justify-content:center;gap:14px;padding:0 32px;z-index:1}
+.si-card{width:300px;display:flex;gap:12px;align-items:flex-start;padding:16px;border-radius:24px;background:rgba(255,255,255,.62);-webkit-backdrop-filter:blur(22px) saturate(1.5);backdrop-filter:blur(22px) saturate(1.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 0 0 .5px rgba(0,0,0,.1),0 18px 36px -14px rgba(10,12,20,.4);font-size:13px;line-height:1.4}
+.si-av{flex:none;width:40px;height:40px;border-radius:14px;display:grid;place-items:center;font-size:13px;font-weight:600}
+.si-quote{position:absolute;left:40px;top:40px;right:40px;z-index:1;color:#fff;font-size:15px;line-height:1.5;max-width:380px;text-shadow:0 1px 12px rgba(0,0,0,.35)}
+.a-in{opacity:0;filter:blur(4px);transform:translateY(12px);animation:fadeSlideIn .7s cubic-bezier(.2,.8,.2,1) forwards}
+.a-right{opacity:0;filter:blur(6px);transform:translateX(28px);animation:slideRightIn .9s cubic-bezier(.2,.8,.2,1) .3s forwards}
+.a-card{opacity:0;filter:blur(6px);transform:translateY(18px) scale(.96);animation:testimonialIn .8s cubic-bezier(.34,1.36,.5,1) forwards}
+.d1{animation-delay:.1s}.d2{animation-delay:.2s}.d3{animation-delay:.3s}.d4{animation-delay:.4s}.d5{animation-delay:.5s}.d6{animation-delay:.6s}.d7{animation-delay:.7s}.d10{animation-delay:1s}.d12{animation-delay:1.2s}.d14{animation-delay:1.4s}
+@keyframes fadeSlideIn{to{opacity:1;filter:blur(0);transform:translateY(0)}}
+@keyframes slideRightIn{to{opacity:1;filter:blur(0);transform:translateX(0)}}
+@keyframes testimonialIn{to{opacity:1;filter:blur(0);transform:translateY(0) scale(1)}}
+@media(max-width:1560px){.si-c3{display:none}}
+@media(max-width:1180px){.si-c2{display:none}}
+@media(max-width:860px){.si-hero{display:none}.si-form{padding:20px}.si-h1{font-size:38px}}
+@media(prefers-reduced-motion:reduce){.a-in,.a-right,.a-card{animation:none;opacity:1;filter:none;transform:none}.si-key,.si-glass{transition:none}}
 </style>
 </helmet>
-<div class="lg">
-<div style="display: flex; align-items: center; justify-content: space-between; gap: 16px">
+<div class="si">
+<section class="si-form">
+<div class="a-in" style="display: flex; align-items: center; justify-content: space-between; gap: 16px">
 <span style="display: inline-flex; align-items: center; gap: 10px"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 26 26"><path d="M3 6.5l5 14 5-10 5 10 5-14" fill="none" stroke="#141416" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="13" cy="4" r="2.2" fill="#EF4A2B"/></svg><b style="font-size: 17px; font-weight: 600; letter-spacing: -0.02em">WebSec AI</b></span>
-<span class="lg-mono" style="display: inline-flex; align-items: center; gap: 8px"><span aria-hidden="true" style="width: 7px; height: 7px; border-radius: 4px; background: #16A34A"></span>SYSTEM OK</span>
+<span class="si-mono" style="display: inline-flex; align-items: center; gap: 8px"><span aria-hidden="true" style="width: 7px; height: 7px; border-radius: 4px; background: #16A34A"></span>SYSTEM OK</span>
 </div>
 
-<main class="lg-main">
-<div>
-<p class="lg-mono" style="margin: 0 0 18px">VULNERABILITY MANAGEMENT · LAB EDITION</p>
-<h1 class="lg-h1">Mọi lỗ hổng của lab,<br>gọn trong một thư mục.</h1>
-<p class="lg-sub" style="margin: 0; max-width: 470px; font-size: 16px; line-height: 1.6; color: #55555c">Mỗi project là một thư mục: target, scan, lỗ hổng và report nằm bên trong. Quét trong phạm vi được ủy quyền, giao việc, xác minh rồi mới đóng.</p>
-<div class="lg-sub" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px">
-<span class="lg-mono" style="padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,.7); box-shadow: 0 0 0 .5px rgba(0,0,0,.12)">SCAN CÓ PHẠM VI</span>
-<span class="lg-mono" style="padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,.7); box-shadow: 0 0 0 .5px rgba(0,0,0,.12)">TRIAGE · XÁC MINH</span>
-<span class="lg-mono" style="padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,.7); box-shadow: 0 0 0 .5px rgba(0,0,0,.12)">AI ADVISOR</span>
-</div>
-</div>
-
-<div class="lg-obj">
-<div class="lg-shadow" aria-hidden="true"></div>
-<div class="lg-back" aria-hidden="true"><img src="art/aurora-8.png" alt="" width="470" height="300"></div>
-<section class="lg-front" aria-labelledby="login-title">
-<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px"><h2 id="login-title" style="margin: 0; font-size: 26px; font-weight: 600; letter-spacing: -0.02em">Đăng nhập</h2><span class="lg-mono">LAB WORKSPACE</span></div>
-<p style="margin: -8px 0 0; font-size: 14px; color: #55555c">Dùng tài khoản do quản trị viên cấp.</p>
+<div class="si-inner">
+<div class="si-box">
+<h1 class="si-h1 a-in d1">Chào mừng <b>trở lại</b></h1>
+<p class="a-in d2" style="margin: -8px 0 0; font-size: 15px; line-height: 1.6; color: #55555c">Mở workspace của lab để tiếp tục scan, triage và xác minh lỗ hổng.</p>
 
 <sc-if value="{{ isError }}" hint-placeholder-val="{{ false }}">
-<div role="alert" style="display: flex; gap: 10px; padding: 12px 14px; background: rgba(254, 236, 235, .9); color: #831C1E; border-radius: 12px; font-size: 14px; line-height: 21px"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex: none; margin-top: 2px"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span><b style="font-weight: 600">Email hoặc mật khẩu không đúng.</b> Còn 3 lần thử trước khi bị khoá 15 phút.</span></div>
+<div role="alert" class="a-in" style="display: flex; gap: 10px; padding: 12px 14px; background: rgba(254, 236, 235, .85); color: #831C1E; border-radius: 16px; font-size: 14px; line-height: 21px"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex: none; margin-top: 2px"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span><b style="font-weight: 600">Email hoặc mật khẩu không đúng.</b> Còn 3 lần thử trước khi tài khoản bị khoá 15 phút.</span></div>
 </sc-if>
 <sc-if value="{{ isLocked }}" hint-placeholder-val="{{ false }}">
-<div role="alert" style="display: flex; gap: 10px; padding: 12px 14px; background: rgba(255, 244, 214, .92); color: #7A4A00; border-radius: 12px; font-size: 14px; line-height: 21px"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex: none; margin-top: 2px"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span><b style="font-weight: 600">Tài khoản đang bị khoá.</b> Liên hệ quản trị viên để được mở khoá.</span></div>
+<div role="alert" class="a-in" style="display: flex; gap: 10px; padding: 12px 14px; background: rgba(255, 244, 214, .9); color: #7A4A00; border-radius: 16px; font-size: 14px; line-height: 21px"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex: none; margin-top: 2px"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span><b style="font-weight: 600">Tài khoản đang bị khoá.</b> Liên hệ quản trị viên để được mở khoá.</span></div>
 </sc-if>
 
-<div style="display: flex; flex-direction: column; gap: 7px"><label for="email" style="font-size: 13px; font-weight: 500">Email công việc</label><input id="email" class="lg-input" type="email" autocomplete="username" value="an.tran@lab.local"></div>
-<div style="display: flex; flex-direction: column; gap: 7px">
-<span style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px"><label for="pw" style="font-size: 13px; font-weight: 500">Mật khẩu</label><span style="font-size: 12px; color: #55555c">Quên? Hỏi Admin</span></span>
-<span style="display: flex; align-items: center; height: 46px; padding: 0 6px 0 14px; border: 1px solid {{ pwBorder }}; border-radius: 12px; background: rgba(255,255,255,.85)"><input id="pw" type="password" autocomplete="current-password" value="password" aria-describedby="{{ pwHintId }}" style="flex: 1; min-width: 0; border: none; background: transparent; font: inherit; font-size: 15px; color: #141416"><button type="button" aria-label="Hiện mật khẩu" style="height: 34px; padding: 0 10px; border: none; border-radius: 10px; background: transparent; font: inherit; font-size: 13px; color: #3f3f46">Hiện</button></span>
-<sc-if value="{{ isError }}" hint-placeholder-val="{{ false }}"><span id="pw-hint" style="font-size: 13px; color: #B42318">Mật khẩu đã được xoá, hãy nhập lại.</span></sc-if>
+<form style="display: flex; flex-direction: column; gap: 18px" onsubmit="return false">
+<div class="a-in d3"><label class="si-label" for="email">Email công việc</label><div class="si-glass"><input id="email" name="email" type="email" autocomplete="username" placeholder="ten@lab.local" value="an.tran@lab.local"></div></div>
+<div class="a-in d4">
+<label class="si-label" for="pw">Mật khẩu</label>
+<div class="si-glass" style="border-color: {{ pwBorder }}"><input id="pw" name="password" type="{{ pwType }}" autocomplete="current-password" placeholder="Nhập mật khẩu" value="password" aria-describedby="{{ pwHintId }}"><button type="button" class="si-eye" aria-label="{{ eyeLabel }}" aria-pressed="{{ pwShown }}" onClick="{{ toggleEye }}">
+<sc-if value="{{ eyeOpen }}" hint-placeholder-val="{{ true }}"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></sc-if>
+<sc-if value="{{ eyeClosed }}" hint-placeholder-val="{{ false }}"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.7 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-2.2 3.2M6.6 6.6A17.4 17.4 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.4-1.6M3 3l18 18M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg></sc-if>
+</button></div>
+<sc-if value="{{ isError }}" hint-placeholder-val="{{ false }}"><span id="pw-hint" style="display: block; margin-top: 6px; font-size: 13px; color: #B42318">Mật khẩu đã được xoá, hãy nhập lại.</span></sc-if>
 </div>
-<sc-if value="{{ isLoading }}" hint-placeholder-val="{{ false }}"><button type="button" disabled aria-busy="true" class="lg-key" style="width: 100%; border: none; font: inherit; font-size: 15px; opacity: .7">Đang đăng nhập…</button></sc-if>
-<sc-if value="{{ notLoading }}" hint-placeholder-val="{{ true }}"><a href="W02-Dashboard.dc.html" class="lg-key">Mở workspace<span aria-hidden="true">→</span></a></sc-if>
-<p class="lg-mono" style="margin: 0">PHIÊN TỰ HẾT HẠN SAU 30 PHÚT</p>
+<div class="a-in d5" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px">
+<label style="display: inline-flex; align-items: center; gap: 10px; cursor: pointer"><input type="checkbox" class="si-check" name="remember" checked>Ghi nhớ trên máy này</label>
+<span style="color: #55555c">Quên mật khẩu? <b style="font-weight: 500; color: #141416">Hỏi Admin</b></span>
+</div>
+<sc-if value="{{ isLoading }}" hint-placeholder-val="{{ false }}"><button type="button" disabled aria-busy="true" class="si-key" style="opacity: .7">Đang mở workspace…</button></sc-if>
+<sc-if value="{{ notLoading }}" hint-placeholder-val="{{ true }}"><a href="W02-Dashboard.dc.html" class="si-key a-in d6">Đăng nhập<span aria-hidden="true">→</span></a></sc-if>
+</form>
+
+<div class="a-in d7" style="display: flex; align-items: center; gap: 14px; color: #5f5f66"><span style="flex: 1; height: 1px; background: rgba(20,20,22,.12)"></span><span class="si-mono">BẢO MẬT PHIÊN</span><span style="flex: 1; height: 1px; background: rgba(20,20,22,.12)"></span></div>
+<p class="a-in d7" style="margin: -6px 0 0; text-align: center; font-size: 13px; line-height: 1.6; color: #55555c">Phiên tự hết hạn sau 30 phút không hoạt động. Sai mật khẩu 5 lần, tài khoản bị khoá tạm 15 phút.<br>Chưa có tài khoản? <b style="font-weight: 500; color: #141416">Quản trị viên sẽ cấp cho bạn.</b></p>
+</div>
+</div>
+<p class="si-mono" style="margin: 0; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap"><span>© 2026 WEBSEC AI</span><span>CHỈ DÙNG CHO LAB ĐÃ ỦY QUYỀN</span></p>
 </section>
+
+<section class="si-hero" aria-label="Hoạt động gần đây trong workspace">
+<div class="si-art a-right"><img src="art/aurora-8.png" alt="" width="720" height="900"></div>
+<p class="si-quote a-in d6">Mỗi project là một thư mục: target, scan, lỗ hổng và report nằm bên trong. Quét trong phạm vi được ủy quyền, xác minh rồi mới đóng.</p>
+<div class="si-cards">
+<div class="si-card a-card d10"><span class="si-av" style="background: #E0F2FE; color: #075985">#128</span><span><b style="font-weight: 600">Scan #128 hoàn tất</b><br><span class="si-mono">SHOP-STAGING · 10:41</span><br><span style="color: #3f3f46">8 finding mới, 1 SQL Injection Critical cần triage.</span></span></div>
+<div class="si-card si-c2 a-card d12"><span class="si-av" style="background: #E3F4EA; color: #146C3B">PL</span><span><b style="font-weight: 600">Phạm Long</b><br><span class="si-mono">VULN-0118 · DEVELOPER</span><br><span style="color: #3f3f46">Đã encode output, gửi lại để xác minh.</span></span></div>
+<div class="si-card si-c3 a-card d14"><span class="si-av" style="background: #141416; color: #fff">AI</span><span><b style="font-weight: 600">AI Advisor</b><br><span class="si-mono">GỢI Ý · ĐÃ CHE SECRET</span><br><span style="color: #3f3f46">Dùng truy vấn tham số hoá cho /search?q.</span></span></div>
 </div>
-</main>
-<p class="lg-mono" style="margin: 0; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap"><span>© 2026 WEBSEC AI</span><span>CHỈ DÙNG CHO MÔI TRƯỜNG LAB ĐÃ ỦY QUYỀN</span></p>
+</section>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["default","loading","error","locked"],"default":"default"},"$preview":{"width":1440,"height":900}}'>
 class Component extends DCLogic {
 renderVals() {
 const s = this.props.state ?? 'default';
-return { isError: s === 'error', isLocked: s === 'locked', isLoading: s === 'loading', notLoading: s !== 'loading', pwBorder: s === 'error' ? '#D92D20' : 'rgba(20,20,22,.14)', pwHintId: s === 'error' ? 'pw-hint' : '' };
+const shown = !!(this.state || {}).shown;
+return {
+isError: s === 'error', isLocked: s === 'locked', isLoading: s === 'loading', notLoading: s !== 'loading',
+pwBorder: s === 'error' ? '#D92D20' : 'rgba(20,20,22,.12)', pwHintId: s === 'error' ? 'pw-hint' : '',
+pwType: shown ? 'text' : 'password', pwShown: String(shown), eyeOpen: !shown, eyeClosed: shown,
+eyeLabel: shown ? 'Ẩn mật khẩu' : 'Hiện mật khẩu',
+toggleEye: () => this.setState({ shown: !shown })
+};
 }
 }
 </script>
