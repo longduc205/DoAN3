@@ -12,7 +12,7 @@ Bản xuất từ canvas thiết kế, dùng để đối chiếu khi code.
 
 ## Design tokens
 
-- Nền mặt bàn: `#EDEDEF` + `radial-gradient(rgba(20,20,22,.13) 1.1px, transparent 1.4px)` / `22px 22px`
+- Nền: `#ECEDF1` + ba lớp `radial-gradient` loang nhẹ (xanh aurora góc trên phải, hồng aurora góc dưới trái, trắng giữa), `background-attachment: fixed`
 - Kính sữa: `background: rgba(255,255,255,.62)`; `backdrop-filter: blur(22px) saturate(1.5)`; `border: 1px solid rgba(255,255,255,.8)`; `box-shadow: 0 0 0 .5px rgba(0,0,0,.1), 0 10px 26px -8px rgba(10,12,20,.18)`; `border-radius: 20px` (menu trái 22px)
 - Nút chính: `radial-gradient(120% 90% at 50% 0%, #3a3a3f 0%, #121214 55%, #050506 100%)` + inset highlight (như `.gf-key--add`)
 - Chữ: `#141416`, phụ `#55555c`; font `ui-sans-serif, system-ui, …`; mono `ui-monospace, …` cho ID, host, meta
