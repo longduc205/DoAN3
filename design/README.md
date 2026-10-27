@@ -23,3 +23,7 @@ Bản xuất từ canvas thiết kế, dùng để đối chiếu khi code.
 
 - "Đọc `design/screenshots/W08-Vulns.png` và `design/source/W08-Vulns.dc.html`, dựng trang Vulnerabilities giống thiết kế."
 - Các trạng thái khác của một màn nằm trong `source/` (tìm `sc-if` và `data-props`).
+
+## Icon 3D
+
+`art/i3d-*.png`: icon từ [3dicons.co](https://3dicons.co) (bản Premium, giấy phép CC0), đã tách nền trắng. Dùng ở W02 (4 thẻ việc cần làm) và W07 (scan, đang chờ, không có lỗi).
