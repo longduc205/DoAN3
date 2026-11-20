@@ -41,6 +41,11 @@ public class ScanSearchParam : BaseSearchParam
     public ScanStatus? Status { get; set; }
 }
 
+public class ReportSearchParam : BaseSearchParam
+{
+    public Guid? ProjectId { get; set; }
+}
+
 public class VulnerabilitySearchParam : BaseSearchParam
 {
     public Guid? ProjectId { get; set; }

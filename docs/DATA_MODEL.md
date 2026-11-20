@@ -2,7 +2,7 @@
 
 PostgreSQL, EF Core migrations in `backend/src/WebSec.Infrastructure/Data/Migrations`. Tables/columns are `snake_case`; enums are stored as `varchar(30)` strings; timestamps are `timestamptz` (UTC `DateTimeOffset`). Primary keys are `uuid`.
 
-## Implemented (migrations `InitialCreate`, `AddVulnerabilities`)
+## Implemented (migrations `InitialCreate`, `AddVulnerabilities`, `AddReports`)
 
 ```mermaid
 erDiagram
@@ -38,6 +38,7 @@ erDiagram
 | `scan_findings` | `severity`, `confidence`, redacted `evidence_summary`, `evidence_redacted`, `fingerprint` (SHA-256 of target+type+url+param), `vulnerability_id` (nullable FK, `SET NULL`) |
 | `vulnerabilities` | one real issue per (`target_id`, `fingerprint`) – unique index. `status` (`VulnerabilityStatus`), `severity`, `assignee_id`, `is_reappeared`, `close_reason`, `review_at`, `first/last_detected_at`, `resolved_at`. Created/updated by `VulnerabilitySync` when the worker stores findings; never deleted |
 | `vulnerability_comments` | `content`, `user_id`, `is_ai_note` (saved from the AI panel, shown with an AI-generated label) |
+| `reports` | `project_id`, `title`, `template` (Executive/Technical), `status` (Generating/Ready/Failed), `snapshot_json` (frozen `ReportSnapshotModel`, system data only), `error_safe`, `created_by`, `created_at`, `completed_at`. Generated synchronously by `ReportService`; immutable once Ready |
 | `vulnerability_histories` | `old_status`, `new_status`, `summary`, `changed_by` (null = system) |
 
 ### Vulnerability lifecycle & risk score
@@ -57,7 +58,7 @@ FKs; `scans(status)`, `scans(created_at)`; `scan_jobs(status, available_at)`; `s
 - `scans → scan_jobs/scan_urls/scan_findings` are `CASCADE` (only relevant to an explicit administrative purge).
 
 ## Planned (not yet in the schema)
-`project_members`, `refresh_tokens`, `audit_logs`, `reports`, `ai_conversations`, `ai_messages` – fields as in the specification §7. CVSS / priority / SLA columns on `vulnerabilities` are not modelled yet.
+`project_members`, `refresh_tokens`, `audit_logs`, `ai_conversations`, `ai_messages` – fields as in the specification §7. CVSS / priority / SLA columns on `vulnerabilities` are not modelled yet.
 
 ## Migrations
 

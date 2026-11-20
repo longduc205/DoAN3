@@ -58,6 +58,13 @@ public sealed class AiFindingRequest
     public Guid? VulnerabilityId { get; set; }
 }
 
+public sealed class CreateReportRequest
+{
+    [Required] public Guid ProjectId { get; set; }
+    [MaxLength(200)] public string? Title { get; set; }
+    public ReportTemplate Template { get; set; } = ReportTemplate.Technical;
+}
+
 public sealed class UpdateVulnerabilityStatusRequest
 {
     [Required] public Guid Id { get; set; }

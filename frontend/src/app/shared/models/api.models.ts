@@ -188,6 +188,43 @@ export interface VulnerabilityHistory {
   createdAt: string;
 }
 
+export type ReportStatus = 'Generating' | 'Ready' | 'Failed';
+export type ReportTemplate = 'Executive' | 'Technical';
+
+export interface Report {
+  id: string;
+  projectId: string;
+  projectName: string;
+  title: string;
+  template: ReportTemplate;
+  status: ReportStatus;
+  errorSafe: string | null;
+  createdByName: string | null;
+  createdAt: string;
+  completedAt: string | null;
+}
+
+export interface ReportVulnerabilityRow {
+  title: string; findingType: string; severity: Severity; status: VulnerabilityStatus; targetName: string; url: string;
+  assigneeName: string | null; firstDetectedAt: string;
+}
+
+export interface ReportSnapshot {
+  projectCode: string;
+  projectName: string;
+  generatedAt: string;
+  targets: number;
+  scans: number;
+  lastScanAt: string | null;
+  openVulnerabilities: number;
+  riskScore: number;
+  openBySeverity: Partial<Record<Severity, number>>;
+  byStatus: Partial<Record<VulnerabilityStatus, number>>;
+  vulnerabilities: ReportVulnerabilityRow[];
+}
+
+export interface ReportDetail extends Report { snapshot: ReportSnapshot | null }
+
 export interface UserLookup { id: string; fullName: string; role: string }
 
 export interface AiContext { findingType: string; title: string; url: string; severity: Severity; evidenceSummary: string }

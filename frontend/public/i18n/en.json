@@ -62,7 +62,8 @@
     "noResults": "No projects match \"{{keyword}}\"", "noResultsFilter": "No projects with this status",
     "noResultsHint": "Try another keyword or remove some filters.", "clearFilters": "Clear filters",
     "createdOn": "created {{date}}", "recentActivity": "Recent activity", "lastScanLabel": "Last scan", "tab_overview": "Overview", "tab_targets": "Targets", "tab_scans": "Scans", "deleteTitle": "Delete project?", "deleteBody": "Project \"{{name}}\" will be deleted (soft delete). Scan history is kept.",
-    "tab_vulns": "Vulnerabilities"
+    "tab_vulns": "Vulnerabilities",
+    "tab_reports": "Reports"
   },
   "projectStatus": { "Active": "Active", "Archived": "Archived" },
   "targets": {
@@ -106,5 +107,14 @@
   },
   "vulns": {
     "to_Open": "Open", "to_Triaged": "Mark triaged", "to_Assigned": "Assign", "to_InProgress": "Start work", "to_PendingVerification": "Submit for verification", "to_Resolved": "Verify as fixed", "to_Reopened": "Reopen", "to_FalsePositive": "Close: false positive", "to_AcceptedRisk": "Close: accept risk", "subtitle": "{{count}} vulnerabilities", "mineHint": "{{count}} items assigned to you", "severity": "Severity", "filterOpen": "Open", "filterClosed": "Closed", "sortSeverity": "Most severe", "sortLast": "Most recently seen", "bulk": "Bulk actions", "selected": "{{count}} selected", "assignTo": "Assign to…", "clearSelection": "Clear selection", "selectAll": "Select all", "issue": "Issue", "assignee": "Assignee", "lastSeen": "Last seen", "firstSeen": "First seen", "unassigned": "Unassigned", "noResults": "No vulnerabilities match the filters.", "emptyMine": "Nothing is assigned to you.", "empty": "No vulnerabilities yet. Run a scan to start.", "assignTitle": "Assign {{count}} vulnerabilities", "pickAssignee": "Choose an assignee", "assign": "Assign", "reappeared": "reappeared", "lifecycle": "Lifecycle", "reviewOn": "review on {{date}}", "evidence": "Evidence", "redacted": "Tokens, cookies and passwords were masked before storing.", "type": "Type", "occurrences": "Occurrences", "comments": "Discussion", "noComments": "No comments yet.", "addComment": "Write a note…", "send": "Send", "history": "History", "system": "System", "reason": "Reason / note", "reviewDate": "Review date"
+  },
+  "reports": {
+    "subtitle": "A report is a snapshot taken when it is generated; create a new one to update it.", "new": "New report", "empty": "No reports yet.", "project": "Project", "pickProject": "Choose a project", "template": "Template", "title": "Title", "titlePh": "Leave empty for an automatic title", "systemOnly": "The report only contains system data, no AI-generated text.", "generate": "Generate", "generatedBy": "Generated {{date}} by {{name}}", "pdf": "Download PDF / Print", "summary": "Summary", "systemData": "SYSTEM DATA", "topOpen": "Most severe open vulnerabilities", "allVulns": "All vulnerabilities", "noVulns": "No vulnerabilities.", "footer": "Figures were captured when the report was generated and do not change afterwards."
+  },
+  "reportStatus": {
+    "Generating": "Generating", "Ready": "Ready", "Failed": "Failed"
+  },
+  "reportTemplate": {
+    "Executive": "Executive", "Technical": "Technical", "hint_Executive": "For management: key figures and the 10 most severe open vulnerabilities.", "hint_Technical": "For engineers: figures and every vulnerability with its status."
   }
 }

@@ -137,6 +137,71 @@ namespace WebSec.Infrastructure.Data.Migrations
                     b.ToTable("projects", (string)null);
                 });
 
+            modelBuilder.Entity("WebSec.Shared.Entities.Report", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("ErrorSafe")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("error_safe");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<string>("SnapshotJson")
+                        .HasColumnType("text")
+                        .HasColumnName("snapshot_json");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("Template")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("template");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("title");
+
+                    b.HasKey("Id")
+                        .HasName("pk_reports");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_reports_created_at");
+
+                    b.HasIndex("CreatedBy")
+                        .HasDatabaseName("ix_reports_created_by");
+
+                    b.HasIndex("ProjectId")
+                        .HasDatabaseName("ix_reports_project_id");
+
+                    b.ToTable("reports", (string)null);
+                });
+
             modelBuilder.Entity("WebSec.Shared.Entities.Role", b =>
                 {
                     b.Property<Guid>("Id")
@@ -895,6 +960,23 @@ namespace WebSec.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_projects_users_owner_id");
+                });
+
+            modelBuilder.Entity("WebSec.Shared.Entities.Report", b =>
+                {
+                    b.HasOne("WebSec.Shared.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_reports_users_created_by");
+
+                    b.HasOne("WebSec.Shared.Entities.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_reports_projects_project_id");
                 });
 
             modelBuilder.Entity("WebSec.Shared.Entities.RolePermission", b =>

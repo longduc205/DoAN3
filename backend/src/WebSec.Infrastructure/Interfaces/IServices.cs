@@ -59,6 +59,14 @@ public interface IAiService
     Task<AiAdviceModel> SuggestRemediationAsync(AiFindingRequest request, CancellationToken ct);
 }
 
+public interface IReportService
+{
+    Task<PagedResult<ReportModel>> GetAllAsync(ReportSearchParam param, CancellationToken ct);
+    Task<ReportDetailModel> GetByIdAsync(Guid id, CancellationToken ct);
+    Task<ReportDetailModel> CreateAsync(CreateReportRequest request, CancellationToken ct);
+    Task<ReportDetailModel> RetryAsync(Guid id, CancellationToken ct);
+}
+
 public interface IVulnerabilityService
 {
     Task<PagedResult<VulnerabilityModel>> GetAllAsync(VulnerabilitySearchParam param, CancellationToken ct);

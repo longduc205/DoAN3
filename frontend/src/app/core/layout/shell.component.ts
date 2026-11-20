@@ -23,7 +23,7 @@ const NAV: NavGroup[] = [
     { path: '/my-items', labelKey: 'nav.myItems', permission: 'Vulnerability.Update' },
   ] },
   { labelKey: 'nav.groupInsights', items: [
-    { path: '/reports', labelKey: 'nav.reports', permission: 'Report.Generate' },
+    { path: '/reports', labelKey: 'nav.reports', permission: 'Report.View' },
     { path: '/ai-assistant', labelKey: 'nav.aiAssistant', permission: 'AI.Ask' },
   ] },
   { labelKey: 'nav.groupAdmin', items: [
@@ -36,7 +36,7 @@ const NAV: NavGroup[] = [
   imports: [RouterOutlet, RouterLink, RouterLinkActive, TranslocoPipe],
   template: `
     <div class="min-h-screen flex gap-6 p-3 md:p-4">
-      <aside class="glass rounded-[22px] w-60 shrink-0 hidden md:flex flex-col p-4 sticky top-4 h-[calc(100vh-2rem)]">
+      <aside class="no-print glass rounded-[22px] w-60 shrink-0 hidden md:flex flex-col p-4 sticky top-4 h-[calc(100vh-2rem)]">
         <div class="flex items-center gap-2 px-2 mb-6">
           <svg aria-hidden="true" width="26" height="26" viewBox="0 0 26 26">
             <path d="M3 6.5l5 14 5-10 5 10 5-14" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />
@@ -69,7 +69,7 @@ const NAV: NavGroup[] = [
       </aside>
 
       <div class="flex-1 min-w-0 flex flex-col gap-4">
-        <header class="flex items-center justify-between gap-4 px-1">
+        <header class="no-print flex items-center justify-between gap-4 px-1">
           <nav class="flex md:hidden gap-3 text-sm overflow-x-auto" [attr.aria-label]="'nav.main' | transloco">
             @for (group of nav(); track group.labelKey) {
               @for (item of group.items; track item.path) { <a [routerLink]="item.path" class="whitespace-nowrap">{{ item.labelKey | transloco }}</a> }

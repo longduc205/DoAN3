@@ -116,3 +116,10 @@
   .table td { @apply px-4 py-3 border-b border-line; }
   .page-title { @apply text-2xl font-semibold tracking-tight; }
 }
+
+/* Report "PDF" = browser print: drop the app chrome and glass effects. */
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff; }
+  .glass { background: #fff; backdrop-filter: none; box-shadow: none; border: 1px solid #d0d5dd; break-inside: avoid; }
+}

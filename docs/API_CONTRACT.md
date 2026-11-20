@@ -59,6 +59,10 @@ Search params (`BaseSearchParam`): `page` (default 1), `pageSize` (default 10, m
 | `POST /api/vulnerabilities/get-assignees` | `{}` | `UserLookupModel[]` (active Developers / Analysts) | `Vulnerability.Triage` |
 | `POST /api/vulnerabilities/add-comment` | `{ vulnerabilityId, content, isAiNote }` | `VulnerabilityCommentModel` | `Vulnerability.View` |
 | `POST /api/vulnerabilities/get-comments` / `get-history` | `{ id }` | comments (oldest first) / history (newest first) | `Vulnerability.View` |
+| `POST /api/reports/get-all` | `ReportSearchParam { projectId? }` | `ReportModel[]` + paging (newest first) | `Report.View` |
+| `POST /api/reports/get-by-id` | `{ id }` | `ReportDetailModel` with `snapshot` (system data only) | `Report.View` |
+| `POST /api/reports/create` | `{ projectId, title?, template: Executive\|Technical }` | `ReportDetailModel` (`Ready`, or `Failed` with a safe error); 400 when the project has no scans | `Report.Generate` |
+| `POST /api/reports/retry` | `{ id }` | `ReportDetailModel`; 409 unless the report is `Failed` (Ready reports are immutable) | `Report.Generate` |
 | `POST /api/ai/get-context` | `{ findingId }` or `{ vulnerabilityId }` | `AiContextModel` – exactly what would be sent (redacted, ≤1000 chars evidence); does not call the provider | `AI.Ask`, rate-limited 20/min/user |
 | `POST /api/ai/explain-vulnerability` | `{ findingId }` or `{ vulnerabilityId }` (latest occurrence) | `AiAdviceModel { content, provider, model, isAiAssisted: true, generatedAt }` | `AI.Ask`, rate-limited 20/min/user |
 | `POST /api/ai/suggest-remediation` | `{ findingId }` or `{ vulnerabilityId }` | `AiAdviceModel` | `AI.Ask`, rate-limited 20/min/user |
@@ -76,4 +80,4 @@ Authorization: Bearer eyJ…
 ```
 
 ## Planned (not implemented – routes do not exist yet)
-`auth/refresh`, `ai/ask`, `reports/*`, `users/*`, `roles/*`.
+`auth/refresh`, `ai/ask`, `users/*`, `roles/*`.

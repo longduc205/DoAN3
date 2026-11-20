@@ -118,6 +118,53 @@ public sealed class DashboardSummaryModel
     public int RiskScore { get; init; }
 }
 
+public class ReportModel
+{
+    public Guid Id { get; set; }
+    public Guid ProjectId { get; set; }
+    public string ProjectName { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public ReportTemplate Template { get; set; }
+    public ReportStatus Status { get; set; }
+    public string? ErrorSafe { get; set; }
+    public string? CreatedByName { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset? CompletedAt { get; set; }
+}
+
+public sealed class ReportDetailModel : ReportModel
+{
+    public ReportSnapshotModel? Snapshot { get; set; }
+}
+
+/// <summary>System data frozen at generation time. Contains no AI-generated text.</summary>
+public sealed class ReportSnapshotModel
+{
+    public string ProjectCode { get; set; } = string.Empty;
+    public string ProjectName { get; set; } = string.Empty;
+    public DateTimeOffset GeneratedAt { get; set; }
+    public int Targets { get; set; }
+    public int Scans { get; set; }
+    public DateTimeOffset? LastScanAt { get; set; }
+    public int OpenVulnerabilities { get; set; }
+    public int RiskScore { get; set; }
+    public Dictionary<Severity, int> OpenBySeverity { get; set; } = [];
+    public Dictionary<VulnerabilityStatus, int> ByStatus { get; set; } = [];
+    public List<ReportVulnerabilityRow> Vulnerabilities { get; set; } = [];
+}
+
+public sealed class ReportVulnerabilityRow
+{
+    public string Title { get; set; } = string.Empty;
+    public string FindingType { get; set; } = string.Empty;
+    public Severity Severity { get; set; }
+    public VulnerabilityStatus Status { get; set; }
+    public string TargetName { get; set; } = string.Empty;
+    public string Url { get; set; } = string.Empty;
+    public string? AssigneeName { get; set; }
+    public DateTimeOffset FirstDetectedAt { get; set; }
+}
+
 public class VulnerabilityModel
 {
     public Guid Id { get; set; }

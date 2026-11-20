@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { BaseApiService } from '../core/services/base-api.service';
 import {
-  AiAdvice, AiContext, ApiResponse, BaseSearchParam, DashboardSummary, PaginatedResponse, Project, ProjectStatus, Scan,
+  AiAdvice, AiContext, Report, ReportDetail, ReportTemplate, ApiResponse, BaseSearchParam, DashboardSummary, PaginatedResponse, Project, ProjectStatus, Scan,
   ScanFinding, ScanProgress, ScanStatus, ScopeMode, Severity, Target, TargetEnvironment, UserLookup, Vulnerability,
   VulnerabilityComment, VulnerabilityDetail, VulnerabilityHistory, VulnerabilityStatus,
 } from '../shared/models/api.models';
@@ -81,4 +81,13 @@ export class VulnerabilitiesApi extends BaseApiService {
 export class DashboardApi extends BaseApiService {
   protected readonly resource = 'dashboard';
   getSummary(): Observable<ApiResponse<DashboardSummary>> { return this.post('get-summary'); }
+}
+
+@Injectable({ providedIn: 'root' })
+export class ReportsApi extends BaseApiService {
+  protected readonly resource = 'reports';
+  getAll(p: BaseSearchParam & { projectId?: string }): Observable<PaginatedResponse<Report[]>> { return this.post('get-all', p); }
+  getById(id: string): Observable<ApiResponse<ReportDetail>> { return this.post('get-by-id', { id }); }
+  create(body: { projectId: string; title?: string | null; template: ReportTemplate }): Observable<ApiResponse<ReportDetail>> { return this.post('create', body); }
+  retry(id: string): Observable<ApiResponse<ReportDetail>> { return this.post('retry', { id }); }
 }

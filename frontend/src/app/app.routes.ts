@@ -46,7 +46,14 @@ export const routes: Routes = [
         path: 'vulnerabilities/:id', canActivate: [permissionGuard], data: { permission: 'Vulnerability.View' },
         loadComponent: () => import('./features/vulnerabilities/vuln-detail.page').then((m) => m.VulnDetailPage),
       },
-      { path: 'reports', ...placeholder('nav.reports', 'Report.Generate') },
+      {
+        path: 'reports', canActivate: [permissionGuard], data: { permission: 'Report.View' },
+        loadComponent: () => import('./features/reports/report-list.page').then((m) => m.ReportListPage),
+      },
+      {
+        path: 'reports/:id', canActivate: [permissionGuard], data: { permission: 'Report.View' },
+        loadComponent: () => import('./features/reports/report-detail.page').then((m) => m.ReportDetailPage),
+      },
       { path: 'users', ...placeholder('nav.users', 'User.Manage') },
       { path: 'roles', ...placeholder('nav.roles', 'Role.Manage') },
       { path: 'ai-assistant', ...placeholder('nav.aiAssistant', 'AI.Ask') },
