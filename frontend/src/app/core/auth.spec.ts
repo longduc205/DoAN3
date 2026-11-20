@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router, UrlTree } from '@angular/router';
 import { AuthService } from './auth/auth.service';
-import { authGuard } from './guards/auth.guard';
+import { authGuard, permissionGuard } from './guards/auth.guard';
 import { authInterceptor } from './interceptors/auth.interceptor';
 
 describe('auth guard + interceptor', () => {
@@ -36,6 +36,16 @@ describe('auth guard + interceptor', () => {
 
     TestBed.inject(HttpClient).post('/api/projects/get-all', {}).subscribe();
     expect(http.expectOne('/api/projects/get-all').request.headers.get('Authorization')).toBe('Bearer tkn');
+  });
+
+  it('permissionGuard sends users without the route permission to /403', () => {
+    const user = { id: '1', userName: 'v', email: '', fullName: '', roles: [], permissions: ['Scan.View'] };
+    sessionStorage.setItem('websec.session', JSON.stringify({ token: 't', expiresAt: new Date(Date.now() + 60_000).toISOString(), user }));
+    const run = (permission: string) =>
+      TestBed.runInInjectionContext(() => permissionGuard({ data: { permission } } as never, {} as never));
+    expect(run('Scan.View')).toBe(true);
+    const denied = run('Scan.Create');
+    expect(denied instanceof UrlTree && TestBed.inject(Router).serializeUrl(denied)).toBe('/403');
   });
 
   it('logs out on 401', () => {

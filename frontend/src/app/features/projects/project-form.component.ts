@@ -5,29 +5,24 @@ import { apiErrorMessage } from '../../core/services/base-api.service';
 import { Project, ProjectStatus } from '../../shared/models/api.models';
 import { ProjectsApi } from '../api.services';
 
-/** Add/edit project form (formAddEdit). Passing a project switches to edit mode. */
+/** Add/edit project form (formAddEdit), rendered inside <app-dialog>. Passing a project switches to edit mode. */
 @Component({
   selector: 'app-project-form',
   imports: [ReactiveFormsModule, TranslocoPipe],
   template: `
-    <form [formGroup]="formAddEdit" (ngSubmit)="save()" class="glass p-5 mb-4 grid md:grid-cols-2 gap-4">
-      <h2 class="md:col-span-2 font-semibold">{{ (project() ? 'projects.edit' : 'projects.new') | transloco }}</h2>
+    <form [formGroup]="formAddEdit" (ngSubmit)="save()" class="grid md:grid-cols-2 gap-4">
       @if (error()) {
-        <div role="alert" class="md:col-span-2 px-3 py-2 rounded-xl bg-danger/10 text-danger text-sm">{{ error()! | transloco }}</div>
+        <div role="alert" class="md:col-span-2 px-3 py-2 rounded-xl bg-danger-bg text-danger text-sm">{{ error()! | transloco }}</div>
       }
       <div>
-        <label class="label" for="p-code">{{ 'projects.code' | transloco }}</label>
-        <input id="p-code" class="input font-mono" formControlName="code" />
-        @if (formAddEdit.controls.code.touched && formAddEdit.controls.code.invalid) {
-          <p class="field-error">{{ 'validation.code' | transloco }}</p>
-        }
+        <label class="label" for="p-name">{{ 'projects.name' | transloco }} *</label>
+        <input id="p-name" class="input" formControlName="name" [attr.aria-invalid]="bad('name')" />
+        @if (bad('name')) { <p class="field-error">{{ 'validation.required' | transloco }}</p> }
       </div>
       <div>
-        <label class="label" for="p-name">{{ 'projects.name' | transloco }}</label>
-        <input id="p-name" class="input" formControlName="name" />
-        @if (formAddEdit.controls.name.touched && formAddEdit.controls.name.invalid) {
-          <p class="field-error">{{ 'validation.required' | transloco }}</p>
-        }
+        <label class="label" for="p-code">{{ 'projects.code' | transloco }} *</label>
+        <input id="p-code" class="input font-mono" formControlName="code" [attr.aria-invalid]="bad('code')" />
+        @if (bad('code')) { <p class="field-error">{{ 'validation.code' | transloco }}</p> }
       </div>
       <div class="md:col-span-2">
         <label class="label" for="p-desc">{{ 'projects.description' | transloco }}</label>
@@ -42,8 +37,17 @@ import { ProjectsApi } from '../api.services';
           </select>
         </div>
       }
+      @if (confirmDiscard()) {
+        <div role="alert" class="md:col-span-2 flex flex-wrap items-center justify-between gap-2 px-3 py-2 rounded-xl bg-warn-bg text-warn text-sm">
+          <span>{{ 'common.discardChanges' | transloco }}</span>
+          <span class="flex gap-2">
+            <button type="button" class="btn h-8" (click)="confirmDiscard.set(false)">{{ 'common.keepEditing' | transloco }}</button>
+            <button type="button" class="btn btn-danger h-8" (click)="cancelled.emit()">{{ 'common.discard' | transloco }}</button>
+          </span>
+        </div>
+      }
       <div class="md:col-span-2 flex justify-end gap-2">
-        <button type="button" class="btn" (click)="cancelled.emit()">{{ 'common.cancel' | transloco }}</button>
+        <button type="button" class="btn" (click)="cancel()">{{ 'common.cancel' | transloco }}</button>
         <button type="submit" class="btn btn-primary" [disabled]="saving()">{{ 'common.save' | transloco }}</button>
       </div>
     </form>
@@ -57,6 +61,7 @@ export class ProjectFormComponent implements OnInit {
 
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
+  protected readonly confirmDiscard = signal(false);
   protected readonly formAddEdit = inject(FormBuilder).nonNullable.group({
     code: ['', [Validators.required, Validators.maxLength(50), Validators.pattern(/^[A-Za-z0-9_-]+$/)]],
     name: ['', [Validators.required, Validators.maxLength(200)]],
@@ -67,6 +72,16 @@ export class ProjectFormComponent implements OnInit {
   ngOnInit(): void {
     const p = this.project();
     if (p) this.formAddEdit.patchValue({ code: p.code, name: p.name, description: p.description ?? '', status: p.status });
+  }
+
+  protected bad(name: 'code' | 'name'): boolean {
+    const c = this.formAddEdit.controls[name];
+    return c.touched && c.invalid;
+  }
+
+  protected cancel(): void {
+    if (this.formAddEdit.dirty) this.confirmDiscard.set(true);
+    else this.cancelled.emit();
   }
 
   protected save(): void {

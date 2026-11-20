@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { apiErrorMessage } from '../../core/services/base-api.service';
+import { DialogComponent } from '../../shared/components/dialog';
 import { PageState, Pagination } from '../../shared/components/page-state';
 import { PagingInfo, Project, ProjectStatus } from '../../shared/models/api.models';
 import { ProjectsApi } from '../api.services';
@@ -23,7 +24,7 @@ const FRONT_PATH = 'M0 22A22 22 0 0 1 22 0L118 0C144 0 146 32 172 32L318 32A22 2
 
 @Component({
   selector: 'app-project-list',
-  imports: [RouterLink, ReactiveFormsModule, TranslocoPipe, DatePipe, PageState, Pagination, ProjectFormComponent, TargetFormComponent],
+  imports: [RouterLink, ReactiveFormsModule, TranslocoPipe, DatePipe, PageState, Pagination, DialogComponent, ProjectFormComponent, TargetFormComponent],
   styles: `
     .folder-box { position: relative; width: 265px; height: 254px; flex: none; }
     .folder { position: absolute; left: 0; top: 0; width: 340px; height: 326px; transform: scale(0.78); transform-origin: 0 0; isolation: isolate; --hinge: 0deg; }
@@ -56,7 +57,7 @@ const FRONT_PATH = 'M0 22A22 22 0 0 1 22 0L118 0C144 0 146 32 172 32L318 32A22 2
           <p class="mt-1 text-sm text-ink-muted">
             {{ 'projects.subtitle' | transloco: { count: paging()?.totalItems ?? 0 } }}
             @if (needScope() > 0) {
-              · <span class="font-semibold text-sev-medium">{{ 'projects.needScope' | transloco: { count: needScope() } }}</span>
+              · <span class="font-semibold text-warn">{{ 'projects.needScope' | transloco: { count: needScope() } }}</span>
             }
           </p>
         </div>
@@ -92,15 +93,24 @@ const FRONT_PATH = 'M0 22A22 22 0 0 1 22 0L118 0C144 0 146 32 172 32L318 32A22 2
         </select>
       </div>
 
-      @if (modal(); as m) {
-        <app-project-form [project]="m.project ?? null" (saved)="onSaved()" (cancelled)="modal.set(null)" />
-      }
-      @if (addTargetTo(); as p) {
-        <p class="mono -mb-3">{{ p.code }} · {{ p.name }}</p>
-        <app-target-form [projectId]="p.id" (saved)="onTargetSaved()" (cancelled)="addTargetTo.set(null)" />
-      }
+      <app-dialog [open]="!!modal()" [heading]="(modal()?.project ? 'projects.edit' : 'projects.new') | transloco" (closed)="modal.set(null)">
+        @if (modal(); as m) { <app-project-form [project]="m.project ?? null" (saved)="onSaved()" (cancelled)="modal.set(null)" /> }
+      </app-dialog>
+      <app-dialog [open]="!!addTargetTo()" [heading]="'targets.new' | transloco" (closed)="addTargetTo.set(null)">
+        @if (addTargetTo(); as p) {
+          <p class="mono">{{ p.code }} · {{ p.name }}</p>
+          <app-target-form [projectId]="p.id" (saved)="onTargetSaved()" (cancelled)="addTargetTo.set(null)" />
+        }
+      </app-dialog>
+      <app-dialog [open]="!!toDelete()" [heading]="'projects.deleteTitle' | transloco" (closed)="toDelete.set(null)">
+        <p class="text-sm">{{ 'projects.deleteBody' | transloco: { name: toDelete()?.name } }}</p>
+        <div class="flex justify-end gap-2">
+          <button type="button" class="btn" (click)="toDelete.set(null)">{{ 'common.cancel' | transloco }}</button>
+          <button type="button" class="btn btn-danger" (click)="remove()">{{ 'common.delete' | transloco }}</button>
+        </div>
+      </app-dialog>
       @if (actionError()) {
-        <div role="alert" class="px-4 py-3 rounded-xl bg-danger/10 text-danger text-sm">{{ actionError()! | transloco }}</div>
+        <div role="alert" class="px-4 py-3 rounded-xl bg-danger-bg text-danger text-sm">{{ actionError()! | transloco }}</div>
       }
 
       <app-page-state [loading]="loading()" [error]="error()" (retry)="load()">
@@ -159,15 +169,15 @@ const FRONT_PATH = 'M0 22A22 22 0 0 1 22 0L118 0C144 0 146 32 172 32L318 32A22 2
                     }
                   </span>
                   @if (p.isScanning) {
-                    <span class="px-2 py-0.5 rounded-full bg-run/10 text-run text-xs font-medium">{{ 'projects.scanning' | transloco }}</span>
+                    <span class="px-2 py-0.5 rounded-full bg-run-bg text-run text-xs font-medium">{{ 'projects.scanning' | transloco }}</span>
                   }
                   @if (p.unauthorizedTargetCount > 0) {
-                    <span class="px-2 py-0.5 rounded-full bg-sev-medium/15 text-sev-medium text-xs font-medium">{{ 'projects.needsScope' | transloco }}</span>
+                    <span class="px-2 py-0.5 rounded-full bg-warn-bg text-warn text-xs font-medium">{{ 'projects.needsScope' | transloco }}</span>
                   }
                 </div>
                 <div class="flex gap-3 text-xs">
                   <button type="button" class="text-ink-muted hover:text-ink hover:underline cursor-pointer" (click)="modal.set({ mode: 'edit', project: p })">{{ 'common.edit' | transloco }}</button>
-                  <button type="button" class="text-ink-muted hover:text-danger hover:underline cursor-pointer" (click)="remove(p)">{{ 'common.delete' | transloco }}</button>
+                  <button type="button" class="text-ink-muted hover:text-danger hover:underline cursor-pointer" (click)="toDelete.set(p)">{{ 'common.delete' | transloco }}</button>
                 </div>
               </li>
             }
@@ -229,6 +239,7 @@ export class ProjectListPage implements OnInit {
   protected readonly actionError = signal<string | null>(null);
   protected readonly modal = signal<{ mode: 'add' | 'edit'; project?: Project } | null>(null);
   protected readonly addTargetTo = signal<Project | null>(null);
+  protected readonly toDelete = signal<Project | null>(null);
   // shortcut: counts only the current page; add a workspace-wide total to the API if pages get large.
   protected readonly needScope = computed(() => this.items().reduce((n, p) => n + p.unauthorizedTargetCount, 0));
 
@@ -288,8 +299,10 @@ export class ProjectListPage implements OnInit {
     this.load(this.paging()?.page ?? 1);
   }
 
-  protected remove(p: Project): void {
-    if (!confirm(`${p.code} – ${p.name}?`)) return;
+  protected remove(): void {
+    const p = this.toDelete();
+    this.toDelete.set(null);
+    if (!p) return;
     this.actionError.set(null);
     this.api.delete(p.id).subscribe({ next: () => this.load(), error: (err) => this.actionError.set(apiErrorMessage(err)) });
   }

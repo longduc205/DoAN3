@@ -3,7 +3,8 @@
   "nav": {
     "main": "Main navigation", "groupWorkspace": "Workspace", "groupScan": "Scanning", "groupSecurity": "Security", "groupAdmin": "Admin",
     "dashboard": "Dashboard", "projects": "Projects", "targets": "Targets", "scans": "Scans", "vulnerabilities": "Vulnerabilities",
-    "reports": "Reports", "users": "Users", "roles": "Roles", "aiAssistant": "AI Assistant"
+    "reports": "Reports", "users": "Users", "roles": "Roles", "aiAssistant": "AI Assistant",
+    "newScan": "New scan", "groupInsights": "Insights", "breadcrumb": "Breadcrumb"
   },
   "auth": { "logout": "Sign out" },
   "login": {
@@ -30,7 +31,8 @@
   "common": {
     "loading": "Loading…", "retry": "Retry", "empty": "No data yet.", "search": "Search…", "edit": "Edit", "delete": "Delete",
     "save": "Save", "cancel": "Cancel", "status": "Status", "createdDate": "Created", "viewAll": "View all",
-    "prev": "Previous", "next": "Next", "pagination": "Pagination", "comingLater": "This feature is coming in a later milestone."
+    "prev": "Previous", "next": "Next", "pagination": "Pagination", "comingLater": "This feature is coming in a later milestone.",
+    "close": "Close", "discardChanges": "Discard unsaved changes?", "keepEditing": "Keep editing", "discard": "Discard"
   },
   "validation": {
     "required": "This field is required.", "code": "Letters, digits, - and _ only (max 50).", "url": "Enter a valid http(s) URL."
@@ -38,7 +40,8 @@
   "errors": { "network": "Cannot reach the API.", "unknown": "An unknown error occurred." },
   "dashboard": {
     "title": "Security overview", "newScan": "New scan", "projects": "Projects", "targets": "Targets", "scans": "Scans",
-    "findings": "Findings", "recentScans": "Recent scans", "noScans": "No scans yet.", "bySeverity": "By severity"
+    "findings": "Findings", "recentScans": "Recent scans", "noScans": "No scans yet.", "bySeverity": "By severity",
+    "subtitle": "Figures from the projects you can see.", "emptyTitle": "No scans yet. Get started in 3 steps:", "step1": "Create a project for the app you will test.", "step2": "Add a target and confirm you are authorized to test it.", "step3": "Run a scan and review the findings.", "findingTotal": "{{count}} findings", "activeScans": "Active scans", "noActiveScans": "No scans running or queued."
   },
   "projects": {
     "new": "New project", "edit": "Edit project", "code": "Code", "name": "Name", "description": "Description", "empty": "No projects yet. Create your first one.",
@@ -55,7 +58,8 @@
     "step1": "Create a project", "step2": "Add a target and confirm scope", "step3": "Run the first scan",
     "createFirst": "Create your first project",
     "noResults": "No projects match \"{{keyword}}\"", "noResultsFilter": "No projects with this status",
-    "noResultsHint": "Try another keyword or remove some filters.", "clearFilters": "Clear filters"
+    "noResultsHint": "Try another keyword or remove some filters.", "clearFilters": "Clear filters",
+    "createdOn": "created {{date}}", "recentActivity": "Recent activity", "lastScanLabel": "Last scan", "tab_overview": "Overview", "tab_targets": "Targets", "tab_scans": "Scans", "deleteTitle": "Delete project?", "deleteBody": "Project \"{{name}}\" will be deleted (soft delete). Scan history is kept."
   },
   "projectStatus": { "Active": "Active", "Archived": "Archived" },
   "targets": {
@@ -64,13 +68,15 @@
     "isAuthorized": "I own or am authorized to test this target",
     "isAuthorizedHint": "Scans can only be created when the target is enabled and authorization is confirmed.",
     "enabled": "Enabled", "disabled": "Disabled", "authorized": "Authorization confirmed", "notAuthorized": "Authorization not confirmed",
-    "startScan": "Scan", "empty": "No targets yet.", "manageInProject": "Add, edit and scan targets from the project detail page."
+    "startScan": "Scan", "empty": "No targets yet.", "manageInProject": "Add, edit and scan targets from the project detail page.",
+    "scopeConfirmed": "Scope confirmed", "confirmScope": "Confirm scope", "deleteTitle": "Delete target?", "deleteBody": "Target \"{{name}}\" will be disabled and deleted (soft delete). Scan history is kept.", "sectionInfo": "Target info", "sectionScope": "Scan scope", "sectionAuth": "Status & authorization", "safetyNote": "Safety limits: one host only, no wildcards, no exploitation or brute force.", "scopeResetNote": "You changed the URL or scope, so authorization was cleared. Tick it again if you are still authorized.", "save": "Save target"
   },
-  "scopeMode": { "SameHostPathPrefix": "Same host + sub-paths", "ExactUrl": "Exact URL only" },
+  "scopeMode": { "SameHostPathPrefix": "Same host + sub-paths", "ExactUrl": "Exact URL only", "hint_SameHostPathPrefix": "Only URLs on the same host under the base path.", "hint_ExactUrl": "Only the exact base URL, no link following." },
   "scans": {
     "target": "Target", "progress": "Progress", "findings": "Findings", "urls": "URLs", "requests": "Requests", "cancel": "Cancel scan",
     "noFindings": "No findings yet.", "startFromProject": "Start a scan from a project detail page.",
-    "mockNotice": "MOCK ENGINE: no network requests are sent; findings are sample data."
+    "mockNotice": "MOCK ENGINE: no network requests are sent; findings are sample data.",
+    "subtitle": "{{count}} scans", "findingCount": "{{count}} findings", "retry": "Retry (new scan)", "bannerQueued": "Waiting for a worker to pick up the scan. This page refreshes itself.", "bannerCancelling": "Cancelling: the worker stops after the current step.", "bannerCancelled": "Scan cancelled at {{date}}. Results up to that point are kept.", "bannerFailed": "Scan failed.", "bannerZero": "No issues found in the scanned scope. This does not guarantee the app is secure.", "phase_crawl": "Crawl", "phase_detect": "Detect", "phase_analyze": "Analyze", "phaseState_done": "DONE", "phaseState_now": "RUNNING", "phaseState_wait": "WAITING", "phaseState_fail": "FAILED", "phaseState_stop": "STOPPED", "cancelTitle": "Cancel scan?", "cancelBody": "The scan on \"{{name}}\" will stop. It cannot be resumed; use Retry to run it again."
   },
   "scanStatus": {
     "Pending": "Pending", "Queued": "Queued", "Running": "Running", "Cancelling": "Cancelling", "Completed": "Completed",
@@ -81,5 +87,14 @@
   "ai": {
     "explain": "AI explain", "remediate": "AI remediation",
     "advisoryLabel": "AI-ASSISTED · ADVISORY ONLY, VERIFY BEFORE ACTING"
+  },
+  "environment": {
+    "Lab": "Lab", "Development": "Development", "Staging": "Staging", "Production": "Production"
+  },
+  "forbidden": {
+    "title": "Not allowed", "body": "Your account cannot open this page. Ask an administrator if you need access.", "back": "Back to dashboard"
+  },
+  "wizard": {
+    "title": "New scan", "subtitle": "Only enabled targets with confirmed authorization can be selected.", "steps": "Steps", "stepTarget": "Target", "stepScope": "Scope", "stepReview": "Review & run", "pickTarget": "Choose a target", "scope": "Scope to scan", "engine": "Engine", "engineMock": "Mock (no requests sent)", "review": "Check before running", "back": "Back", "next": "Next", "start": "Start scan", "confirmTitle": "Confirm scan", "confirmBody": "The scan will run against {{host}}. Retype the host to confirm this is the right target.", "typeHost": "Retype the host"
   }
 }

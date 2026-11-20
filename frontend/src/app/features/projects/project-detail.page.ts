@@ -1,45 +1,163 @@
-import { Component, inject, input, OnInit, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { DatePipe } from '@angular/common';
+import { Component, computed, inject, input, OnInit, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { AuthService } from '../../core/auth/auth.service';
 import { apiErrorMessage } from '../../core/services/base-api.service';
+import { StatusBadge } from '../../shared/components/badges';
+import { DialogComponent } from '../../shared/components/dialog';
 import { PageState } from '../../shared/components/page-state';
-import { Project, Target } from '../../shared/models/api.models';
+import { Project, Scan, Target } from '../../shared/models/api.models';
 import { ProjectsApi, ScansApi, TargetsApi } from '../api.services';
 import { TargetFormComponent } from '../targets/target-form.component';
-import { TargetTableComponent } from '../targets/target-table.component';
+import { ProjectFormComponent } from './project-form.component';
 
+type Tab = 'overview' | 'targets' | 'scans';
+
+// W04 Project detail. Vulnerabilities / Reports tabs arrive with phases 2 and 3.
 @Component({
   selector: 'app-project-detail',
-  imports: [RouterLink, TranslocoPipe, PageState, TargetFormComponent, TargetTableComponent],
+  imports: [RouterLink, TranslocoPipe, DatePipe, PageState, StatusBadge, DialogComponent, TargetFormComponent, ProjectFormComponent],
   template: `
-    <nav class="text-sm text-ink-muted mb-2"><a routerLink="/projects" class="hover:underline">{{ 'nav.projects' | transloco }}</a> /</nav>
     <app-page-state [loading]="loading()" [error]="error()" (retry)="load()">
       @if (project(); as p) {
-        <div class="flex flex-wrap items-end justify-between gap-4 mb-5">
-          <div>
-            <h1 class="page-title">{{ p.name }}</h1>
-            <p class="mono mt-1">{{ p.code }} · {{ 'projectStatus.' + p.status | transloco }}</p>
-            @if (p.description) { <p class="text-ink-muted mt-2 max-w-2xl">{{ p.description }}</p> }
+        <div class="flex flex-col gap-5">
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div class="flex gap-4 items-start min-w-0">
+              <span class="grid place-items-center size-12 shrink-0 rounded-2xl bg-ink text-white font-semibold" aria-hidden="true">{{ p.name.slice(0, 2).toUpperCase() }}</span>
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <h1 class="page-title">{{ p.name }}</h1>
+                  <span class="px-2 py-0.5 rounded-md text-xs font-medium"
+                    [class]="p.status === 'Active' ? 'text-ok bg-ok-bg' : 'text-sev-info bg-sev-info-bg'">{{ 'projectStatus.' + p.status | transloco }}</span>
+                </div>
+                <p class="mono mt-1">{{ p.code }} · {{ 'projects.createdOn' | transloco: { date: (p.createdDate | date: 'dd/MM/yyyy') } }}</p>
+                @if (p.description) { <p class="text-ink-muted mt-2 max-w-2xl text-sm">{{ p.description }}</p> }
+              </div>
+            </div>
+            <div class="flex gap-2">
+              @if (canEdit) { <button type="button" class="btn h-10" (click)="editOpen.set(true)">{{ 'common.edit' | transloco }}</button> }
+              @if (canScan) {
+                <a routerLink="/scans/new" [queryParams]="{ projectId: p.id }" class="btn btn-primary h-10 rounded-[10px] font-semibold">{{ 'targets.startScan' | transloco }}</a>
+              }
+            </div>
           </div>
-          <div class="flex gap-2">
-            <a [routerLink]="['/scans']" [queryParams]="{ projectId: p.id }" class="btn">{{ 'nav.scans' | transloco }}</a>
-            <button type="button" class="btn btn-primary" (click)="targetModal.set({ mode: 'add' })">{{ 'targets.new' | transloco }}</button>
+
+          <dl class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="glass p-4"><dt class="text-sm text-ink-muted">{{ 'nav.targets' | transloco }}</dt>
+              <dd class="text-2xl font-semibold mt-1">{{ targets().length }}
+                @if (needScope() > 0) { <span class="text-sm font-medium text-warn">· {{ 'projects.needScope' | transloco: { count: needScope() } }}</span> }</dd></div>
+            <div class="glass p-4"><dt class="text-sm text-ink-muted">{{ 'nav.scans' | transloco }}</dt><dd class="text-2xl font-semibold mt-1">{{ scans().length }}</dd></div>
+            <div class="glass p-4"><dt class="text-sm text-ink-muted">{{ 'scans.findings' | transloco }}</dt><dd class="text-2xl font-semibold mt-1">{{ findingTotal() }}</dd></div>
+            <div class="glass p-4"><dt class="text-sm text-ink-muted">{{ 'projects.lastScanLabel' | transloco }}</dt>
+              <dd class="text-lg font-semibold mt-1">{{ lastScan() ? (lastScan() | date: 'dd/MM HH:mm') : ('projects.neverScanned' | transloco) }}</dd></div>
+          </dl>
+
+          <div role="tablist" [attr.aria-label]="p.name" class="flex p-[3px] rounded-[10px] bg-black/[.04] self-start">
+            @for (t of tabs; track t) {
+              <button type="button" role="tab" class="min-h-[34px] px-3 rounded-lg text-[13px] cursor-pointer" [attr.aria-selected]="tab() === t"
+                [class]="tab() === t ? 'bg-white font-semibold' : 'text-ink-muted hover:text-ink'" (click)="tab.set(t)">
+                {{ 'projects.tab_' + t | transloco }}
+                @if (t === 'targets') { <span class="text-ink-muted">{{ targets().length }}</span> }
+                @if (t === 'scans') { <span class="text-ink-muted">{{ scans().length }}</span> }
+              </button>
+            }
           </div>
+
+          @if (actionError()) {
+            <div role="alert" class="px-4 py-3 rounded-xl bg-danger-bg text-danger text-sm">{{ actionError()! | transloco }}</div>
+          }
+
+          @switch (tab()) {
+            @case ('overview') {
+              <section class="glass p-5 flex flex-col gap-3">
+                <h2 class="font-semibold">{{ 'projects.recentActivity' | transloco }}</h2>
+                @for (s of scans().slice(0, 5); track s.id) {
+                  <a [routerLink]="['/scans', s.id]" class="flex flex-wrap items-center gap-3 rounded-xl bg-white/60 p-3 hover:bg-white/85">
+                    <app-status-badge [status]="s.status" />
+                    <span class="font-medium">{{ s.targetName }}</span>
+                    <span class="mono flex-1">{{ 'scans.findingCount' | transloco: { count: s.totalFindings } }}</span>
+                    <span class="mono">{{ s.createdAt | date: 'dd/MM HH:mm' }}</span>
+                  </a>
+                } @empty {
+                  <p class="text-sm text-ink-muted">{{ 'dashboard.noScans' | transloco }}</p>
+                }
+              </section>
+            }
+            @case ('targets') {
+              <div class="flex justify-end">
+                @if (canEdit) { <button type="button" class="btn h-10" (click)="targetModal.set({ target: null })">{{ 'targets.new' | transloco }}</button> }
+              </div>
+              <ul class="grid md:grid-cols-2 gap-4">
+                @for (t of targets(); track t.id) {
+                  <li class="glass p-5 flex flex-col gap-3">
+                    <div class="flex items-start justify-between gap-3">
+                      <div class="min-w-0">
+                        <div class="font-semibold">{{ t.name }}</div>
+                        <div class="mono break-all">{{ t.baseUrl }}</div>
+                      </div>
+                      <span class="px-2 py-0.5 rounded-md text-xs font-semibold whitespace-nowrap"
+                        [class]="t.isAuthorized ? 'text-ok bg-ok-bg' : 'text-warn bg-warn-bg'">
+                        {{ (t.isAuthorized ? 'targets.scopeConfirmed' : 'targets.notAuthorized') | transloco }}</span>
+                    </div>
+                    <dl class="grid grid-cols-3 gap-2 text-sm">
+                      <div><dt class="text-ink-muted text-xs">{{ 'targets.environment' | transloco }}</dt><dd>{{ 'environment.' + t.environment | transloco }}</dd></div>
+                      <div><dt class="text-ink-muted text-xs">{{ 'targets.scopeMode' | transloco }}</dt><dd>{{ 'scopeMode.' + t.scopeMode | transloco }}</dd></div>
+                      <div><dt class="text-ink-muted text-xs">{{ 'targets.lastScan' | transloco }}</dt><dd>{{ t.lastScanAt ? (t.lastScanAt | date: 'dd/MM') : '—' }}</dd></div>
+                    </dl>
+                    @if (!t.isEnabled) { <p class="text-xs text-ink-muted">{{ 'targets.disabled' | transloco }}</p> }
+                    <div class="flex flex-wrap gap-2 pt-1">
+                      @if (canScan && t.isEnabled && t.isAuthorized) {
+                        <a routerLink="/scans/new" [queryParams]="{ targetId: t.id }" class="btn btn-primary h-8">{{ 'targets.startScan' | transloco }}</a>
+                      }
+                      @if (canEdit) {
+                        <button type="button" class="btn h-8" (click)="targetModal.set({ target: t })">
+                          {{ (t.isAuthorized ? 'common.edit' : 'targets.confirmScope') | transloco }}</button>
+                        <button type="button" class="btn btn-danger h-8" (click)="toDelete.set(t)">{{ 'common.delete' | transloco }}</button>
+                      }
+                    </div>
+                  </li>
+                } @empty {
+                  <li class="glass p-8 text-center text-ink-muted md:col-span-2">{{ 'targets.empty' | transloco }}</li>
+                }
+              </ul>
+            }
+            @case ('scans') {
+              <section class="glass overflow-x-auto">
+                <table class="table">
+                  <thead><tr><th>{{ 'scans.target' | transloco }}</th><th>{{ 'common.status' | transloco }}</th>
+                    <th>{{ 'scans.findings' | transloco }}</th><th>{{ 'common.createdDate' | transloco }}</th></tr></thead>
+                  <tbody>
+                    @for (s of scans(); track s.id) {
+                      <tr>
+                        <td><a [routerLink]="['/scans', s.id]" class="font-medium hover:underline">{{ s.targetName }}</a></td>
+                        <td><app-status-badge [status]="s.status" /></td>
+                        <td>{{ s.totalFindings }}</td>
+                        <td class="whitespace-nowrap">{{ s.createdAt | date: 'dd/MM HH:mm' }}</td>
+                      </tr>
+                    } @empty {
+                      <tr><td colspan="4" class="text-center text-ink-muted">{{ 'dashboard.noScans' | transloco }}</td></tr>
+                    }
+                  </tbody>
+                </table>
+              </section>
+            }
+          }
+
+          <app-dialog [open]="editOpen()" [heading]="'projects.edit' | transloco" (closed)="editOpen.set(false)">
+            @if (editOpen()) { <app-project-form [project]="p" (saved)="onProjectSaved($event)" (cancelled)="editOpen.set(false)" /> }
+          </app-dialog>
+          <app-dialog [open]="!!targetModal()" [heading]="(targetModal()?.target ? 'targets.edit' : 'targets.new') | transloco" (closed)="targetModal.set(null)">
+            @if (targetModal(); as m) { <app-target-form [projectId]="p.id" [target]="m.target" (saved)="onTargetSaved()" (cancelled)="targetModal.set(null)" /> }
+          </app-dialog>
+          <app-dialog [open]="!!toDelete()" [heading]="'targets.deleteTitle' | transloco" (closed)="toDelete.set(null)">
+            <p class="text-sm">{{ 'targets.deleteBody' | transloco: { name: toDelete()?.name } }}</p>
+            <div class="flex justify-end gap-2">
+              <button type="button" class="btn" (click)="toDelete.set(null)">{{ 'common.cancel' | transloco }}</button>
+              <button type="button" class="btn btn-danger" (click)="removeTarget()">{{ 'common.delete' | transloco }}</button>
+            </div>
+          </app-dialog>
         </div>
-
-        @if (targetModal(); as m) {
-          <app-target-form [projectId]="p.id" [target]="m.target ?? null" (saved)="onTargetSaved()" (cancelled)="targetModal.set(null)" />
-        }
-        @if (actionError()) {
-          <div role="alert" class="mb-4 px-4 py-3 rounded-xl bg-danger/10 text-danger text-sm">{{ actionError()! | transloco }}</div>
-        }
-
-        <section class="glass">
-          <h2 class="font-semibold px-5 pt-4 pb-2">{{ 'nav.targets' | transloco }}</h2>
-          <app-page-state [empty]="targets().length === 0" emptyKey="targets.empty">
-            <app-target-table [targets]="targets()" (scan)="startScan($event)" (edit)="targetModal.set({ mode: 'edit', target: $event })" (remove)="removeTarget($event)" />
-          </app-page-state>
-        </section>
       }
     </app-page-state>
   `,
@@ -48,15 +166,26 @@ export class ProjectDetailPage implements OnInit {
   private readonly projectsApi = inject(ProjectsApi);
   private readonly targetsApi = inject(TargetsApi);
   private readonly scansApi = inject(ScansApi);
-  private readonly router = inject(Router);
+  private readonly auth = inject(AuthService);
+  protected readonly canEdit = this.auth.hasPermission('Project.Update');
+  protected readonly canScan = this.auth.hasPermission('Scan.Create');
+  protected readonly tabs: Tab[] = ['overview', 'targets', 'scans'];
 
   readonly id = input.required<string>();
   protected readonly project = signal<Project | null>(null);
   protected readonly targets = signal<Target[]>([]);
+  protected readonly scans = signal<Scan[]>([]);
+  protected readonly tab = signal<Tab>('targets');
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly actionError = signal<string | null>(null);
-  protected readonly targetModal = signal<{ mode: 'add' | 'edit'; target?: Target } | null>(null);
+  protected readonly editOpen = signal(false);
+  protected readonly targetModal = signal<{ target: Target | null } | null>(null);
+  protected readonly toDelete = signal<Target | null>(null);
+
+  protected readonly needScope = computed(() => this.targets().filter((t) => t.isEnabled && !t.isAuthorized).length);
+  protected readonly findingTotal = computed(() => this.scans().reduce((n, s) => n + s.totalFindings, 0));
+  protected readonly lastScan = computed(() => this.scans()[0]?.createdAt ?? null);
 
   ngOnInit(): void {
     this.load();
@@ -70,6 +199,7 @@ export class ProjectDetailPage implements OnInit {
         this.project.set(res.data);
         this.loading.set(false);
         this.loadTargets();
+        this.scansApi.getAll({ projectId: this.id(), pageSize: 100 }).subscribe({ next: (r) => this.scans.set(r.data ?? []) });
       },
       error: (err) => {
         this.error.set(apiErrorMessage(err));
@@ -78,22 +208,20 @@ export class ProjectDetailPage implements OnInit {
     });
   }
 
+  protected onProjectSaved(p: Project): void {
+    this.editOpen.set(false);
+    this.project.set(p);
+  }
+
   protected onTargetSaved(): void {
     this.targetModal.set(null);
     this.loadTargets();
   }
 
-  protected startScan(t: Target): void {
-    this.actionError.set(null);
-    this.scansApi.create(t.id).subscribe({
-      next: (res) => res.data && this.router.navigate(['/scans', res.data.id]),
-      // Out-of-scope / unauthorized targets are rejected here (SCAN_SCOPE_REJECTED) before anything is queued.
-      error: (err) => this.actionError.set(apiErrorMessage(err)),
-    });
-  }
-
-  protected removeTarget(t: Target): void {
-    if (!confirm(`${t.name}?`)) return;
+  protected removeTarget(): void {
+    const t = this.toDelete();
+    this.toDelete.set(null);
+    if (!t) return;
     this.targetsApi.delete(t.id).subscribe({ next: () => this.loadTargets(), error: (err) => this.actionError.set(apiErrorMessage(err)) });
   }
 

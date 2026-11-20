@@ -13,15 +13,25 @@
   --color-accent: #ef4a2b;
   --color-focus: #4c8dff;
 
+  /* Severity per canvas DS-Tokens: Critical/High solid, the rest light fill + dark text. */
   --color-sev-critical: #b42318;
   --color-sev-high: #c2410c;
-  --color-sev-medium: #b7791f;
-  --color-sev-low: #6b6b73;
-  --color-sev-info: #8e8e96;
+  --color-sev-medium: #7a4a00;
+  --color-sev-medium-bg: #fef0c7;
+  --color-sev-low: #1f4fa8;
+  --color-sev-low-bg: #e0edff;
+  --color-sev-info: #475467;
+  --color-sev-info-bg: #eef1f5;
 
-  --color-ok: #16a34a;
-  --color-run: #0284c7;
+  /* Semantic status pairs (bg 50 / text 700), contrast >= 4.5:1. */
+  --color-ok: #146c3b;
+  --color-ok-bg: #e3f4ea;
+  --color-run: #075985;
+  --color-run-bg: #e0f2fe;
+  --color-warn: #8a5300;
+  --color-warn-bg: #fff4d6;
   --color-danger: #b42318;
+  --color-danger-bg: #feeceb;
 }
 
 @layer base {

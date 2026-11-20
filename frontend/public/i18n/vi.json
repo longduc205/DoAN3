@@ -3,7 +3,8 @@
   "nav": {
     "main": "Điều hướng chính", "groupWorkspace": "Workspace", "groupScan": "Quét", "groupSecurity": "Bảo mật", "groupAdmin": "Quản trị",
     "dashboard": "Dashboard", "projects": "Projects", "targets": "Targets", "scans": "Scans", "vulnerabilities": "Vulnerabilities",
-    "reports": "Reports", "users": "Người dùng", "roles": "Vai trò", "aiAssistant": "AI Assistant"
+    "reports": "Reports", "users": "Người dùng", "roles": "Vai trò", "aiAssistant": "AI Assistant",
+    "newScan": "Scan mới", "groupInsights": "Phân tích", "breadcrumb": "Vị trí hiện tại"
   },
   "auth": { "logout": "Đăng xuất" },
   "login": {
@@ -30,7 +31,8 @@
   "common": {
     "loading": "Đang tải…", "retry": "Thử lại", "empty": "Chưa có dữ liệu.", "search": "Tìm kiếm…", "edit": "Sửa", "delete": "Xoá",
     "save": "Lưu", "cancel": "Huỷ", "status": "Trạng thái", "createdDate": "Ngày tạo", "viewAll": "Xem tất cả",
-    "prev": "Trước", "next": "Sau", "pagination": "Phân trang", "comingLater": "Tính năng này sẽ có ở milestone sau."
+    "prev": "Trước", "next": "Sau", "pagination": "Phân trang", "comingLater": "Tính năng này sẽ có ở milestone sau.",
+    "close": "Đóng", "discardChanges": "Bỏ các thay đổi chưa lưu?", "keepEditing": "Tiếp tục sửa", "discard": "Bỏ thay đổi"
   },
   "validation": {
     "required": "Trường này là bắt buộc.", "code": "Chỉ gồm chữ, số, - và _ (tối đa 50 ký tự).", "url": "Nhập URL http(s) hợp lệ."
@@ -38,7 +40,8 @@
   "errors": { "network": "Không kết nối được tới API.", "unknown": "Đã xảy ra lỗi không xác định." },
   "dashboard": {
     "title": "Tổng quan bảo mật", "newScan": "Scan mới", "projects": "Projects", "targets": "Targets", "scans": "Scans",
-    "findings": "Findings", "recentScans": "Scan gần đây", "noScans": "Chưa có scan nào.", "bySeverity": "Theo severity"
+    "findings": "Findings", "recentScans": "Scan gần đây", "noScans": "Chưa có scan nào.", "bySeverity": "Theo severity",
+    "subtitle": "Số liệu từ các project bạn được xem.", "emptyTitle": "Chưa có scan nào. Bắt đầu trong 3 bước:", "step1": "Tạo project cho ứng dụng cần kiểm tra.", "step2": "Thêm target và xác nhận bạn được ủy quyền kiểm tra.", "step3": "Chạy scan và xem findings.", "findingTotal": "{{count}} finding", "activeScans": "Scan đang chạy", "noActiveScans": "Không có scan nào đang chạy hoặc chờ."
   },
   "projects": {
     "new": "Tạo project", "edit": "Sửa project", "code": "Mã", "name": "Tên", "description": "Mô tả", "empty": "Chưa có project nào. Hãy tạo project đầu tiên.",
@@ -55,7 +58,8 @@
     "step1": "Tạo project", "step2": "Thêm target và xác nhận scope", "step3": "Chạy scan đầu tiên",
     "createFirst": "Tạo project đầu tiên",
     "noResults": "Không có project khớp \"{{keyword}}\"", "noResultsFilter": "Không có project nào ở trạng thái này",
-    "noResultsHint": "Thử từ khoá khác hoặc bỏ bớt bộ lọc.", "clearFilters": "Xoá bộ lọc"
+    "noResultsHint": "Thử từ khoá khác hoặc bỏ bớt bộ lọc.", "clearFilters": "Xoá bộ lọc",
+    "createdOn": "tạo ngày {{date}}", "recentActivity": "Hoạt động gần đây", "lastScanLabel": "Scan gần nhất", "tab_overview": "Tổng quan", "tab_targets": "Targets", "tab_scans": "Scans", "deleteTitle": "Xoá project?", "deleteBody": "Project \"{{name}}\" sẽ bị xoá (xoá mềm). Lịch sử scan vẫn được giữ."
   },
   "projectStatus": { "Active": "Đang hoạt động", "Archived": "Lưu trữ" },
   "targets": {
@@ -64,13 +68,15 @@
     "isAuthorized": "Tôi sở hữu hoặc được ủy quyền kiểm thử target này",
     "isAuthorizedHint": "Scan chỉ được tạo khi target được bật và đã xác nhận ủy quyền.",
     "enabled": "Đang bật", "disabled": "Đã tắt", "authorized": "Đã xác nhận ủy quyền", "notAuthorized": "Chưa xác nhận ủy quyền",
-    "startScan": "Quét", "empty": "Chưa có target nào.", "manageInProject": "Thêm, sửa và quét target trong trang chi tiết project."
+    "startScan": "Quét", "empty": "Chưa có target nào.", "manageInProject": "Thêm, sửa và quét target trong trang chi tiết project.",
+    "scopeConfirmed": "Scope đã xác nhận", "confirmScope": "Xác nhận scope", "deleteTitle": "Xoá target?", "deleteBody": "Target \"{{name}}\" sẽ bị tắt và xoá (xoá mềm). Lịch sử scan vẫn được giữ.", "sectionInfo": "Thông tin target", "sectionScope": "Phạm vi quét", "sectionAuth": "Trạng thái & ủy quyền", "safetyNote": "Giới hạn an toàn: chỉ một host, không wildcard, không khai thác hay brute force.", "scopeResetNote": "Bạn vừa đổi URL hoặc phạm vi, nên xác nhận ủy quyền đã được bỏ. Hãy tick lại nếu vẫn được ủy quyền.", "save": "Lưu target"
   },
-  "scopeMode": { "SameHostPathPrefix": "Cùng host + đường dẫn con", "ExactUrl": "Chỉ đúng URL" },
+  "scopeMode": { "SameHostPathPrefix": "Cùng host + đường dẫn con", "ExactUrl": "Chỉ đúng URL", "hint_SameHostPathPrefix": "Chỉ các URL cùng host và nằm dưới đường dẫn gốc.", "hint_ExactUrl": "Chỉ đúng URL gốc, không đi theo link." },
   "scans": {
     "target": "Target", "progress": "Tiến độ", "findings": "Findings", "urls": "URL", "requests": "Request", "cancel": "Huỷ scan",
     "noFindings": "Chưa có finding.", "startFromProject": "Bắt đầu scan từ trang chi tiết project.",
-    "mockNotice": "MOCK ENGINE: không gửi request mạng; findings là dữ liệu mẫu."
+    "mockNotice": "MOCK ENGINE: không gửi request mạng; findings là dữ liệu mẫu.",
+    "subtitle": "{{count}} scan", "findingCount": "{{count}} finding", "retry": "Retry (tạo scan mới)", "bannerQueued": "Scan đang chờ worker nhận. Trang tự cập nhật.", "bannerCancelling": "Đang huỷ: worker sẽ dừng sau bước hiện tại.", "bannerCancelled": "Scan đã bị huỷ lúc {{date}}. Kết quả đến lúc huỷ vẫn được giữ.", "bannerFailed": "Scan thất bại.", "bannerZero": "Không phát hiện vấn đề nào trong phạm vi đã quét. Điều này không đảm bảo ứng dụng an toàn.", "phase_crawl": "Crawl", "phase_detect": "Detect", "phase_analyze": "Analyze", "phaseState_done": "XONG", "phaseState_now": "ĐANG CHẠY", "phaseState_wait": "CHỜ", "phaseState_fail": "LỖI", "phaseState_stop": "DỪNG", "cancelTitle": "Huỷ scan?", "cancelBody": "Scan trên \"{{name}}\" sẽ dừng. Không tiếp tục được; muốn chạy lại thì dùng Retry."
   },
   "scanStatus": {
     "Pending": "Chờ", "Queued": "Trong hàng đợi", "Running": "Đang chạy", "Cancelling": "Đang huỷ", "Completed": "Hoàn tất",
@@ -81,5 +87,14 @@
   "ai": {
     "explain": "AI giải thích", "remediate": "AI gợi ý khắc phục",
     "advisoryLabel": "AI-ASSISTED · CHỈ MANG TÍNH THAM KHẢO, CẦN NGƯỜI XÁC MINH"
+  },
+  "environment": {
+    "Lab": "Lab", "Development": "Development", "Staging": "Staging", "Production": "Production"
+  },
+  "forbidden": {
+    "title": "Không đủ quyền", "body": "Tài khoản của bạn không có quyền mở trang này. Liên hệ quản trị viên nếu bạn cần truy cập.", "back": "Về Dashboard"
+  },
+  "wizard": {
+    "title": "Scan mới", "subtitle": "Chỉ target đã bật và đã xác nhận ủy quyền mới chọn được.", "steps": "Các bước", "stepTarget": "Target", "stepScope": "Phạm vi", "stepReview": "Review & chạy", "pickTarget": "Chọn target", "scope": "Phạm vi sẽ quét", "engine": "Engine", "engineMock": "Mock (không gửi request)", "review": "Kiểm tra lại trước khi chạy", "back": "Quay lại", "next": "Tiếp", "start": "Bắt đầu scan", "confirmTitle": "Xác nhận chạy scan", "confirmBody": "Scan sẽ chạy trên host {{host}}. Gõ lại host để xác nhận bạn đang chọn đúng target.", "typeHost": "Gõ lại host"
   }
 }
