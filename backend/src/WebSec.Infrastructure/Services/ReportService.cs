@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using WebSec.Infrastructure.Data;
 using WebSec.Infrastructure.Interfaces;
+using WebSec.Infrastructure.Security;
 using WebSec.Infrastructure.Vulnerabilities;
 using WebSec.Shared.DTOs;
 using WebSec.Shared.Entities;
@@ -15,7 +16,7 @@ namespace WebSec.Infrastructure.Services;
 
 // shortcut: reports are built synchronously in the request and "PDF" is the browser's print dialog;
 // move to a background job + PDF library once reports get large or need a stored file.
-public class ReportService(AppDbContext db, ICurrentUser currentUser) : IReportService
+public class ReportService(AppDbContext db, ICurrentUser currentUser, IAuditLogger? audit = null) : IReportService
 {
     private const int ExecutiveTopN = 10;
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
@@ -56,6 +57,7 @@ public class ReportService(AppDbContext db, ICurrentUser currentUser) : IReportS
             CreatedBy = currentUser.UserId ?? throw AppException.Forbidden(),
         };
         db.Reports.Add(report);
+        audit?.Add("REPORT_CREATED", "Report", report.Id, $"Report '{report.Title}' ({report.Template})");
         await GenerateAsync(report, project, ct);
         return await GetByIdAsync(report.Id, ct);
     }

@@ -41,6 +41,21 @@ public class ScanSearchParam : BaseSearchParam
     public ScanStatus? Status { get; set; }
 }
 
+public class UserSearchParam : BaseSearchParam
+{
+    public string? Role { get; set; }
+}
+
+public class AuditLogSearchParam : BaseSearchParam
+{
+    public Guid? UserId { get; set; }
+    public string? Action { get; set; }
+    public string? EntityType { get; set; }
+    public AuditResult? Result { get; set; }
+    public DateTimeOffset? From { get; set; }
+    public DateTimeOffset? To { get; set; }
+}
+
 public class ReportSearchParam : BaseSearchParam
 {
     public Guid? ProjectId { get; set; }

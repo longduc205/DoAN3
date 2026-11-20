@@ -58,6 +58,13 @@ public sealed class AiFindingRequest
     public Guid? VulnerabilityId { get; set; }
 }
 
+public sealed class ChangeUserRoleRequest
+{
+    [Required] public Guid UserId { get; set; }
+    /// <summary>A3: exactly one role per user.</summary>
+    [Required, MaxLength(50)] public string Role { get; set; } = string.Empty;
+}
+
 public sealed class CreateReportRequest
 {
     [Required] public Guid ProjectId { get; set; }

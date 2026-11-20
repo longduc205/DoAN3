@@ -118,6 +118,39 @@ public sealed class DashboardSummaryModel
     public int RiskScore { get; init; }
 }
 
+public sealed class UserAdminModel
+{
+    public Guid Id { get; set; }
+    public string UserName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string FullName { get; set; } = string.Empty;
+    public string Role { get; set; } = string.Empty;
+    public bool IsActive { get; set; }
+    /// <summary>From the audit trail (last LOGIN_SUCCEEDED).</summary>
+    public DateTimeOffset? LastLoginAt { get; set; }
+}
+
+public sealed class RolePermissionsModel
+{
+    public string Role { get; set; } = string.Empty;
+    public IReadOnlyList<string> Permissions { get; set; } = [];
+}
+
+public sealed class AuditLogModel
+{
+    public Guid Id { get; set; }
+    public Guid? UserId { get; set; }
+    public string? UserName { get; set; }
+    public string Action { get; set; } = string.Empty;
+    public string EntityType { get; set; } = string.Empty;
+    public Guid? EntityId { get; set; }
+    public AuditResult Result { get; set; }
+    public string Summary { get; set; } = string.Empty;
+    public string? DetailJson { get; set; }
+    public string? IpAddress { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
 public class ReportModel
 {
     public Guid Id { get; set; }

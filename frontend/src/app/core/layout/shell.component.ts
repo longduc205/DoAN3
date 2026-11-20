@@ -28,6 +28,7 @@ const NAV: NavGroup[] = [
   ] },
   { labelKey: 'nav.groupAdmin', items: [
     { path: '/users', labelKey: 'nav.users', permission: 'User.Manage' },
+    { path: '/audit', labelKey: 'nav.audit', permission: 'AuditLog.View' },
   ] },
 ];
 

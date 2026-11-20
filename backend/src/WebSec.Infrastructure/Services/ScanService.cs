@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using WebSec.Infrastructure.Data;
 using WebSec.Infrastructure.Interfaces;
+using WebSec.Infrastructure.Security;
 using WebSec.Infrastructure.Mapping;
 using WebSec.Infrastructure.Scanning;
 using WebSec.Infrastructure.Scanning.Abstractions;
@@ -14,7 +15,7 @@ using WebSec.Shared.Responses;
 
 namespace WebSec.Infrastructure.Services;
 
-public class ScanService(AppDbContext db, ICurrentUser currentUser, ITargetScopeValidator scopeValidator) : IScanService
+public class ScanService(AppDbContext db, ICurrentUser currentUser, ITargetScopeValidator scopeValidator, IAuditLogger? audit = null) : IScanService
 {
     public Task<PagedResult<ScanModel>> GetAllAsync(ScanSearchParam param, CancellationToken ct)
     {
@@ -37,7 +38,12 @@ public class ScanService(AppDbContext db, ICurrentUser currentUser, ITargetScope
 
         // Scope is checked BEFORE anything is queued.
         var scopeError = await scopeValidator.ValidateAsync(target, ct);
-        if (scopeError is not null) throw AppException.ScopeRejected(scopeError);
+        if (scopeError is not null)
+        {
+            audit?.Add("SCAN_REJECTED", "Target", target.Id, $"Scan rejected for {target.BaseUrl}: {scopeError}", result: AuditResult.Blocked);
+            if (audit is not null) await db.SaveChangesAsync(ct);
+            throw AppException.ScopeRejected(scopeError);
+        }
 
         var now = DateTimeOffset.UtcNow;
         var scan = new Scan
@@ -54,6 +60,7 @@ public class ScanService(AppDbContext db, ICurrentUser currentUser, ITargetScope
         // Scan + job are saved in one SaveChanges call = one transaction; no orphan scans.
         db.Scans.Add(scan);
         db.ScanJobs.Add(new ScanJob { Id = Guid.NewGuid(), ScanId = scan.Id, Status = ScanJobStatus.Queued, AvailableAt = now, CreatedAt = now });
+        audit?.Add("SCAN_STARTED", "Scan", scan.Id, $"Scan queued for {target.BaseUrl}");
         await db.SaveChangesAsync(ct);
         return scan.ToModel();
     }
@@ -77,6 +84,7 @@ public class ScanService(AppDbContext db, ICurrentUser currentUser, ITargetScope
             throw AppException.Conflict($"A scan in status {scan.Status} cannot be cancelled.");
         scan.Status = next;
         if (next == ScanStatus.Cancelled) scan.CompletedAt = DateTimeOffset.UtcNow;
+        audit?.Add("SCAN_CANCELLED", "Scan", scan.Id, $"Scan cancelled ({scan.Target.BaseUrl})");
         await db.SaveChangesAsync(ct);
         return scan.ToModel();
     }

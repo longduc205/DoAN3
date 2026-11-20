@@ -18,13 +18,13 @@
 - Mock scan engine only; no real HTTP requests or passive header checks yet.
 - No refresh token; token in `sessionStorage` (60 min).
 - Project access is owner-based; `project_members` not implemented.
-- Users, Roles, AI Assistant pages are "coming later" placeholders.
+- AI Assistant page is a "coming later" placeholder; users cannot be created or locked from the UI yet.
 - Reports are generated synchronously and "PDF" is the browser print dialog (no stored file, no AI summary section).
-- Audit log table not implemented (audit fields on entities only).
+- Audit log does not record 403s rejected by authorization policies (only explicit events, incl. scope-rejected scans).
 
 ## Next steps
 1. Integration tests (WebApplicationFactory + disposable PostgreSQL / Testcontainers) for auth, project CRUD and scan lifecycle.
 2. Passive `SecurityHeadersDetector` with `ICrawler`/`IVulnerabilityDetector`, request limits and redirect scope checks.
-4. Audit log, refresh tokens (HttpOnly cookie), user/role management screens.
+4. Refresh tokens (HttpOnly cookie); create / lock users; log policy 403s to the audit trail.
 5. Real AI provider adapter behind `IAiAdvisor` with timeouts and safe error mapping; AI conversations.
 7. Upgrade to .NET 10 LTS before .NET 8 end of support (10 Nov 2026).

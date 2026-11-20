@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { BaseApiService } from '../core/services/base-api.service';
 import {
-  AiAdvice, AiContext, Report, ReportDetail, ReportTemplate, ApiResponse, BaseSearchParam, DashboardSummary, PaginatedResponse, Project, ProjectStatus, Scan,
+  AiAdvice, AiContext, AuditLog, AuditResult, Report, RolePermissions, UserAdmin, ReportDetail, ReportTemplate, ApiResponse, BaseSearchParam, DashboardSummary, PaginatedResponse, Project, ProjectStatus, Scan,
   ScanFinding, ScanProgress, ScanStatus, ScopeMode, Severity, Target, TargetEnvironment, UserLookup, Vulnerability,
   VulnerabilityComment, VulnerabilityDetail, VulnerabilityHistory, VulnerabilityStatus,
 } from '../shared/models/api.models';
@@ -90,4 +90,22 @@ export class ReportsApi extends BaseApiService {
   getById(id: string): Observable<ApiResponse<ReportDetail>> { return this.post('get-by-id', { id }); }
   create(body: { projectId: string; title?: string | null; template: ReportTemplate }): Observable<ApiResponse<ReportDetail>> { return this.post('create', body); }
   retry(id: string): Observable<ApiResponse<ReportDetail>> { return this.post('retry', { id }); }
+}
+
+@Injectable({ providedIn: 'root' })
+export class UsersApi extends BaseApiService {
+  protected readonly resource = 'users';
+  getAll(p: BaseSearchParam & { role?: string }): Observable<PaginatedResponse<UserAdmin[]>> { return this.post('get-all', p); }
+  changeRole(userId: string, role: string): Observable<ApiResponse<UserAdmin>> { return this.post('change-role', { userId, role }); }
+  getRolePermissions(): Observable<ApiResponse<RolePermissions[]>> { return this.post('get-role-permissions'); }
+}
+
+export interface AuditLogSearch extends BaseSearchParam {
+  userId?: string; action?: string; entityType?: string; result?: AuditResult; from?: string; to?: string;
+}
+
+@Injectable({ providedIn: 'root' })
+export class AuditLogsApi extends BaseApiService {
+  protected readonly resource = 'audit-logs';
+  getAll(p: AuditLogSearch): Observable<PaginatedResponse<AuditLog[]>> { return this.post('get-all', p); }
 }

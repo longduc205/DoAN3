@@ -63,6 +63,10 @@ Search params (`BaseSearchParam`): `page` (default 1), `pageSize` (default 10, m
 | `POST /api/reports/get-by-id` | `{ id }` | `ReportDetailModel` with `snapshot` (system data only) | `Report.View` |
 | `POST /api/reports/create` | `{ projectId, title?, template: Executive\|Technical }` | `ReportDetailModel` (`Ready`, or `Failed` with a safe error); 400 when the project has no scans | `Report.Generate` |
 | `POST /api/reports/retry` | `{ id }` | `ReportDetailModel`; 409 unless the report is `Failed` (Ready reports are immutable) | `Report.Generate` |
+| `POST /api/users/get-all` | `UserSearchParam { role?, keyword? }` | `UserAdminModel[]` (+ `lastLoginAt` from the audit trail) | `User.Manage` |
+| `POST /api/users/change-role` | `{ userId, role }` (one role per user) | `UserAdminModel`; 409 when changing your own role | `User.Manage` |
+| `POST /api/users/get-role-permissions` | `{}` | `RolePermissionsModel[]` (read-only matrix from the database) | `User.Manage` |
+| `POST /api/audit-logs/get-all` | `AuditLogSearchParam { userId?, action?, entityType?, result?, from?, to?, keyword? }` | `AuditLogModel[]` + paging (newest first). Read-only: no update/delete endpoint exists | `AuditLog.View` |
 | `POST /api/ai/get-context` | `{ findingId }` or `{ vulnerabilityId }` | `AiContextModel` – exactly what would be sent (redacted, ≤1000 chars evidence); does not call the provider | `AI.Ask`, rate-limited 20/min/user |
 | `POST /api/ai/explain-vulnerability` | `{ findingId }` or `{ vulnerabilityId }` (latest occurrence) | `AiAdviceModel { content, provider, model, isAiAssisted: true, generatedAt }` | `AI.Ask`, rate-limited 20/min/user |
 | `POST /api/ai/suggest-remediation` | `{ findingId }` or `{ vulnerabilityId }` | `AiAdviceModel` | `AI.Ask`, rate-limited 20/min/user |
@@ -80,4 +84,4 @@ Authorization: Bearer eyJ…
 ```
 
 ## Planned (not implemented – routes do not exist yet)
-`auth/refresh`, `ai/ask`, `users/*`, `roles/*`.
+`auth/refresh`, `ai/ask`, creating / locking users.

@@ -3,9 +3,10 @@
   "nav": {
     "main": "Main navigation", "groupWorkspace": "Workspace", "groupScan": "Scanning", "groupSecurity": "Security", "groupAdmin": "Admin",
     "dashboard": "Dashboard", "projects": "Projects", "targets": "Targets", "scans": "Scans", "vulnerabilities": "Vulnerabilities",
-    "reports": "Reports", "users": "Users", "roles": "Roles", "aiAssistant": "AI Assistant",
+    "reports": "Reports", "users": "Users & roles", "roles": "Roles", "aiAssistant": "AI Assistant",
     "newScan": "New scan", "groupInsights": "Insights", "breadcrumb": "Breadcrumb",
-    "myItems": "My items"
+    "myItems": "My items",
+    "audit": "Audit logs"
   },
   "auth": { "logout": "Sign out" },
   "login": {
@@ -116,5 +117,14 @@
   },
   "reportTemplate": {
     "Executive": "Executive", "Technical": "Technical", "hint_Executive": "For management: key figures and the 10 most severe open vulnerabilities.", "hint_Technical": "For engineers: figures and every vulnerability with its status."
+  },
+  "roles": {
+    "Admin": "Admin", "SecurityAnalyst": "Security Analyst", "Developer": "Developer", "Viewer": "Viewer"
+  },
+  "users": {
+    "subtitle": "{{count}} accounts. Each has exactly one role; permissions are fixed per role.", "name": "User", "role": "Role", "lastLogin": "Last sign-in", "you": "you", "active": "Active", "locked": "Locked", "pick": "Pick a user to view and change their role.", "ownRole": "You cannot change your own role.", "permissionsOf": "Permissions of {{role}}", "readOnlyMatrix": "Read-only: permissions come with the role.", "changeRole": "Change role", "confirmTitle": "Confirm role change", "confirmBody": "Change {{name}} from {{from}} to {{to}}. The change is recorded in the audit log.", "gained": "Permissions gained", "lost": "Permissions lost", "reloginNote": "New permissions apply after the user signs in again.", "saved": "Role updated."
+  },
+  "audit": {
+    "subtitle": "{{count}} events · read-only", "result": "Result", "result_Success": "Success", "result_Blocked": "Blocked", "result_Failed": "Failed", "entity": "Entity", "allEntities": "All entities", "entity_User": "User", "entity_Project": "Project", "entity_Target": "Target", "entity_Scan": "Scan", "entity_Vulnerability": "Vulnerability", "entity_Report": "Report", "from": "From", "to": "To", "searchPh": "Search descriptions…", "empty": "No events match the filters.", "time": "Time", "actor": "Actor", "pick": "Pick an event to see its details.", "readOnly": "Audit entries cannot be edited or deleted.", "maskedNote": "Passwords, tokens and cookies were masked (••••) before storing; the last part of the IP is hidden."
   }
 }

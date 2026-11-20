@@ -2,6 +2,7 @@ using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using WebSec.Infrastructure.Data;
 using WebSec.Infrastructure.Interfaces;
+using WebSec.Infrastructure.Security;
 using WebSec.Infrastructure.Mapping;
 using WebSec.Shared.DTOs;
 using WebSec.Shared.Entities;
@@ -13,7 +14,7 @@ using WebSec.Shared.Responses;
 
 namespace WebSec.Infrastructure.Services;
 
-public class ProjectService(AppDbContext db, ICurrentUser currentUser) : IProjectService
+public class ProjectService(AppDbContext db, ICurrentUser currentUser, IAuditLogger? audit = null) : IProjectService
 {
     private static readonly Dictionary<string, Expression<Func<Project, object>>> Sorts = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -95,6 +96,7 @@ public class ProjectService(AppDbContext db, ICurrentUser currentUser) : IProjec
             OwnerId = currentUser.UserId ?? throw AppException.Forbidden(),
         };
         db.Projects.Add(project);
+        audit?.Add("PROJECT_CREATED", "Project", project.Id, $"Created project {project.Code}");
         await db.SaveChangesAsync(ct);
         return project.ToModel();
     }
@@ -104,10 +106,13 @@ public class ProjectService(AppDbContext db, ICurrentUser currentUser) : IProjec
         var project = await FindAsync(request.Id, ct);
         var code = request.Code.Trim().ToUpperInvariant();
         await EnsureCodeUniqueAsync(code, project.Id, ct);
+        var before = new { project.Code, project.Name, project.Status };
         project.Code = code;
         project.Name = request.Name.Trim();
         project.Description = request.Description?.Trim();
         project.Status = request.Status;
+        audit?.Add("PROJECT_UPDATED", "Project", project.Id, $"Updated project {project.Code}",
+            new { before, after = new { project.Code, project.Name, project.Status } });
         await db.SaveChangesAsync(ct);
         return project.ToModel();
     }
@@ -117,6 +122,7 @@ public class ProjectService(AppDbContext db, ICurrentUser currentUser) : IProjec
         var project = await FindAsync(id, ct);
         if (!project.Deletable) throw AppException.Conflict("This project cannot be deleted.");
         project.IsDeleted = true;
+        audit?.Add("PROJECT_DELETED", "Project", project.Id, $"Deleted project {project.Code}");
         await db.SaveChangesAsync(ct);
     }
 

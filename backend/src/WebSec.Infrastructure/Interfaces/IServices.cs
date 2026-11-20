@@ -59,6 +59,18 @@ public interface IAiService
     Task<AiAdviceModel> SuggestRemediationAsync(AiFindingRequest request, CancellationToken ct);
 }
 
+public interface IUserAdminService
+{
+    Task<PagedResult<UserAdminModel>> GetAllAsync(UserSearchParam param, CancellationToken ct);
+    Task<UserAdminModel> ChangeRoleAsync(ChangeUserRoleRequest request, CancellationToken ct);
+    Task<IReadOnlyList<RolePermissionsModel>> GetRolePermissionsAsync(CancellationToken ct);
+}
+
+public interface IAuditLogService
+{
+    Task<PagedResult<AuditLogModel>> GetAllAsync(AuditLogSearchParam param, CancellationToken ct);
+}
+
 public interface IReportService
 {
     Task<PagedResult<ReportModel>> GetAllAsync(ReportSearchParam param, CancellationToken ct);

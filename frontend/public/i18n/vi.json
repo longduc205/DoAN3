@@ -3,9 +3,10 @@
   "nav": {
     "main": "Điều hướng chính", "groupWorkspace": "Workspace", "groupScan": "Quét", "groupSecurity": "Bảo mật", "groupAdmin": "Quản trị",
     "dashboard": "Dashboard", "projects": "Projects", "targets": "Targets", "scans": "Scans", "vulnerabilities": "Vulnerabilities",
-    "reports": "Reports", "users": "Người dùng", "roles": "Vai trò", "aiAssistant": "AI Assistant",
+    "reports": "Reports", "users": "Người dùng & vai trò", "roles": "Vai trò", "aiAssistant": "AI Assistant",
     "newScan": "Scan mới", "groupInsights": "Phân tích", "breadcrumb": "Vị trí hiện tại",
-    "myItems": "Việc của tôi"
+    "myItems": "Việc của tôi",
+    "audit": "Audit logs"
   },
   "auth": { "logout": "Đăng xuất" },
   "login": {
@@ -116,5 +117,14 @@
   },
   "reportTemplate": {
     "Executive": "Executive", "Technical": "Technical", "hint_Executive": "Tóm tắt cho quản lý: số liệu chính và 10 lỗ hổng đang mở nghiêm trọng nhất.", "hint_Technical": "Cho đội kỹ thuật: số liệu và toàn bộ lỗ hổng kèm trạng thái."
+  },
+  "roles": {
+    "Admin": "Admin", "SecurityAnalyst": "Security Analyst", "Developer": "Developer", "Viewer": "Viewer"
+  },
+  "users": {
+    "subtitle": "{{count}} tài khoản. Mỗi tài khoản có đúng một vai trò; quyền cố định theo vai trò.", "name": "Người dùng", "role": "Vai trò", "lastLogin": "Đăng nhập gần nhất", "you": "bạn", "active": "Hoạt động", "locked": "Đã khoá", "pick": "Chọn một người dùng để xem và đổi vai trò.", "ownRole": "Bạn không thể đổi vai trò của chính mình.", "permissionsOf": "Quyền của {{role}}", "readOnlyMatrix": "Bảng quyền chỉ đọc; quyền đi theo vai trò.", "changeRole": "Đổi vai trò", "confirmTitle": "Xác nhận đổi vai trò", "confirmBody": "Đổi vai trò của {{name}} từ {{from}} sang {{to}}. Thay đổi được ghi vào audit log.", "gained": "Quyền được thêm", "lost": "Quyền bị mất", "reloginNote": "Quyền mới có hiệu lực khi người dùng đăng nhập lại.", "saved": "Đã đổi vai trò."
+  },
+  "audit": {
+    "subtitle": "{{count}} sự kiện · chỉ đọc", "result": "Kết quả", "result_Success": "Thành công", "result_Blocked": "Bị chặn", "result_Failed": "Thất bại", "entity": "Đối tượng", "allEntities": "Mọi đối tượng", "entity_User": "Người dùng", "entity_Project": "Project", "entity_Target": "Target", "entity_Scan": "Scan", "entity_Vulnerability": "Lỗ hổng", "entity_Report": "Report", "from": "Từ", "to": "Đến", "searchPh": "Tìm trong mô tả…", "empty": "Không có sự kiện khớp bộ lọc.", "time": "Thời gian", "actor": "Người thực hiện", "pick": "Chọn một sự kiện để xem chi tiết.", "readOnly": "Audit log không sửa hay xoá được.", "maskedNote": "Mật khẩu, token, cookie đã được che (••••) trước khi lưu; IP bị ẩn phần cuối."
   }
 }

@@ -7,6 +7,7 @@ using WebSec.Infrastructure.AI;
 using WebSec.Infrastructure.Data;
 using WebSec.Infrastructure.Interfaces;
 using WebSec.Infrastructure.Scanning;
+using WebSec.Infrastructure.Security;
 using WebSec.Infrastructure.Scanning.Abstractions;
 using WebSec.Infrastructure.Scanning.Engine;
 using WebSec.Infrastructure.Scanning.Queue;
@@ -61,6 +62,9 @@ public static class DependencyInjection
         services.AddScoped<IAiService, AiService>();
         services.AddScoped<IVulnerabilityService, VulnerabilityService>();
         services.AddScoped<IReportService, ReportService>();
+        services.AddScoped<IUserAdminService, UserAdminService>();
+        services.AddScoped<IAuditLogService, AuditLogService>();
+        services.AddScoped<IAuditLogger, AuditLogger>();
         return services;
     }
 }

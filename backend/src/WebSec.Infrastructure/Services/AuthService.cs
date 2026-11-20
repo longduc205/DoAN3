@@ -5,12 +5,13 @@ using WebSec.Infrastructure.Interfaces;
 using WebSec.Infrastructure.Security;
 using WebSec.Shared.DTOs;
 using WebSec.Shared.Entities;
+using WebSec.Shared.Enums;
 using WebSec.Shared.Errors;
 using WebSec.Shared.Models;
 
 namespace WebSec.Infrastructure.Services;
 
-public class AuthService(AppDbContext db, IPasswordHasher<User> hasher, JwtTokenService tokens, ICurrentUser currentUser) : IAuthService
+public class AuthService(AppDbContext db, IPasswordHasher<User> hasher, JwtTokenService tokens, ICurrentUser currentUser, IAuditLogger? audit = null) : IAuthService
 {
     public async Task<LoginResult> LoginAsync(LoginRequest request, CancellationToken ct)
     {
@@ -20,8 +21,13 @@ public class AuthService(AppDbContext db, IPasswordHasher<User> hasher, JwtToken
         if (user is null || !user.IsActive
             || hasher.VerifyHashedPassword(user, user.PasswordHash, request.Password) == PasswordVerificationResult.Failed)
         {
+            // Only the attempted name is kept (never the password); user id when the account exists.
+            audit?.Add("LOGIN_FAILED", "User", user?.Id, $"Failed login for '{name}'", new { userName = name }, AuditResult.Failed, user?.Id);
+            if (audit is not null) await db.SaveChangesAsync(ct);
             throw AppException.Unauthorized("Invalid username or password.");
         }
+        audit?.Add("LOGIN_SUCCEEDED", "User", user.Id, $"{user.UserName} signed in", userId: user.Id);
+        if (audit is not null) await db.SaveChangesAsync(ct);
 
         var model = await BuildUserModelAsync(user, ct);
         var (token, expires) = tokens.CreateToken(user.Id, user.UserName, model.Roles, model.Permissions);

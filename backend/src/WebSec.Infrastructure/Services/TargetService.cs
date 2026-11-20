@@ -2,10 +2,12 @@ using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using WebSec.Infrastructure.Data;
 using WebSec.Infrastructure.Interfaces;
+using WebSec.Infrastructure.Security;
 using WebSec.Infrastructure.Mapping;
 using WebSec.Infrastructure.Scanning;
 using WebSec.Shared.DTOs;
 using WebSec.Shared.Entities;
+using WebSec.Shared.Enums;
 using WebSec.Shared.Errors;
 using WebSec.Shared.Models;
 using WebSec.Shared.Params;
@@ -13,7 +15,7 @@ using WebSec.Shared.Responses;
 
 namespace WebSec.Infrastructure.Services;
 
-public class TargetService(AppDbContext db, ICurrentUser currentUser) : ITargetService
+public class TargetService(AppDbContext db, ICurrentUser currentUser, IAuditLogger? audit = null) : ITargetService
 {
     private static readonly Dictionary<string, Expression<Func<Target, object>>> Sorts = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -47,6 +49,8 @@ public class TargetService(AppDbContext db, ICurrentUser currentUser) : ITargetS
         request.ApplyTo(target);
         target.BaseUrl = NormalizeUrl(request.BaseUrl);
         db.Targets.Add(target);
+        audit?.Add("TARGET_CREATED", "Target", target.Id, $"Created target {target.BaseUrl}", new { target.BaseUrl, target.ScopeMode, target.IsAuthorized });
+        if (target.IsAuthorized) audit?.Add("SCOPE_CONFIRMED", "Target", target.Id, $"Authorization confirmed for {target.BaseUrl}");
         await db.SaveChangesAsync(ct);
         return target.ToModel();
     }
@@ -55,8 +59,12 @@ public class TargetService(AppDbContext db, ICurrentUser currentUser) : ITargetS
     {
         var target = await FindAsync(request.Id, ct);
         if (target.ProjectId != request.ProjectId) throw AppException.Validation("A target cannot be moved to another project.");
+        var before = new { target.BaseUrl, target.ScopeMode, target.IsEnabled, target.IsAuthorized };
         request.ApplyTo(target);
         target.BaseUrl = NormalizeUrl(request.BaseUrl);
+        audit?.Add("TARGET_UPDATED", "Target", target.Id, $"Updated target {target.BaseUrl}",
+            new { before, after = new { target.BaseUrl, target.ScopeMode, target.IsEnabled, target.IsAuthorized } });
+        if (target.IsAuthorized && !before.IsAuthorized) audit?.Add("SCOPE_CONFIRMED", "Target", target.Id, $"Authorization confirmed for {target.BaseUrl}");
         await db.SaveChangesAsync(ct);
         return target.ToModel();
     }
@@ -67,6 +75,7 @@ public class TargetService(AppDbContext db, ICurrentUser currentUser) : ITargetS
         // Soft delete + disable; scan history stays in the database.
         target.IsDeleted = true;
         target.IsEnabled = false;
+        audit?.Add("TARGET_DELETED", "Target", target.Id, $"Deleted target {target.BaseUrl}");
         await db.SaveChangesAsync(ct);
     }
 

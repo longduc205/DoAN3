@@ -54,8 +54,15 @@ export const routes: Routes = [
         path: 'reports/:id', canActivate: [permissionGuard], data: { permission: 'Report.View' },
         loadComponent: () => import('./features/reports/report-detail.page').then((m) => m.ReportDetailPage),
       },
-      { path: 'users', ...placeholder('nav.users', 'User.Manage') },
-      { path: 'roles', ...placeholder('nav.roles', 'Role.Manage') },
+      {
+        path: 'users', canActivate: [permissionGuard], data: { permission: 'User.Manage' },
+        loadComponent: () => import('./features/admin/users.page').then((m) => m.UsersPage),
+      },
+      { path: 'roles', redirectTo: 'users' }, // W12 shows users and the role matrix on one screen
+      {
+        path: 'audit', canActivate: [permissionGuard], data: { permission: 'AuditLog.View' },
+        loadComponent: () => import('./features/admin/audit.page').then((m) => m.AuditPage),
+      },
       { path: 'ai-assistant', ...placeholder('nav.aiAssistant', 'AI.Ask') },
     ],
   },

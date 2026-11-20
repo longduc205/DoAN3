@@ -16,11 +16,12 @@ public static class Permissions
     public const string AiAsk = "AI.Ask";
     public const string UserManage = "User.Manage";
     public const string RoleManage = "Role.Manage";
+    public const string AuditLogView = "AuditLog.View";
 
     public static readonly string[] All =
     [
         ProjectView, ProjectCreate, ProjectUpdate, ScanCreate, ScanView, VulnerabilityView,
-        VulnerabilityUpdate, VulnerabilityTriage, ReportGenerate, ReportView, AiAsk, UserManage, RoleManage,
+        VulnerabilityUpdate, VulnerabilityTriage, ReportGenerate, ReportView, AiAsk, UserManage, RoleManage, AuditLogView,
     ];
 }
 

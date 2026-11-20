@@ -22,6 +22,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
     public DbSet<VulnerabilityComment> VulnerabilityComments => Set<VulnerabilityComment>();
     public DbSet<VulnerabilityHistory> VulnerabilityHistories => Set<VulnerabilityHistory>();
     public DbSet<Report> Reports => Set<Report>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder builder)
     {
@@ -35,6 +36,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
         builder.Properties<Confidence>().HaveConversion<string>().HaveMaxLength(30);
         builder.Properties<VulnerabilityStatus>().HaveConversion<string>().HaveMaxLength(30);
         builder.Properties<ReportStatus>().HaveConversion<string>().HaveMaxLength(30);
+        builder.Properties<AuditResult>().HaveConversion<string>().HaveMaxLength(30);
         builder.Properties<ReportTemplate>().HaveConversion<string>().HaveMaxLength(30);
     }
 

@@ -225,6 +225,19 @@ export interface ReportSnapshot {
 
 export interface ReportDetail extends Report { snapshot: ReportSnapshot | null }
 
+export type AuditResult = 'Success' | 'Blocked' | 'Failed';
+
+export interface UserAdmin {
+  id: string; userName: string; email: string; fullName: string; role: string; isActive: boolean; lastLoginAt: string | null;
+}
+
+export interface RolePermissions { role: string; permissions: string[] }
+
+export interface AuditLog {
+  id: string; userId: string | null; userName: string | null; action: string; entityType: string; entityId: string | null;
+  result: AuditResult; summary: string; detailJson: string | null; ipAddress: string | null; createdAt: string;
+}
+
 export interface UserLookup { id: string; fullName: string; role: string }
 
 export interface AiContext { findingType: string; title: string; url: string; severity: Severity; evidenceSummary: string }
