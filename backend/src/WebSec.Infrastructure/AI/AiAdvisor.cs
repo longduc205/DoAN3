@@ -3,6 +3,7 @@ using WebSec.Infrastructure.Data;
 using WebSec.Infrastructure.Interfaces;
 using WebSec.Infrastructure.Scanning;
 using WebSec.Infrastructure.Services;
+using WebSec.Shared.DTOs;
 using WebSec.Shared.Enums;
 using WebSec.Shared.Errors;
 using WebSec.Shared.Models;
@@ -71,21 +72,33 @@ public class AiService(AppDbContext db, ICurrentUser currentUser, IAiAdvisor? ad
 {
     private const int MaxEvidenceChars = 1000;
 
-    public async Task<AiAdviceModel> ExplainFindingAsync(Guid findingId, CancellationToken ct) =>
-        await RequireAdvisor().ExplainVulnerabilityAsync(await LoadContextAsync(findingId, ct), ct);
+    public async Task<AiContextModel> GetContextAsync(AiFindingRequest request, CancellationToken ct)
+    {
+        var c = await LoadContextAsync(request, ct);
+        return new AiContextModel { FindingType = c.FindingType, Title = c.Title, Url = c.Url, Severity = c.Severity, EvidenceSummary = c.EvidenceSummary };
+    }
 
-    public async Task<AiAdviceModel> SuggestRemediationAsync(Guid findingId, CancellationToken ct) =>
-        await RequireAdvisor().SuggestRemediationAsync(await LoadContextAsync(findingId, ct), ct);
+    public async Task<AiAdviceModel> ExplainFindingAsync(AiFindingRequest request, CancellationToken ct) =>
+        await RequireAdvisor().ExplainVulnerabilityAsync(await LoadContextAsync(request, ct), ct);
+
+    public async Task<AiAdviceModel> SuggestRemediationAsync(AiFindingRequest request, CancellationToken ct) =>
+        await RequireAdvisor().SuggestRemediationAsync(await LoadContextAsync(request, ct), ct);
 
     private IAiAdvisor RequireAdvisor() => advisor
         ?? throw new AppException(ErrorCodes.AiProviderUnavailable, "AI provider is not configured.", 503);
 
-    private async Task<AiFindingContext> LoadContextAsync(Guid findingId, CancellationToken ct)
+    private async Task<AiFindingContext> LoadContextAsync(AiFindingRequest request, CancellationToken ct)
     {
         var projectIds = db.AccessibleProjects(currentUser).Select(p => p.Id);
+        var me = currentUser.UserId ?? Guid.Empty;
+        // Same access rule as VulnerabilityService: own projects, or vulnerabilities assigned to the caller.
+        var vulnIds = db.Vulnerabilities.Where(v => projectIds.Contains(v.ProjectId) || v.AssigneeId == me).Select(v => v.Id);
         var scanIds = db.Scans.Where(s => projectIds.Contains(s.ProjectId)).Select(s => s.Id);
-        var f = await db.ScanFindings.AsNoTracking().FirstOrDefaultAsync(x => x.Id == findingId && scanIds.Contains(x.ScanId), ct)
-            ?? throw AppException.NotFound("finding");
+        var query = db.ScanFindings.AsNoTracking();
+        query = request.VulnerabilityId is { } vid
+            ? query.Where(x => x.VulnerabilityId == vid && vulnIds.Contains(vid)).OrderByDescending(x => x.DetectedAt)
+            : query.Where(x => x.Id == request.FindingId && scanIds.Contains(x.ScanId));
+        var f = await query.FirstOrDefaultAsync(ct) ?? throw AppException.NotFound("finding");
 
         var evidence = EvidenceRedactor.Redact(f.EvidenceSummary, out _);
         if (evidence.Length > MaxEvidenceChars) evidence = evidence[..MaxEvidenceChars];

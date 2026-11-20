@@ -3,6 +3,7 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using WebSec.Infrastructure.Vulnerabilities;
 using WebSec.Shared.Entities;
 using WebSec.Shared.Enums;
 
@@ -114,6 +115,8 @@ public static class DevDataSeeder
             }
             logger.LogInformation("Seeded development sample project {Code}", s.Code);
         }
+        foreach (var scan in db.Scans.Local.Where(x => x.Status == ScanStatus.Completed).OrderBy(x => x.CreatedAt).ToList())
+            await VulnerabilitySync.UpsertAsync(db, scan, db.ScanFindings.Local.Where(f => f.ScanId == scan.Id).ToList(), ct);
         await db.SaveChangesAsync(ct);
     }
 

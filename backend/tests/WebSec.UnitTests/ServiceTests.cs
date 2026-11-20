@@ -5,6 +5,7 @@ using WebSec.Infrastructure.Data;
 using WebSec.Infrastructure.Interfaces;
 using WebSec.Infrastructure.Scanning;
 using WebSec.Infrastructure.Scanning.Engine;
+using WebSec.Shared.DTOs;
 using WebSec.Shared.Entities;
 using WebSec.Shared.Enums;
 
@@ -17,6 +18,7 @@ public class ServiceTests
     {
         public Guid? UserId => id;
         public bool IsInRole(string r) => r == role;
+        public bool HasPermission(string p) => Roles.DefaultPermissions[role].Contains(p);
     }
 
     private static readonly Guid UserId = Guid.NewGuid();
@@ -120,7 +122,7 @@ public class ServiceTests
         var before = (finding.Severity, scan.Status);
 
         var advice = await new AiService(db, new FakeUser(UserId, Roles.SecurityAnalyst), new MockAiAdvisor())
-            .ExplainFindingAsync(finding.Id, default);
+            .ExplainFindingAsync(new AiFindingRequest { FindingId = finding.Id }, default);
 
         Assert.True(advice.IsAiAssisted);
         Assert.False(db.ChangeTracker.HasChanges());

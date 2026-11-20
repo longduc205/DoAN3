@@ -20,6 +20,7 @@ const NAV: NavGroup[] = [
   ] },
   { labelKey: 'nav.groupSecurity', items: [
     { path: '/vulnerabilities', labelKey: 'nav.vulnerabilities', permission: 'Vulnerability.View' },
+    { path: '/my-items', labelKey: 'nav.myItems', permission: 'Vulnerability.Update' },
   ] },
   { labelKey: 'nav.groupInsights', items: [
     { path: '/reports', labelKey: 'nav.reports', permission: 'Report.Generate' },

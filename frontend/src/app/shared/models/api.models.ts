@@ -34,6 +34,8 @@ export type ScanType = 'Mock' | 'Passive';
 export type ScanStatus = 'Pending' | 'Queued' | 'Running' | 'Cancelling' | 'Completed' | 'Failed' | 'Cancelled';
 export type Severity = 'Info' | 'Low' | 'Medium' | 'High' | 'Critical';
 export type Confidence = 'Low' | 'Medium' | 'High';
+export type VulnerabilityStatus =
+  | 'Open' | 'Triaged' | 'Assigned' | 'InProgress' | 'PendingVerification' | 'Resolved' | 'Reopened' | 'FalsePositive' | 'AcceptedRisk';
 
 export interface CurrentUser {
   id: string;
@@ -131,7 +133,64 @@ export interface DashboardSummary {
   scans: number;
   findings: number;
   findingsBySeverity: Partial<Record<Severity, number>>;
+  openVulnerabilities: number;
+  openBySeverity: Partial<Record<Severity, number>>;
+  byStatus: Partial<Record<VulnerabilityStatus, number>>;
+  reappeared: number;
+  unassigned: number;
+  riskScore: number;
 }
+
+export interface Vulnerability {
+  id: string;
+  projectId: string;
+  projectName: string;
+  targetId: string;
+  targetName: string;
+  findingType: string;
+  title: string;
+  url: string;
+  parameterName: string | null;
+  severity: Severity;
+  status: VulnerabilityStatus;
+  isReappeared: boolean;
+  assigneeId: string | null;
+  assigneeName: string | null;
+  firstDetectedAt: string;
+  lastDetectedAt: string;
+}
+
+export interface VulnerabilityDetail extends Vulnerability {
+  targetBaseUrl: string;
+  closeReason: string | null;
+  reviewAt: string | null;
+  resolvedAt: string | null;
+  occurrences: number;
+  latestFinding: ScanFinding | null;
+  allowedTransitions: VulnerabilityStatus[];
+}
+
+export interface VulnerabilityComment {
+  id: string;
+  userId: string;
+  userName: string;
+  content: string;
+  isAiNote: boolean;
+  createdAt: string;
+}
+
+export interface VulnerabilityHistory {
+  id: string;
+  changedByName: string | null;
+  oldStatus: VulnerabilityStatus | null;
+  newStatus: VulnerabilityStatus | null;
+  summary: string;
+  createdAt: string;
+}
+
+export interface UserLookup { id: string; fullName: string; role: string }
+
+export interface AiContext { findingType: string; title: string; url: string; severity: Severity; evidenceSummary: string }
 
 export interface AiAdvice {
   content: string;

@@ -9,6 +9,8 @@ public static class Permissions
     public const string ScanView = "Scan.View";
     public const string VulnerabilityView = "Vulnerability.View";
     public const string VulnerabilityUpdate = "Vulnerability.Update";
+    /// <summary>Triage, assign, verify and close (FP / Accepted Risk). Developers only get Update.</summary>
+    public const string VulnerabilityTriage = "Vulnerability.Triage";
     public const string ReportGenerate = "Report.Generate";
     public const string AiAsk = "AI.Ask";
     public const string UserManage = "User.Manage";
@@ -17,7 +19,7 @@ public static class Permissions
     public static readonly string[] All =
     [
         ProjectView, ProjectCreate, ProjectUpdate, ScanCreate, ScanView, VulnerabilityView,
-        VulnerabilityUpdate, ReportGenerate, AiAsk, UserManage, RoleManage,
+        VulnerabilityUpdate, VulnerabilityTriage, ReportGenerate, AiAsk, UserManage, RoleManage,
     ];
 }
 
@@ -35,7 +37,7 @@ public static class Roles
         [SecurityAnalyst] =
         [
             Permissions.ProjectView, Permissions.ProjectCreate, Permissions.ProjectUpdate, Permissions.ScanCreate,
-            Permissions.ScanView, Permissions.VulnerabilityView, Permissions.VulnerabilityUpdate,
+            Permissions.ScanView, Permissions.VulnerabilityView, Permissions.VulnerabilityUpdate, Permissions.VulnerabilityTriage,
             Permissions.ReportGenerate, Permissions.AiAsk,
         ],
         [Developer] = [Permissions.ProjectView, Permissions.ScanView, Permissions.VulnerabilityView, Permissions.VulnerabilityUpdate, Permissions.AiAsk],

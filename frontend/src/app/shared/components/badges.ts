@@ -1,6 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { ScanStatus, Severity } from '../models/api.models';
+import { ScanStatus, Severity, VulnerabilityStatus } from '../models/api.models';
 
 const SEVERITY_CLASS: Record<Severity, string> = {
   Critical: 'text-white bg-sev-critical',
@@ -39,4 +39,23 @@ export class SeverityBadge {
 export class StatusBadge {
   readonly status = input.required<ScanStatus>();
   protected readonly cls = computed(() => STATUS_CLASS[this.status()] ?? 'text-sev-info bg-sev-info-bg');
+}
+
+const VULN_CLASS: Record<VulnerabilityStatus, string> = {
+  Open: 'text-run bg-run-bg', Triaged: 'text-run bg-run-bg', Assigned: 'text-run bg-run-bg', InProgress: 'text-run bg-run-bg',
+  PendingVerification: 'text-warn bg-warn-bg', Reopened: 'text-warn bg-warn-bg', Resolved: 'text-ok bg-ok-bg',
+  FalsePositive: 'text-sev-info bg-sev-info-bg', AcceptedRisk: 'text-sev-info bg-sev-info-bg',
+};
+
+@Component({
+  selector: 'app-vuln-status-badge',
+  imports: [TranslocoPipe],
+  template: `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium whitespace-nowrap" [class]="cls()">
+    {{ 'vulnStatus.' + status() | transloco }}
+    @if (reappeared()) { <span class="text-warn">· {{ 'vulns.reappeared' | transloco }}</span> }</span>`,
+})
+export class VulnStatusBadge {
+  readonly status = input.required<VulnerabilityStatus>();
+  readonly reappeared = input(false);
+  protected readonly cls = computed(() => VULN_CLASS[this.status()]);
 }

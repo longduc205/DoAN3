@@ -109,6 +109,83 @@ public sealed class DashboardSummaryModel
     public int Scans { get; init; }
     public int Findings { get; init; }
     public IReadOnlyDictionary<Severity, int> FindingsBySeverity { get; init; } = new Dictionary<Severity, int>();
+    public int OpenVulnerabilities { get; init; }
+    public IReadOnlyDictionary<Severity, int> OpenBySeverity { get; init; } = new Dictionary<Severity, int>();
+    public IReadOnlyDictionary<VulnerabilityStatus, int> ByStatus { get; init; } = new Dictionary<VulnerabilityStatus, int>();
+    public int Reappeared { get; init; }
+    public int Unassigned { get; init; }
+    /// <summary>0–100, see docs/DATA_MODEL.md (risk score).</summary>
+    public int RiskScore { get; init; }
+}
+
+public class VulnerabilityModel
+{
+    public Guid Id { get; set; }
+    public Guid ProjectId { get; set; }
+    public string ProjectName { get; set; } = string.Empty;
+    public Guid TargetId { get; set; }
+    public string TargetName { get; set; } = string.Empty;
+    public string FindingType { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public string Url { get; set; } = string.Empty;
+    public string? ParameterName { get; set; }
+    public Severity Severity { get; set; }
+    public VulnerabilityStatus Status { get; set; }
+    public bool IsReappeared { get; set; }
+    public Guid? AssigneeId { get; set; }
+    public string? AssigneeName { get; set; }
+    public DateTimeOffset FirstDetectedAt { get; set; }
+    public DateTimeOffset LastDetectedAt { get; set; }
+}
+
+public sealed class VulnerabilityDetailModel : VulnerabilityModel
+{
+    public string TargetBaseUrl { get; set; } = string.Empty;
+    public string? CloseReason { get; set; }
+    public DateTimeOffset? ReviewAt { get; set; }
+    public DateTimeOffset? ResolvedAt { get; set; }
+    public int Occurrences { get; set; }
+    /// <summary>Latest occurrence; evidence is already redacted at write time.</summary>
+    public ScanFindingModel? LatestFinding { get; set; }
+    /// <summary>Statuses the caller may move to right now (UI shows only these buttons).</summary>
+    public IReadOnlyList<VulnerabilityStatus> AllowedTransitions { get; set; } = [];
+}
+
+public sealed class VulnerabilityCommentModel
+{
+    public Guid Id { get; set; }
+    public Guid UserId { get; set; }
+    public string UserName { get; set; } = string.Empty;
+    public string Content { get; set; } = string.Empty;
+    public bool IsAiNote { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
+public sealed class VulnerabilityHistoryModel
+{
+    public Guid Id { get; set; }
+    public string? ChangedByName { get; set; }
+    public VulnerabilityStatus? OldStatus { get; set; }
+    public VulnerabilityStatus? NewStatus { get; set; }
+    public string Summary { get; set; } = string.Empty;
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
+public sealed class UserLookupModel
+{
+    public Guid Id { get; set; }
+    public string FullName { get; set; } = string.Empty;
+    public string Role { get; set; } = string.Empty;
+}
+
+/// <summary>Exactly what would be sent to the AI provider (already redacted and truncated).</summary>
+public sealed class AiContextModel
+{
+    public string FindingType { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public string Url { get; set; } = string.Empty;
+    public Severity Severity { get; set; }
+    public string EvidenceSummary { get; set; } = string.Empty;
 }
 
 public sealed class AiAdviceModel

@@ -383,6 +383,10 @@ namespace WebSec.Infrastructure.Data.Migrations
                         .HasColumnType("character varying(2048)")
                         .HasColumnName("url");
 
+                    b.Property<Guid?>("VulnerabilityId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("vulnerability_id");
+
                     b.HasKey("Id")
                         .HasName("pk_scan_findings");
 
@@ -394,6 +398,9 @@ namespace WebSec.Infrastructure.Data.Migrations
 
                     b.HasIndex("Severity")
                         .HasDatabaseName("ix_scan_findings_severity");
+
+                    b.HasIndex("VulnerabilityId")
+                        .HasDatabaseName("ix_scan_findings_vulnerability_id");
 
                     b.ToTable("scan_findings", (string)null);
                 });
@@ -681,6 +688,205 @@ namespace WebSec.Infrastructure.Data.Migrations
                     b.ToTable("user_roles", (string)null);
                 });
 
+            modelBuilder.Entity("WebSec.Shared.Entities.Vulnerability", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("AssigneeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("assignee_id");
+
+                    b.Property<string>("CloseReason")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("close_reason");
+
+                    b.Property<string>("FindingType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("finding_type");
+
+                    b.Property<string>("Fingerprint")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("fingerprint");
+
+                    b.Property<DateTimeOffset>("FirstDetectedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("first_detected_at");
+
+                    b.Property<bool>("IsReappeared")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_reappeared");
+
+                    b.Property<DateTimeOffset>("LastDetectedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_detected_at");
+
+                    b.Property<string>("ParameterName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("parameter_name");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<DateTimeOffset?>("ResolvedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("resolved_at");
+
+                    b.Property<DateTimeOffset?>("ReviewAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("review_at");
+
+                    b.Property<string>("Severity")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("severity");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("TargetId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("target_id");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("title");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("url");
+
+                    b.HasKey("Id")
+                        .HasName("pk_vulnerabilities");
+
+                    b.HasIndex("AssigneeId")
+                        .HasDatabaseName("ix_vulnerabilities_assignee_id");
+
+                    b.HasIndex("ProjectId")
+                        .HasDatabaseName("ix_vulnerabilities_project_id");
+
+                    b.HasIndex("Severity")
+                        .HasDatabaseName("ix_vulnerabilities_severity");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_vulnerabilities_status");
+
+                    b.HasIndex("TargetId", "Fingerprint")
+                        .IsUnique()
+                        .HasDatabaseName("ix_vulnerabilities_target_id_fingerprint");
+
+                    b.ToTable("vulnerabilities", (string)null);
+                });
+
+            modelBuilder.Entity("WebSec.Shared.Entities.VulnerabilityComment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(8000)
+                        .HasColumnType("character varying(8000)")
+                        .HasColumnName("content");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("IsAiNote")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_ai_note");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<Guid>("VulnerabilityId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("vulnerability_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_vulnerability_comments");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_vulnerability_comments_user_id");
+
+                    b.HasIndex("VulnerabilityId")
+                        .HasDatabaseName("ix_vulnerability_comments_vulnerability_id");
+
+                    b.ToTable("vulnerability_comments", (string)null);
+                });
+
+            modelBuilder.Entity("WebSec.Shared.Entities.VulnerabilityHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("ChangedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("changed_by");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("NewStatus")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("new_status");
+
+                    b.Property<string>("OldStatus")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("old_status");
+
+                    b.Property<string>("Summary")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("summary");
+
+                    b.Property<Guid>("VulnerabilityId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("vulnerability_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_vulnerability_histories");
+
+                    b.HasIndex("ChangedBy")
+                        .HasDatabaseName("ix_vulnerability_histories_changed_by");
+
+                    b.HasIndex("VulnerabilityId")
+                        .HasDatabaseName("ix_vulnerability_histories_vulnerability_id");
+
+                    b.ToTable("vulnerability_histories", (string)null);
+                });
+
             modelBuilder.Entity("WebSec.Shared.Entities.Project", b =>
                 {
                     b.HasOne("WebSec.Shared.Entities.User", null)
@@ -744,6 +950,12 @@ namespace WebSec.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_scan_findings_scans_scan_id");
+
+                    b.HasOne("WebSec.Shared.Entities.Vulnerability", null)
+                        .WithMany()
+                        .HasForeignKey("VulnerabilityId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_scan_findings_vulnerabilities_vulnerability_id");
                 });
 
             modelBuilder.Entity("WebSec.Shared.Entities.ScanJob", b =>
@@ -795,6 +1007,64 @@ namespace WebSec.Infrastructure.Data.Migrations
                         .HasConstraintName("fk_user_roles_users_user_id");
 
                     b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("WebSec.Shared.Entities.Vulnerability", b =>
+                {
+                    b.HasOne("WebSec.Shared.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("AssigneeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_vulnerabilities_users_assignee_id");
+
+                    b.HasOne("WebSec.Shared.Entities.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_vulnerabilities_projects_project_id");
+
+                    b.HasOne("WebSec.Shared.Entities.Target", "Target")
+                        .WithMany()
+                        .HasForeignKey("TargetId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_vulnerabilities_targets_target_id");
+
+                    b.Navigation("Target");
+                });
+
+            modelBuilder.Entity("WebSec.Shared.Entities.VulnerabilityComment", b =>
+                {
+                    b.HasOne("WebSec.Shared.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_vulnerability_comments_users_user_id");
+
+                    b.HasOne("WebSec.Shared.Entities.Vulnerability", null)
+                        .WithMany()
+                        .HasForeignKey("VulnerabilityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_vulnerability_comments_vulnerabilities_vulnerability_id");
+                });
+
+            modelBuilder.Entity("WebSec.Shared.Entities.VulnerabilityHistory", b =>
+                {
+                    b.HasOne("WebSec.Shared.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("ChangedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_vulnerability_histories_users_changed_by");
+
+                    b.HasOne("WebSec.Shared.Entities.Vulnerability", null)
+                        .WithMany()
+                        .HasForeignKey("VulnerabilityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_vulnerability_histories_vulnerabilities_vulnerability_id");
                 });
 
             modelBuilder.Entity("WebSec.Shared.Entities.Role", b =>

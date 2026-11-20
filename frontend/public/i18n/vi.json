@@ -4,7 +4,8 @@
     "main": "Điều hướng chính", "groupWorkspace": "Workspace", "groupScan": "Quét", "groupSecurity": "Bảo mật", "groupAdmin": "Quản trị",
     "dashboard": "Dashboard", "projects": "Projects", "targets": "Targets", "scans": "Scans", "vulnerabilities": "Vulnerabilities",
     "reports": "Reports", "users": "Người dùng", "roles": "Vai trò", "aiAssistant": "AI Assistant",
-    "newScan": "Scan mới", "groupInsights": "Phân tích", "breadcrumb": "Vị trí hiện tại"
+    "newScan": "Scan mới", "groupInsights": "Phân tích", "breadcrumb": "Vị trí hiện tại",
+    "myItems": "Việc của tôi"
   },
   "auth": { "logout": "Đăng xuất" },
   "login": {
@@ -41,7 +42,8 @@
   "dashboard": {
     "title": "Tổng quan bảo mật", "newScan": "Scan mới", "projects": "Projects", "targets": "Targets", "scans": "Scans",
     "findings": "Findings", "recentScans": "Scan gần đây", "noScans": "Chưa có scan nào.", "bySeverity": "Theo severity",
-    "subtitle": "Số liệu từ các project bạn được xem.", "emptyTitle": "Chưa có scan nào. Bắt đầu trong 3 bước:", "step1": "Tạo project cho ứng dụng cần kiểm tra.", "step2": "Thêm target và xác nhận bạn được ủy quyền kiểm tra.", "step3": "Chạy scan và xem findings.", "findingTotal": "{{count}} finding", "activeScans": "Scan đang chạy", "noActiveScans": "Không có scan nào đang chạy hoặc chờ."
+    "subtitle": "Số liệu từ các project bạn được xem.", "emptyTitle": "Chưa có scan nào. Bắt đầu trong 3 bước:", "step1": "Tạo project cho ứng dụng cần kiểm tra.", "step2": "Thêm target và xác nhận bạn được ủy quyền kiểm tra.", "step3": "Chạy scan và xem findings.", "findingTotal": "{{count}} finding", "activeScans": "Scan đang chạy", "noActiveScans": "Không có scan nào đang chạy hoặc chờ.",
+    "riskScore": "Risk score", "openVulns": "Lỗ hổng đang mở", "viewOpen": "Xem {{count}} lỗi đang mở", "pipeline": "Vòng đời xử lý", "todo": "Cần xử lý", "unassigned": "Chưa giao cho ai", "pendingVerification": "Chờ xác minh", "reappeared": "Đã sửa nhưng xuất hiện lại"
   },
   "projects": {
     "new": "Tạo project", "edit": "Sửa project", "code": "Mã", "name": "Tên", "description": "Mô tả", "empty": "Chưa có project nào. Hãy tạo project đầu tiên.",
@@ -59,7 +61,8 @@
     "createFirst": "Tạo project đầu tiên",
     "noResults": "Không có project khớp \"{{keyword}}\"", "noResultsFilter": "Không có project nào ở trạng thái này",
     "noResultsHint": "Thử từ khoá khác hoặc bỏ bớt bộ lọc.", "clearFilters": "Xoá bộ lọc",
-    "createdOn": "tạo ngày {{date}}", "recentActivity": "Hoạt động gần đây", "lastScanLabel": "Scan gần nhất", "tab_overview": "Tổng quan", "tab_targets": "Targets", "tab_scans": "Scans", "deleteTitle": "Xoá project?", "deleteBody": "Project \"{{name}}\" sẽ bị xoá (xoá mềm). Lịch sử scan vẫn được giữ."
+    "createdOn": "tạo ngày {{date}}", "recentActivity": "Hoạt động gần đây", "lastScanLabel": "Scan gần nhất", "tab_overview": "Tổng quan", "tab_targets": "Targets", "tab_scans": "Scans", "deleteTitle": "Xoá project?", "deleteBody": "Project \"{{name}}\" sẽ bị xoá (xoá mềm). Lịch sử scan vẫn được giữ.",
+    "tab_vulns": "Vulnerabilities"
   },
   "projectStatus": { "Active": "Đang hoạt động", "Archived": "Lưu trữ" },
   "targets": {
@@ -86,7 +89,8 @@
   "confidence": { "Low": "độ tin cậy thấp", "Medium": "độ tin cậy trung bình", "High": "độ tin cậy cao" },
   "ai": {
     "explain": "AI giải thích", "remediate": "AI gợi ý khắc phục",
-    "advisoryLabel": "AI-ASSISTED · CHỈ MANG TÍNH THAM KHẢO, CẦN NGƯỜI XÁC MINH"
+    "advisoryLabel": "AI-ASSISTED · CHỈ MANG TÍNH THAM KHẢO, CẦN NGƯỜI XÁC MINH",
+    "generatedTag": "AI-GENERATED", "panelTitle": "AI Advisor", "disclaimer": "Gợi ý từ AI có thể sai. AI không đổi trạng thái hay severity; hãy tự kiểm tra trước khi làm theo.", "contextTitle": "Dữ liệu sẽ gửi cho AI", "neverSent": "Không bao giờ gửi: mật khẩu, token, cookie, header xác thực.", "loading": "AI đang phân tích…", "copy": "Sao chép", "copied": "Đã sao chép", "saveNote": "Lưu thành note", "noteSaved": "Đã lưu note"
   },
   "environment": {
     "Lab": "Lab", "Development": "Development", "Staging": "Staging", "Production": "Production"
@@ -96,5 +100,11 @@
   },
   "wizard": {
     "title": "Scan mới", "subtitle": "Chỉ target đã bật và đã xác nhận ủy quyền mới chọn được.", "steps": "Các bước", "stepTarget": "Target", "stepScope": "Phạm vi", "stepReview": "Review & chạy", "pickTarget": "Chọn target", "scope": "Phạm vi sẽ quét", "engine": "Engine", "engineMock": "Mock (không gửi request)", "review": "Kiểm tra lại trước khi chạy", "back": "Quay lại", "next": "Tiếp", "start": "Bắt đầu scan", "confirmTitle": "Xác nhận chạy scan", "confirmBody": "Scan sẽ chạy trên host {{host}}. Gõ lại host để xác nhận bạn đang chọn đúng target.", "typeHost": "Gõ lại host"
+  },
+  "vulnStatus": {
+    "Open": "Open", "Triaged": "Triaged", "Assigned": "Đã giao", "InProgress": "Đang xử lý", "PendingVerification": "Chờ xác minh", "Resolved": "Đã xử lý", "Reopened": "Mở lại", "FalsePositive": "False positive", "AcceptedRisk": "Chấp nhận rủi ro"
+  },
+  "vulns": {
+    "to_Open": "Mở", "to_Triaged": "Triage xong", "to_Assigned": "Giao việc", "to_InProgress": "Bắt đầu xử lý", "to_PendingVerification": "Gửi xác minh", "to_Resolved": "Xác minh đạt", "to_Reopened": "Chưa đạt · Mở lại", "to_FalsePositive": "Đóng: false positive", "to_AcceptedRisk": "Đóng: chấp nhận rủi ro", "subtitle": "{{count}} lỗ hổng", "mineHint": "{{count}} việc đang giao cho bạn", "severity": "Mức độ", "filterOpen": "Đang mở", "filterClosed": "Đã đóng", "sortSeverity": "Nghiêm trọng nhất", "sortLast": "Phát hiện gần nhất", "bulk": "Thao tác hàng loạt", "selected": "Đã chọn {{count}}", "assignTo": "Giao cho…", "clearSelection": "Bỏ chọn", "selectAll": "Chọn tất cả", "issue": "Lỗ hổng", "assignee": "Người xử lý", "lastSeen": "Thấy gần nhất", "firstSeen": "Phát hiện lần đầu", "unassigned": "Chưa giao", "noResults": "Không có lỗ hổng khớp bộ lọc.", "emptyMine": "Bạn chưa được giao lỗ hổng nào.", "empty": "Chưa có lỗ hổng nào. Chạy scan để bắt đầu.", "assignTitle": "Giao {{count}} lỗ hổng", "pickAssignee": "Chọn người xử lý", "assign": "Giao", "reappeared": "tái phát", "lifecycle": "Vòng đời", "reviewOn": "review lại ngày {{date}}", "evidence": "Bằng chứng", "redacted": "Token, cookie và mật khẩu đã được che trước khi lưu.", "type": "Loại", "occurrences": "Số lần phát hiện", "comments": "Trao đổi", "noComments": "Chưa có trao đổi.", "addComment": "Viết ghi chú…", "send": "Gửi", "history": "Lịch sử", "system": "Hệ thống", "reason": "Lý do / ghi chú", "reviewDate": "Ngày review lại"
   }
 }

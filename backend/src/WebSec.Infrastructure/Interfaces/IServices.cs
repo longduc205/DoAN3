@@ -10,6 +10,7 @@ public interface ICurrentUser
 {
     Guid? UserId { get; }
     bool IsInRole(string role);
+    bool HasPermission(string permission);
 }
 
 public interface IAuthService
@@ -53,6 +54,19 @@ public interface IDashboardService
 
 public interface IAiService
 {
-    Task<AiAdviceModel> ExplainFindingAsync(Guid findingId, CancellationToken ct);
-    Task<AiAdviceModel> SuggestRemediationAsync(Guid findingId, CancellationToken ct);
+    Task<AiContextModel> GetContextAsync(AiFindingRequest request, CancellationToken ct);
+    Task<AiAdviceModel> ExplainFindingAsync(AiFindingRequest request, CancellationToken ct);
+    Task<AiAdviceModel> SuggestRemediationAsync(AiFindingRequest request, CancellationToken ct);
+}
+
+public interface IVulnerabilityService
+{
+    Task<PagedResult<VulnerabilityModel>> GetAllAsync(VulnerabilitySearchParam param, CancellationToken ct);
+    Task<VulnerabilityDetailModel> GetByIdAsync(Guid id, CancellationToken ct);
+    Task<VulnerabilityDetailModel> UpdateStatusAsync(UpdateVulnerabilityStatusRequest request, CancellationToken ct);
+    Task<int> AssignAsync(AssignVulnerabilitiesRequest request, CancellationToken ct);
+    Task<VulnerabilityCommentModel> AddCommentAsync(AddVulnerabilityCommentRequest request, CancellationToken ct);
+    Task<IReadOnlyList<VulnerabilityCommentModel>> GetCommentsAsync(Guid id, CancellationToken ct);
+    Task<IReadOnlyList<VulnerabilityHistoryModel>> GetHistoryAsync(Guid id, CancellationToken ct);
+    Task<IReadOnlyList<UserLookupModel>> GetAssigneesAsync(CancellationToken ct);
 }

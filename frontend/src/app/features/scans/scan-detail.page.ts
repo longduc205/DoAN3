@@ -212,7 +212,7 @@ export class ScanDetailPage implements OnInit {
 
   protected askAi(f: ScanFinding, kind: 'explain' | 'remediate'): void {
     this.ai.update((m) => ({ ...m, [f.id]: { loading: true } }));
-    const req = kind === 'explain' ? this.aiApi.explain(f.id) : this.aiApi.suggestRemediation(f.id);
+    const req = kind === 'explain' ? this.aiApi.explain({ findingId: f.id }) : this.aiApi.suggestRemediation({ findingId: f.id });
     req.subscribe({
       next: (res) => this.ai.update((m) => ({ ...m, [f.id]: { loading: false, advice: res.data ?? undefined } })),
       error: (err) => this.ai.update((m) => ({ ...m, [f.id]: { loading: false, error: apiErrorMessage(err) } })),

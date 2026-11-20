@@ -10,4 +10,6 @@ public class HttpCurrentUser(IHttpContextAccessor accessor) : ICurrentUser
         Guid.TryParse(accessor.HttpContext?.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value, out var id) ? id : null;
 
     public bool IsInRole(string role) => accessor.HttpContext?.User.IsInRole(role) ?? false;
+
+    public bool HasPermission(string permission) => accessor.HttpContext?.User.HasClaim(AppClaims.Permission, permission) ?? false;
 }

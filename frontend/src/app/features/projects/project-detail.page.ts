@@ -10,14 +10,15 @@ import { PageState } from '../../shared/components/page-state';
 import { Project, Scan, Target } from '../../shared/models/api.models';
 import { ProjectsApi, ScansApi, TargetsApi } from '../api.services';
 import { TargetFormComponent } from '../targets/target-form.component';
+import { VulnListPage } from '../vulnerabilities/vuln-list.page';
 import { ProjectFormComponent } from './project-form.component';
 
-type Tab = 'overview' | 'targets' | 'scans';
+type Tab = 'overview' | 'targets' | 'scans' | 'vulns';
 
-// W04 Project detail. Vulnerabilities / Reports tabs arrive with phases 2 and 3.
+// W04 Project detail. The Reports tab arrives with phase 3.
 @Component({
   selector: 'app-project-detail',
-  imports: [RouterLink, TranslocoPipe, DatePipe, PageState, StatusBadge, DialogComponent, TargetFormComponent, ProjectFormComponent],
+  imports: [RouterLink, TranslocoPipe, DatePipe, PageState, StatusBadge, DialogComponent, TargetFormComponent, ProjectFormComponent, VulnListPage],
   template: `
     <app-page-state [loading]="loading()" [error]="error()" (retry)="load()">
       @if (project(); as p) {
@@ -122,6 +123,7 @@ type Tab = 'overview' | 'targets' | 'scans';
                 }
               </ul>
             }
+            @case ('vulns') { <app-vuln-list [projectId]="p.id" /> }
             @case ('scans') {
               <section class="glass overflow-x-auto">
                 <table class="table">
@@ -169,7 +171,7 @@ export class ProjectDetailPage implements OnInit {
   private readonly auth = inject(AuthService);
   protected readonly canEdit = this.auth.hasPermission('Project.Update');
   protected readonly canScan = this.auth.hasPermission('Scan.Create');
-  protected readonly tabs: Tab[] = ['overview', 'targets', 'scans'];
+  protected readonly tabs: Tab[] = ['overview', 'targets', 'scans', 'vulns'];
 
   readonly id = input.required<string>();
   protected readonly project = signal<Project | null>(null);

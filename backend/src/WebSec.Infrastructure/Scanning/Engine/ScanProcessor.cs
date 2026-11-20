@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using WebSec.Infrastructure.Data;
 using WebSec.Infrastructure.Scanning.Abstractions;
+using WebSec.Infrastructure.Vulnerabilities;
 using WebSec.Shared.Entities;
 using WebSec.Shared.Enums;
 using WebSec.Shared.Errors;
@@ -107,13 +108,15 @@ public class ScanProcessor(AppDbContext db, ITargetScopeValidator scopeValidator
         {
             await ThrowIfCancelRequestedAsync(ct);
             var now = DateTimeOffset.UtcNow;
-            db.ScanFindings.AddRange(findings.Select(f => new ScanFinding
+            var rows = findings.Select(f => new ScanFinding
             {
                 Id = Guid.NewGuid(), ScanId = scan.Id, TargetId = scan.TargetId, FindingType = f.FindingType, Title = f.Title,
                 Url = f.Url, ParameterName = f.ParameterName, Severity = f.Severity, Confidence = f.Confidence,
                 EvidenceSummary = EvidenceRedactor.Redact(f.EvidenceSummary, out var redacted), EvidenceRedacted = redacted,
                 DetectorName = f.DetectorName, Fingerprint = Fingerprint(scan.TargetId, f), DetectedAt = now,
-            }));
+            }).ToList();
+            await VulnerabilitySync.UpsertAsync(db, scan, rows, ct);
+            db.ScanFindings.AddRange(rows);
             scan.TotalFindings += findings.Count;
             await db.SaveChangesAsync(ct);
         }

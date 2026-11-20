@@ -60,4 +60,6 @@ public class ScanFinding : BaseEntity<Guid>
     public string DetectorName { get; set; } = string.Empty;
     public string Fingerprint { get; set; } = string.Empty;
     public DateTimeOffset DetectedAt { get; set; }
+    /// <summary>The deduplicated vulnerability this occurrence belongs to (same target + fingerprint).</summary>
+    public Guid? VulnerabilityId { get; set; }
 }

@@ -59,6 +59,7 @@ public static class DependencyInjection
         services.AddScoped<IScanService, ScanService>();
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IAiService, AiService>();
+        services.AddScoped<IVulnerabilityService, VulnerabilityService>();
         return services;
     }
 }

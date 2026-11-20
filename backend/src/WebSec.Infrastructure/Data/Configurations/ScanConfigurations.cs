@@ -60,6 +60,8 @@ public class ScanFindingConfiguration : IEntityTypeConfiguration<ScanFinding>
         b.HasIndex(x => x.ScanId);
         b.HasIndex(x => x.Fingerprint);
         b.HasIndex(x => x.Severity);
+        b.HasIndex(x => x.VulnerabilityId);
         b.HasOne<Scan>().WithMany().HasForeignKey(x => x.ScanId).OnDelete(DeleteBehavior.Cascade);
+        b.HasOne<Vulnerability>().WithMany().HasForeignKey(x => x.VulnerabilityId).OnDelete(DeleteBehavior.SetNull);
     }
 }

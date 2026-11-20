@@ -2,7 +2,7 @@
 
 PostgreSQL, EF Core migrations in `backend/src/WebSec.Infrastructure/Data/Migrations`. Tables/columns are `snake_case`; enums are stored as `varchar(30)` strings; timestamps are `timestamptz` (UTC `DateTimeOffset`). Primary keys are `uuid`.
 
-## Implemented (migration `InitialCreate`)
+## Implemented (migrations `InitialCreate`, `AddVulnerabilities`)
 
 ```mermaid
 erDiagram
@@ -18,6 +18,10 @@ erDiagram
   scans ||--o{ scan_jobs : queued_as
   scans ||--o{ scan_urls : discovered
   scans ||--o{ scan_findings : produced
+  vulnerabilities ||--o{ scan_findings : occurrences
+  targets ||--o{ vulnerabilities : has
+  vulnerabilities ||--o{ vulnerability_comments : discussed
+  vulnerabilities ||--o{ vulnerability_histories : logged
 ```
 
 | Table | Notes |
@@ -31,7 +35,16 @@ erDiagram
 | `scans` | lifecycle `status`, `progress_percent`, counters, safe error fields. History table: no soft delete |
 | `scan_jobs` | persistent queue: `status`, `attempt_count`, `available_at`, `locked_at`, `locked_by`, `last_error_safe` |
 | `scan_urls` | discovered URLs with `is_in_scope` |
-| `scan_findings` | `severity`, `confidence`, redacted `evidence_summary`, `evidence_redacted`, `fingerprint` (SHA-256 of target+type+url+param) |
+| `scan_findings` | `severity`, `confidence`, redacted `evidence_summary`, `evidence_redacted`, `fingerprint` (SHA-256 of target+type+url+param), `vulnerability_id` (nullable FK, `SET NULL`) |
+| `vulnerabilities` | one real issue per (`target_id`, `fingerprint`) – unique index. `status` (`VulnerabilityStatus`), `severity`, `assignee_id`, `is_reappeared`, `close_reason`, `review_at`, `first/last_detected_at`, `resolved_at`. Created/updated by `VulnerabilitySync` when the worker stores findings; never deleted |
+| `vulnerability_comments` | `content`, `user_id`, `is_ai_note` (saved from the AI panel, shown with an AI-generated label) |
+| `vulnerability_histories` | `old_status`, `new_status`, `summary`, `changed_by` (null = system) |
+
+### Vulnerability lifecycle & risk score
+- Transitions follow the canvas state machine (S2), enforced in `Vulnerabilities/VulnerabilityStateMachine.cs`: triagers (`Vulnerability.Triage`: Admin, SecurityAnalyst) triage, verify, reopen and close as False Positive / Accepted Risk (reason required, Accepted Risk also needs `review_at`); the assignee moves Assigned/Reopened → InProgress → PendingVerification (note required). Nobody returns to Open; AI never transitions.
+- A finding whose vulnerability is `Resolved` sets `is_reappeared = true` and logs history; the status is not changed automatically.
+- Findings stored before this migration are linked on API startup by `VulnerabilitySync.BackfillAsync` (idempotent).
+- Dashboard risk score = `min(100, 25×Critical + 10×High + 4×Medium + 1×Low)` over open vulnerabilities (`DashboardService.RiskWeights`).
 
 Base types (`WebSec.Shared/Entities/BaseEntities.cs`): `BaseEntity<TId>` → `DeleteEntity` (`is_deleted`, `deletable`, `is_active`) → `AuditEntity` (`created_date`, `created_by`, `updated_date`, `updated_by`, set centrally in `AppDbContext.SaveChanges`) → `TempEntity` (`code`, `name_l`, `name_e`, for future master data).
 
@@ -44,7 +57,7 @@ FKs; `scans(status)`, `scans(created_at)`; `scan_jobs(status, available_at)`; `s
 - `scans → scan_jobs/scan_urls/scan_findings` are `CASCADE` (only relevant to an explicit administrative purge).
 
 ## Planned (not yet in the schema)
-`project_members`, `refresh_tokens`, `vulnerabilities` (+ `vulnerability_scan_findings`, `vulnerability_comments`, `vulnerability_history`), `audit_logs`, `reports`, `ai_conversations`, `ai_messages` – fields as in the specification §7. Vulnerabilities will be created by deduplicating `scan_findings` on `fingerprint`.
+`project_members`, `refresh_tokens`, `audit_logs`, `reports`, `ai_conversations`, `ai_messages` – fields as in the specification §7. CVSS / priority / SLA columns on `vulnerabilities` are not modelled yet.
 
 ## Migrations
 

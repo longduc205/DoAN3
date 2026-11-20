@@ -51,7 +51,31 @@ public sealed class CreateScanRequest
     public ScanType ScanType { get; set; } = ScanType.Mock;
 }
 
+/// <summary>Either a scan finding or a vulnerability (its latest occurrence is used).</summary>
 public sealed class AiFindingRequest
 {
-    [Required] public Guid FindingId { get; set; }
+    public Guid? FindingId { get; set; }
+    public Guid? VulnerabilityId { get; set; }
+}
+
+public sealed class UpdateVulnerabilityStatusRequest
+{
+    [Required] public Guid Id { get; set; }
+    [Required] public VulnerabilityStatus Status { get; set; }
+    [MaxLength(2000)] public string? Reason { get; set; }
+    /// <summary>Required for Accepted Risk (review date).</summary>
+    public DateTimeOffset? ReviewAt { get; set; }
+}
+
+public sealed class AssignVulnerabilitiesRequest
+{
+    [Required, MinLength(1), MaxLength(100)] public List<Guid> Ids { get; set; } = [];
+    [Required] public Guid AssigneeId { get; set; }
+}
+
+public sealed class AddVulnerabilityCommentRequest
+{
+    [Required] public Guid VulnerabilityId { get; set; }
+    [Required, MaxLength(8000)] public string Content { get; set; } = string.Empty;
+    public bool IsAiNote { get; set; }
 }

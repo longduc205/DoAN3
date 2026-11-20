@@ -14,8 +14,9 @@ const SEV_BAR: Record<Severity, string> = {
   Critical: 'bg-sev-critical', High: 'bg-sev-high', Medium: 'bg-sev-medium', Low: 'bg-sev-low', Info: 'bg-sev-info',
 };
 
-// W02 Dashboard. shortcut: risk score, SLA queue and vulnerability pipeline need the vulnerability module (phase 2);
-// until then counts are raw scan findings.
+const RISK_WEIGHTS = { Critical: 25, High: 10, Medium: 4, Low: 1 } as const;
+
+// W02 Dashboard. shortcut: no SLA / due dates yet, so the "to do" block shows counts instead of an SLA-sorted queue.
 @Component({
   selector: 'app-dashboard',
   imports: [RouterLink, TranslocoPipe, DatePipe, PageState, SeverityBadge, StatusBadge],
@@ -48,6 +49,15 @@ const SEV_BAR: Record<Severity, string> = {
             </section>
           } @else {
             <div class="grid grid-cols-12 gap-4">
+              <a routerLink="/vulnerabilities" class="glass col-span-6 lg:col-span-3 p-5 hover:bg-white/80">
+                <div class="text-sm text-ink-muted">{{ 'dashboard.riskScore' | transloco }}</div>
+                <div class="text-3xl font-semibold mt-1">{{ s.riskScore }}<span class="text-base text-ink-muted">/100</span></div>
+                <div class="text-xs text-ink-muted mt-1">{{ riskExplain() }}</div>
+              </a>
+              <a routerLink="/vulnerabilities" class="glass col-span-6 lg:col-span-3 p-5 hover:bg-white/80">
+                <div class="text-sm text-ink-muted">{{ 'dashboard.openVulns' | transloco }}</div>
+                <div class="text-3xl font-semibold mt-1">{{ s.openVulnerabilities }}</div>
+              </a>
               @for (card of cards; track card.key) {
                 <a [routerLink]="card.link" class="glass col-span-6 lg:col-span-3 p-5 hover:bg-white/80">
                   <div class="text-sm text-ink-muted">{{ 'dashboard.' + card.key | transloco }}</div>
@@ -58,29 +68,44 @@ const SEV_BAR: Record<Severity, string> = {
               <section class="glass col-span-12 lg:col-span-8 p-5 flex flex-col gap-4">
                 <div class="flex items-center justify-between">
                   <h2 class="font-semibold">{{ 'dashboard.bySeverity' | transloco }}</h2>
-                  <span class="mono">{{ 'dashboard.findingTotal' | transloco: { count: s.findings } }}</span>
+                  <a routerLink="/vulnerabilities" class="text-sm hover:underline">{{ 'dashboard.viewOpen' | transloco: { count: s.openVulnerabilities } }}</a>
                 </div>
-                @if (s.findings > 0) {
+                @if (s.openVulnerabilities > 0) {
                   <div class="flex h-3 rounded-full overflow-hidden bg-black/5" role="img" [attr.aria-label]="severityLabel()">
                     @for (sev of severities; track sev) {
-                      @if (s.findingsBySeverity[sev]) {
-                        <span [class]="sevBar[sev]" [style.width.%]="(s.findingsBySeverity[sev]! / s.findings) * 100"></span>
+                      @if (s.openBySeverity[sev]) {
+                        <span [class]="sevBar[sev]" [style.width.%]="(s.openBySeverity[sev]! / s.openVulnerabilities) * 100"></span>
                       }
                     }
                   </div>
                 }
                 <ul class="grid grid-cols-5 gap-2">
                   @for (sev of severities; track sev) {
-                    <li class="rounded-xl bg-white/60 p-3 flex flex-col gap-2 items-start">
-                      <app-severity-badge [severity]="sev" />
-                      <span class="text-2xl font-semibold">{{ s.findingsBySeverity[sev] ?? 0 }}</span>
+                    <li>
+                      <a routerLink="/vulnerabilities" [queryParams]="{ severity: sev }" class="rounded-xl bg-white/60 p-3 flex flex-col gap-2 items-start hover:bg-white/85">
+                        <app-severity-badge [severity]="sev" />
+                        <span class="text-2xl font-semibold">{{ s.openBySeverity[sev] ?? 0 }}</span>
+                      </a>
                     </li>
                   }
                 </ul>
+                <h3 class="text-sm font-semibold mt-2">{{ 'dashboard.pipeline' | transloco }}</h3>
+                <ol class="grid grid-cols-5 gap-2 text-sm">
+                  @for (st of pipeline; track st) {
+                    <li class="rounded-xl bg-white/60 p-3"><div class="text-xs text-ink-muted">{{ 'vulnStatus.' + st | transloco }}</div>
+                      <div class="text-xl font-semibold">{{ s.byStatus[st] ?? 0 }}</div></li>
+                  }
+                </ol>
               </section>
 
               <section class="glass col-span-12 lg:col-span-4 p-5 flex flex-col gap-3">
-                <h2 class="font-semibold">{{ 'dashboard.activeScans' | transloco }}</h2>
+                <h2 class="font-semibold">{{ 'dashboard.todo' | transloco }}</h2>
+                <ul class="flex flex-col gap-2 text-sm">
+                  <li class="flex justify-between rounded-xl bg-white/60 p-3"><span>{{ 'dashboard.unassigned' | transloco }}</span><b>{{ s.unassigned }}</b></li>
+                  <li class="flex justify-between rounded-xl bg-white/60 p-3"><span>{{ 'dashboard.pendingVerification' | transloco }}</span><b>{{ s.byStatus.PendingVerification ?? 0 }}</b></li>
+                  <li class="flex justify-between rounded-xl bg-white/60 p-3"><span>{{ 'dashboard.reappeared' | transloco }}</span><b class="text-warn">{{ s.reappeared }}</b></li>
+                </ul>
+                <h2 class="font-semibold mt-2">{{ 'dashboard.activeScans' | transloco }}</h2>
                 @for (scan of active(); track scan.id) {
                   <a [routerLink]="['/scans', scan.id]" class="rounded-xl bg-white/60 p-3 flex flex-col gap-2 hover:bg-white/85">
                     <div class="flex items-center justify-between gap-2">
@@ -133,9 +158,9 @@ export class DashboardPage implements OnInit {
   protected readonly canScan = inject(AuthService).hasPermission('Scan.Create');
 
   protected readonly cards = [
-    { key: 'projects', link: '/projects' }, { key: 'targets', link: '/projects' },
-    { key: 'scans', link: '/scans' }, { key: 'findings', link: '/scans' },
+    { key: 'projects', link: '/projects' }, { key: 'scans', link: '/scans' },
   ] as const;
+  protected readonly pipeline = ['Open', 'Triaged', 'Assigned', 'InProgress', 'PendingVerification'] as const;
   protected readonly severities: Severity[] = ['Critical', 'High', 'Medium', 'Low', 'Info'];
   protected readonly sevBar = SEV_BAR;
   protected readonly summary = signal<DashboardSummary | null>(null);
@@ -144,8 +169,13 @@ export class DashboardPage implements OnInit {
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly severityLabel = computed(() =>
-    this.severities.map((s) => `${s}: ${this.summary()?.findingsBySeverity[s] ?? 0}`).join(', '),
+    this.severities.map((s) => `${s}: ${this.summary()?.openBySeverity[s] ?? 0}`).join(', '),
   );
+  /** "Why 72": weights match DashboardService.RiskWeights on the server. */
+  protected readonly riskExplain = computed(() => {
+    const o = this.summary()?.openBySeverity ?? {};
+    return (['Critical', 'High', 'Medium', 'Low'] as const).filter((k) => o[k]).map((k) => `${o[k]}×${RISK_WEIGHTS[k]} ${k}`).join(' + ');
+  });
 
   ngOnInit(): void {
     this.load();

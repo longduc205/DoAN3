@@ -175,7 +175,7 @@ export class LoginPage {
     this.error.set(null);
     const { userName, password, remember } = this.form.getRawValue();
     this.auth.login(userName, password, remember).subscribe({
-      next: () => this.router.navigateByUrl('/dashboard'),
+      next: () => this.router.navigateByUrl('/'),
       error: (err) => {
         this.error.set(apiErrorMessage(err));
         this.form.controls.password.reset();

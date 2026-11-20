@@ -18,6 +18,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
     public DbSet<ScanJob> ScanJobs => Set<ScanJob>();
     public DbSet<ScanUrl> ScanUrls => Set<ScanUrl>();
     public DbSet<ScanFinding> ScanFindings => Set<ScanFinding>();
+    public DbSet<Vulnerability> Vulnerabilities => Set<Vulnerability>();
+    public DbSet<VulnerabilityComment> VulnerabilityComments => Set<VulnerabilityComment>();
+    public DbSet<VulnerabilityHistory> VulnerabilityHistories => Set<VulnerabilityHistory>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder builder)
     {
@@ -29,6 +32,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
         builder.Properties<ScanJobStatus>().HaveConversion<string>().HaveMaxLength(30);
         builder.Properties<Severity>().HaveConversion<string>().HaveMaxLength(30);
         builder.Properties<Confidence>().HaveConversion<string>().HaveMaxLength(30);
+        builder.Properties<VulnerabilityStatus>().HaveConversion<string>().HaveMaxLength(30);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

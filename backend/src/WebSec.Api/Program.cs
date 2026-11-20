@@ -6,6 +6,7 @@ using WebSec.Api.Middleware;
 using WebSec.Infrastructure;
 using WebSec.Infrastructure.Data;
 using WebSec.Infrastructure.Data.Seed;
+using WebSec.Infrastructure.Vulnerabilities;
 using WebSec.Shared.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -51,6 +52,7 @@ static async Task InitializeDatabaseAsync(WebApplication app)
     var seedDevUsers = isDev || config.GetValue<bool>("SEED_DEV_DATA");
     if (migrate) await db.Database.MigrateAsync();
     if (migrate || seedDevUsers) await DevDataSeeder.SeedRolesAndPermissionsAsync(db);
+    if (migrate) await VulnerabilitySync.BackfillAsync(db);
     // Dev accounts only in Development or with an explicit flag.
     if (seedDevUsers)
     {

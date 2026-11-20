@@ -35,7 +35,7 @@ Search params (`BaseSearchParam`): `page` (default 1), `pageSize` (default 10, m
 | `POST /api/auth/login` | `{ userName, password }` | `LoginResult { accessToken, expiresAt, user }` | anonymous, rate-limited 10/min/IP |
 | `POST /api/auth/me` | `{}` | `CurrentUserModel` | authenticated |
 | `POST /api/auth/logout` | `{}` | `true` (client drops token) | authenticated |
-| `POST /api/dashboard/get-summary` | `{}` | `{ projects, targets, scans, findings, findingsBySeverity }` | `Project.View` |
+| `POST /api/dashboard/get-summary` | `{}` | `{ projects, targets, scans, findings, findingsBySeverity, openVulnerabilities, openBySeverity, byStatus, reappeared, unassigned, riskScore }` | `Project.View` |
 | `POST /api/projects/get-all` | `ProjectSearchParam` | `ProjectModel[]` + paging | `Project.View` |
 | `POST /api/projects/get-by-id` | `{ id }` | `ProjectModel` | `Project.View` |
 | `POST /api/projects/create` | `{ code, name, description? }` | `ProjectModel` | `Project.Create` |
@@ -52,8 +52,16 @@ Search params (`BaseSearchParam`): `page` (default 1), `pageSize` (default 10, m
 | `POST /api/scans/get-progress` | `{ id }` | `{ id, status, progressPercent, totalUrls, totalRequests, totalFindings, isTerminal }` | `Scan.View` |
 | `POST /api/scans/cancel` | `{ id }` | `ScanModel` (Queued→Cancelled, Running→Cancelling) | `Scan.Create` |
 | `POST /api/scans/get-findings` | `FindingSearchParam { scanId, severity? }` | `ScanFindingModel[]` + paging (ordered by severity) | `Scan.View` |
-| `POST /api/ai/explain-vulnerability` | `{ findingId }` | `AiAdviceModel { content, provider, model, isAiAssisted: true, generatedAt }` | `AI.Ask`, rate-limited 20/min/user |
-| `POST /api/ai/suggest-remediation` | `{ findingId }` | `AiAdviceModel` | `AI.Ask`, rate-limited 20/min/user |
+| `POST /api/vulnerabilities/get-all` | `VulnerabilitySearchParam { projectId?, severity?, status?, isOpen?, findingType?, assigneeId?, assignedToMe, keyword?, sortBy: severity\|lastDetected\|firstDetected\|status\|title }` | `VulnerabilityModel[]` + paging | `Vulnerability.View` (own projects + items assigned to me) |
+| `POST /api/vulnerabilities/get-by-id` | `{ id }` | `VulnerabilityDetailModel` (+ `latestFinding`, `occurrences`, `allowedTransitions` for the caller) | `Vulnerability.View` |
+| `POST /api/vulnerabilities/update-status` | `{ id, status, reason?, reviewAt? }` | `VulnerabilityDetailModel`; 409 for a transition not allowed by `VulnerabilityStateMachine`, 400 when the reason / review date is missing | `Vulnerability.Update` (+ `Vulnerability.Triage` or being the assignee, per transition) |
+| `POST /api/vulnerabilities/assign` | `{ ids: [...], assigneeId }` (bulk) | number assigned; Open/Triaged → Assigned, re-assign keeps status | `Vulnerability.Triage` |
+| `POST /api/vulnerabilities/get-assignees` | `{}` | `UserLookupModel[]` (active Developers / Analysts) | `Vulnerability.Triage` |
+| `POST /api/vulnerabilities/add-comment` | `{ vulnerabilityId, content, isAiNote }` | `VulnerabilityCommentModel` | `Vulnerability.View` |
+| `POST /api/vulnerabilities/get-comments` / `get-history` | `{ id }` | comments (oldest first) / history (newest first) | `Vulnerability.View` |
+| `POST /api/ai/get-context` | `{ findingId }` or `{ vulnerabilityId }` | `AiContextModel` – exactly what would be sent (redacted, ≤1000 chars evidence); does not call the provider | `AI.Ask`, rate-limited 20/min/user |
+| `POST /api/ai/explain-vulnerability` | `{ findingId }` or `{ vulnerabilityId }` (latest occurrence) | `AiAdviceModel { content, provider, model, isAiAssisted: true, generatedAt }` | `AI.Ask`, rate-limited 20/min/user |
+| `POST /api/ai/suggest-remediation` | `{ findingId }` or `{ vulnerabilityId }` | `AiAdviceModel` | `AI.Ask`, rate-limited 20/min/user |
 | `GET /health/live` | – | `Healthy` | anonymous |
 | `GET /health/ready` | – | `Healthy` / `Unhealthy` (database check) | anonymous |
 
@@ -68,4 +76,4 @@ Authorization: Bearer eyJ…
 ```
 
 ## Planned (not implemented – routes do not exist yet)
-`auth/refresh`, `vulnerabilities/get-all|get-by-id|update-status|assign|add-comment`, `ai/ask`, `reports/*`, `users/*`, `roles/*`.
+`auth/refresh`, `ai/ask`, `reports/*`, `users/*`, `roles/*`.
