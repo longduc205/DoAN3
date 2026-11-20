@@ -55,6 +55,7 @@ static async Task InitializeDatabaseAsync(WebApplication app)
     if (seedDevUsers)
     {
         await DevDataSeeder.SeedDevUsersAsync(db, scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>(), logger);
+        await DevDataSeeder.SeedDevSampleDataAsync(db, logger);
     }
 }
 
