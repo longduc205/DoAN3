@@ -51,6 +51,7 @@ export class AiApi extends BaseApiService {
   explain(ref: AiRef): Observable<ApiResponse<AiAdvice>> { return this.post('explain-vulnerability', ref); }
   suggestRemediation(ref: AiRef): Observable<ApiResponse<AiAdvice>> { return this.post('suggest-remediation', ref); }
   getContext(ref: AiRef): Observable<ApiResponse<AiContext>> { return this.post('get-context', ref); }
+  ask(vulnerabilityId: string, question: string): Observable<ApiResponse<AiAdvice>> { return this.post('ask', { vulnerabilityId, question }); }
 }
 
 /** AI works on a scan finding or a vulnerability (its latest occurrence). */

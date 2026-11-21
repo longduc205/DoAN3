@@ -68,6 +68,7 @@ Search params (`BaseSearchParam`): `page` (default 1), `pageSize` (default 10, m
 | `POST /api/users/get-role-permissions` | `{}` | `RolePermissionsModel[]` (read-only matrix from the database) | `User.Manage` |
 | `POST /api/audit-logs/get-all` | `AuditLogSearchParam { userId?, action?, entityType?, result?, from?, to?, keyword? }` | `AuditLogModel[]` + paging (newest first). Read-only: no update/delete endpoint exists | `AuditLog.View` |
 | `POST /api/ai/get-context` | `{ findingId }` or `{ vulnerabilityId }` | `AiContextModel` – exactly what would be sent (redacted, ≤1000 chars evidence); does not call the provider | `AI.Ask`, rate-limited 20/min/user |
+| `POST /api/ai/ask` | `{ vulnerabilityId, question }` (question ≤ 1000 chars; a vulnerability must be chosen as context) | `AiAdviceModel`; read-only, never changes status/severity | `AI.Ask`, rate-limited 20/min/user |
 | `POST /api/ai/explain-vulnerability` | `{ findingId }` or `{ vulnerabilityId }` (latest occurrence) | `AiAdviceModel { content, provider, model, isAiAssisted: true, generatedAt }` | `AI.Ask`, rate-limited 20/min/user |
 | `POST /api/ai/suggest-remediation` | `{ findingId }` or `{ vulnerabilityId }` | `AiAdviceModel` | `AI.Ask`, rate-limited 20/min/user |
 | `GET /health/live` | – | `Healthy` | anonymous |
@@ -84,4 +85,4 @@ Authorization: Bearer eyJ…
 ```
 
 ## Planned (not implemented – routes do not exist yet)
-`auth/refresh`, `ai/ask`, creating / locking users.
+`auth/refresh`, creating / locking users, stored AI conversations.

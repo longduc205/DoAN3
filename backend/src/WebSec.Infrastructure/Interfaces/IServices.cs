@@ -57,6 +57,7 @@ public interface IAiService
     Task<AiContextModel> GetContextAsync(AiFindingRequest request, CancellationToken ct);
     Task<AiAdviceModel> ExplainFindingAsync(AiFindingRequest request, CancellationToken ct);
     Task<AiAdviceModel> SuggestRemediationAsync(AiFindingRequest request, CancellationToken ct);
+    Task<AiAdviceModel> AskAsync(AiAskRequest request, CancellationToken ct);
 }
 
 public interface IUserAdminService

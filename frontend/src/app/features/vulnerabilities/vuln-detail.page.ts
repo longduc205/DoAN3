@@ -1,6 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { Component, computed, inject, input, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '../../core/auth/auth.service';
 import { apiErrorMessage } from '../../core/services/base-api.service';
@@ -20,7 +21,7 @@ type AiState = { kind: 'idle' } | { kind: 'loading' } | { kind: 'error'; message
 // W09 Vulnerability detail + W10 AI panel. Buttons come from allowedTransitions, so the UI never offers a move the server rejects.
 @Component({
   selector: 'app-vuln-detail',
-  imports: [FormsModule, TranslocoPipe, DatePipe, PageState, SeverityBadge, VulnStatusBadge, DialogComponent],
+  imports: [FormsModule, RouterLink, TranslocoPipe, DatePipe, PageState, SeverityBadge, VulnStatusBadge, DialogComponent],
   template: `
     <app-page-state [loading]="loading()" [error]="error()" (retry)="load()">
       @if (vuln(); as v) {
@@ -132,6 +133,7 @@ type AiState = { kind: 'idle' } | { kind: 'loading' } | { kind: 'error'; message
                     <span class="mono px-1.5 border border-line rounded">{{ 'ai.generatedTag' | transloco }}</span>
                   </div>
                   <p class="text-xs text-ink-muted">{{ 'ai.disclaimer' | transloco }}</p>
+                  <a routerLink="/ai-assistant" [queryParams]="{ vulnerabilityId: v.id }" class="text-sm underline self-start">{{ 'ai.openAssistant' | transloco }}</a>
                   @if (aiContext(); as c) {
                     <details class="rounded-xl bg-white/70 p-3 text-xs">
                       <summary class="cursor-pointer font-medium">{{ 'ai.contextTitle' | transloco }}</summary>

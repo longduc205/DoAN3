@@ -33,7 +33,7 @@
   "common": {
     "loading": "Đang tải…", "retry": "Thử lại", "empty": "Chưa có dữ liệu.", "search": "Tìm kiếm…", "edit": "Sửa", "delete": "Xoá",
     "save": "Lưu", "cancel": "Huỷ", "status": "Trạng thái", "createdDate": "Ngày tạo", "viewAll": "Xem tất cả",
-    "prev": "Trước", "next": "Sau", "pagination": "Phân trang", "comingLater": "Tính năng này sẽ có ở milestone sau.",
+    "prev": "Trước", "next": "Sau", "pagination": "Phân trang",
     "close": "Đóng", "discardChanges": "Bỏ các thay đổi chưa lưu?", "keepEditing": "Tiếp tục sửa", "discard": "Bỏ thay đổi"
   },
   "validation": {
@@ -92,7 +92,8 @@
   "ai": {
     "explain": "AI giải thích", "remediate": "AI gợi ý khắc phục",
     "advisoryLabel": "AI-ASSISTED · CHỈ MANG TÍNH THAM KHẢO, CẦN NGƯỜI XÁC MINH",
-    "generatedTag": "AI-GENERATED", "panelTitle": "AI Advisor", "disclaimer": "Gợi ý từ AI có thể sai. AI không đổi trạng thái hay severity; hãy tự kiểm tra trước khi làm theo.", "contextTitle": "Dữ liệu sẽ gửi cho AI", "neverSent": "Không bao giờ gửi: mật khẩu, token, cookie, header xác thực.", "loading": "AI đang phân tích…", "copy": "Sao chép", "copied": "Đã sao chép", "saveNote": "Lưu thành note", "noteSaved": "Đã lưu note"
+    "generatedTag": "AI-GENERATED", "panelTitle": "AI Advisor", "disclaimer": "Gợi ý từ AI có thể sai. AI không đổi trạng thái hay severity; hãy tự kiểm tra trước khi làm theo.", "contextTitle": "Dữ liệu sẽ gửi cho AI", "neverSent": "Không bao giờ gửi: mật khẩu, token, cookie, header xác thực.", "loading": "AI đang phân tích…", "copy": "Sao chép", "copied": "Đã sao chép", "saveNote": "Lưu thành note", "noteSaved": "Đã lưu note",
+    "assistantSubtitle": "Hỏi AI về một lỗ hổng cụ thể. AI chỉ dùng dữ liệu của lỗ hổng bạn chọn và không đổi được trạng thái hay severity.", "pickContext": "Lỗ hổng làm ngữ cảnh", "pickContextPh": "Chọn lỗ hổng đang mở", "noContext": "Không có lỗ hổng đang mở nào bạn được xem.", "backToVuln": "← Về chi tiết lỗ hổng", "loadingLong": "Đang phân tích… (tối đa 30 giây)", "stop": "Dừng", "stopped": "Đã dừng.", "nothingChanged": "Không có dữ liệu nào bị thay đổi.", "emptyPrompt": "Bạn muốn biết gì về lỗi này? Chọn một gợi ý hoặc tự nhập câu hỏi bên dưới.", "pickFirst": "Chọn một lỗ hổng ở cột bên trái trước khi hỏi.", "suggestExplain": "Giải thích lỗi này", "suggestFix": "Cách sửa lỗi này", "suggestVerify": "Cách kiểm tra lại sau khi sửa", "questionLabel": "Câu hỏi cho AI (Enter để gửi, Shift+Enter xuống dòng)", "readOnlyNote": "AI không đổi severity hay trạng thái. Muốn đổi, dùng các nút trên trang chi tiết.", "openAssistant": "Hỏi thêm trong AI Assistant →"
   },
   "environment": {
     "Lab": "Lab", "Development": "Development", "Staging": "Staging", "Production": "Production"

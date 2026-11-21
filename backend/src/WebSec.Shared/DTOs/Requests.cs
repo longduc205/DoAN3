@@ -72,6 +72,13 @@ public sealed class CreateReportRequest
     public ReportTemplate Template { get; set; } = ReportTemplate.Technical;
 }
 
+/// <summary>AI Assistant question; a vulnerability must be picked as context first (sitemap: "luôn chọn context trước khi hỏi").</summary>
+public sealed class AiAskRequest
+{
+    [Required] public Guid VulnerabilityId { get; set; }
+    [Required, MaxLength(1000)] public string Question { get; set; } = string.Empty;
+}
+
 public sealed class UpdateVulnerabilityStatusRequest
 {
     [Required] public Guid Id { get; set; }

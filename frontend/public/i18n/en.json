@@ -33,7 +33,7 @@
   "common": {
     "loading": "Loading…", "retry": "Retry", "empty": "No data yet.", "search": "Search…", "edit": "Edit", "delete": "Delete",
     "save": "Save", "cancel": "Cancel", "status": "Status", "createdDate": "Created", "viewAll": "View all",
-    "prev": "Previous", "next": "Next", "pagination": "Pagination", "comingLater": "This feature is coming in a later milestone.",
+    "prev": "Previous", "next": "Next", "pagination": "Pagination",
     "close": "Close", "discardChanges": "Discard unsaved changes?", "keepEditing": "Keep editing", "discard": "Discard"
   },
   "validation": {
@@ -92,7 +92,8 @@
   "ai": {
     "explain": "AI explain", "remediate": "AI remediation",
     "advisoryLabel": "AI-ASSISTED · ADVISORY ONLY, VERIFY BEFORE ACTING",
-    "generatedTag": "AI-GENERATED", "panelTitle": "AI Advisor", "disclaimer": "AI suggestions can be wrong. AI never changes status or severity; check before acting.", "contextTitle": "Data sent to the AI", "neverSent": "Never sent: passwords, tokens, cookies, auth headers.", "loading": "AI is analysing…", "copy": "Copy", "copied": "Copied", "saveNote": "Save as note", "noteSaved": "Note saved"
+    "generatedTag": "AI-GENERATED", "panelTitle": "AI Advisor", "disclaimer": "AI suggestions can be wrong. AI never changes status or severity; check before acting.", "contextTitle": "Data sent to the AI", "neverSent": "Never sent: passwords, tokens, cookies, auth headers.", "loading": "AI is analysing…", "copy": "Copy", "copied": "Copied", "saveNote": "Save as note", "noteSaved": "Note saved",
+    "assistantSubtitle": "Ask the AI about one vulnerability. It only uses the data of the vulnerability you pick and cannot change status or severity.", "pickContext": "Vulnerability as context", "pickContextPh": "Choose an open vulnerability", "noContext": "There are no open vulnerabilities you can see.", "backToVuln": "← Back to vulnerability", "loadingLong": "Analysing… (up to 30 seconds)", "stop": "Stop", "stopped": "Stopped.", "nothingChanged": "No data was changed.", "emptyPrompt": "What do you want to know about this issue? Pick a suggestion or type a question below.", "pickFirst": "Pick a vulnerability on the left before asking.", "suggestExplain": "Explain this issue", "suggestFix": "How do I fix it?", "suggestVerify": "How do I verify the fix?", "questionLabel": "Question for the AI (Enter to send, Shift+Enter for a new line)", "readOnlyNote": "The AI never changes severity or status. Use the buttons on the vulnerability page for that.", "openAssistant": "Ask more in AI Assistant →"
   },
   "environment": {
     "Lab": "Lab", "Development": "Development", "Staging": "Staging", "Production": "Production"

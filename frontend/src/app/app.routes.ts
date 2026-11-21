@@ -4,12 +4,6 @@ import { AuthService } from './core/auth/auth.service';
 import { authGuard, guestGuard, permissionGuard } from './core/guards/auth.guard';
 import { ShellComponent } from './core/layout/shell.component';
 
-const placeholder = (titleKey: string, permission: string) => ({
-  loadComponent: () => import('./shared/components/coming-later.page').then((m) => m.ComingLaterPage),
-  canActivate: [permissionGuard],
-  data: { titleKey, permission },
-});
-
 export const routes: Routes = [
   { path: 'login', canActivate: [guestGuard], loadComponent: () => import('./features/auth/login.page').then((m) => m.LoginPage) },
   {
@@ -63,7 +57,10 @@ export const routes: Routes = [
         path: 'audit', canActivate: [permissionGuard], data: { permission: 'AuditLog.View' },
         loadComponent: () => import('./features/admin/audit.page').then((m) => m.AuditPage),
       },
-      { path: 'ai-assistant', ...placeholder('nav.aiAssistant', 'AI.Ask') },
+      {
+        path: 'ai-assistant', canActivate: [permissionGuard], data: { permission: 'AI.Ask' },
+        loadComponent: () => import('./features/ai/ai-assistant.page').then((m) => m.AiAssistantPage),
+      },
     ],
   },
   { path: '**', redirectTo: '' },

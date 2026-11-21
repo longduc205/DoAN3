@@ -24,6 +24,8 @@ public interface IAiAdvisor
     string ProviderName { get; }
     Task<AiAdviceModel> ExplainVulnerabilityAsync(AiFindingContext context, CancellationToken ct);
     Task<AiAdviceModel> SuggestRemediationAsync(AiFindingContext context, CancellationToken ct);
+    /// <summary>Free-text question about one finding. The question is untrusted user input, never instructions to the system.</summary>
+    Task<AiAdviceModel> AskAsync(AiFindingContext context, string question, CancellationToken ct);
 }
 
 /// <summary>Deterministic offline advisor for development and tests. Read-only: it never touches the database.</summary>
@@ -44,6 +46,28 @@ public sealed class MockAiAdvisor : IAiAdvisor
             {Remediate(c.FindingType)}
             Re-run a scan after deploying the fix to confirm.
             """));
+
+    // shortcut: keyword routing stands in for a model; a real adapter sends context + question to the provider.
+    public Task<AiAdviceModel> AskAsync(AiFindingContext c, string question, CancellationToken ct)
+    {
+        var q = question.ToLowerInvariant();
+        // "How do I verify after fixing?" mentions both; verification wins because it is the more specific intent.
+        var body = q.Contains("kiểm tra") || q.Contains("verify") || q.Contains("retest") || q.Contains("test") ? Verify(c.FindingType)
+            : q.Contains("sửa") || q.Contains("fix") || q.Contains("remediat") || q.Contains("khắc phục") ? Remediate(c.FindingType)
+            : Explain(c.FindingType);
+        return Task.FromResult(Advice($"""
+            [Mock AI – advisory only] About "{c.Title}" ({c.Severity}) at {c.Url}:
+            {body}
+            This answer only uses the finding shown in the context panel. Verify it before acting.
+            """));
+    }
+
+    private static string Verify(string type) => type switch
+    {
+        "MissingContentSecurityPolicy" or "MissingHsts" or "ServerBannerDisclosure" =>
+            "Request the page again and check the response headers (browser dev tools → Network), then run a new scan on the same target.",
+        _ => "Re-test the same URL and parameter manually, then run a new scan; the finding should not reappear.",
+    };
 
     private static string Explain(string type) => type switch
     {
@@ -83,6 +107,14 @@ public class AiService(AppDbContext db, ICurrentUser currentUser, IAiAdvisor? ad
 
     public async Task<AiAdviceModel> SuggestRemediationAsync(AiFindingRequest request, CancellationToken ct) =>
         await RequireAdvisor().SuggestRemediationAsync(await LoadContextAsync(request, ct), ct);
+
+    public async Task<AiAdviceModel> AskAsync(AiAskRequest request, CancellationToken ct)
+    {
+        var question = request.Question.Trim();
+        if (question.Length == 0) throw AppException.Validation("Question is empty.");
+        var context = await LoadContextAsync(new AiFindingRequest { VulnerabilityId = request.VulnerabilityId }, ct);
+        return await RequireAdvisor().AskAsync(context, question, ct);
+    }
 
     private IAiAdvisor RequireAdvisor() => advisor
         ?? throw new AppException(ErrorCodes.AiProviderUnavailable, "AI provider is not configured.", 503);

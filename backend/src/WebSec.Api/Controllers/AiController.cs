@@ -22,6 +22,11 @@ public class AiController(IAiService ai) : ApiControllerBase
     public async Task<ApiResponse<AiAdviceModel>> Explain(AiFindingRequest request, CancellationToken ct) =>
         Success(await ai.ExplainFindingAsync(request, ct));
 
+    /// <summary>AI Assistant: question about one vulnerability (read-only; never changes status or severity).</summary>
+    [HttpPost("ask")]
+    public async Task<ApiResponse<AiAdviceModel>> Ask(AiAskRequest request, CancellationToken ct) =>
+        Success(await ai.AskAsync(request, ct));
+
     [HttpPost("suggest-remediation")]
     public async Task<ApiResponse<AiAdviceModel>> SuggestRemediation(AiFindingRequest request, CancellationToken ct) =>
         Success(await ai.SuggestRemediationAsync(request, ct));
