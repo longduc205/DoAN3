@@ -58,6 +58,12 @@ public sealed class AiFindingRequest
     public Guid? VulnerabilityId { get; set; }
 }
 
+public sealed class SetUserActiveRequest
+{
+    [Required] public Guid UserId { get; set; }
+    public bool IsActive { get; set; }
+}
+
 public sealed class ChangeUserRoleRequest
 {
     [Required] public Guid UserId { get; set; }

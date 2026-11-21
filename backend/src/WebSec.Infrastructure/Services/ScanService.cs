@@ -96,11 +96,23 @@ public class ScanService(AppDbContext db, ICurrentUser currentUser, ITargetScope
         var query = db.ScanFindings.Where(f => f.ScanId == param.ScanId);
         if (param.Severity is { } sev) query = query.Where(f => f.Severity == sev);
         // Severity is stored as text, so rank it explicitly instead of sorting alphabetically.
-        return await query
+        var page = await query
             .OrderByDescending(f => f.Severity == Severity.Critical ? 4 : f.Severity == Severity.High ? 3
                 : f.Severity == Severity.Medium ? 2 : f.Severity == Severity.Low ? 1 : 0)
             .ThenBy(f => f.Title)
             .ToPagedAsync(param, AppMapper.ToModel, ct);
+
+        // W07 tags in one query for the page: New = first ever sighting, Reappeared = flagged after Resolved, else Known.
+        var vulnIds = page.Items.Where(f => f.VulnerabilityId != null).Select(f => f.VulnerabilityId!.Value).Distinct().ToList();
+        var vulns = await db.Vulnerabilities.IgnoreQueryFilters().Where(v => vulnIds.Contains(v.Id))
+            .Select(v => new { v.Id, v.Status, v.FirstDetectedAt, v.IsReappeared }).ToDictionaryAsync(v => v.Id, ct);
+        foreach (var f in page.Items)
+        {
+            if (f.VulnerabilityId is not { } id || !vulns.TryGetValue(id, out var v)) continue;
+            f.VulnerabilityStatus = v.Status;
+            f.OccurrenceTag = v.FirstDetectedAt == f.DetectedAt ? OccurrenceTag.New : v.IsReappeared ? OccurrenceTag.Reappeared : OccurrenceTag.Known;
+        }
+        return page;
     }
 
     private IQueryable<Scan> AccessibleScans()

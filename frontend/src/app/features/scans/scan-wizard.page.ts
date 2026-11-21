@@ -74,6 +74,7 @@ type Step = 0 | 1 | 2;
                   <li class="px-3 py-1.5 rounded-full bg-white/70 border border-line mono text-ink">{{ host() }}</li>
                   <li class="px-3 py-1.5 rounded-full bg-white/70 border border-line">{{ 'scopeMode.' + t.scopeMode | transloco }}</li>
                 </ul>
+                <p class="text-sm">{{ 'wizard.queueInfo' | transloco: { count: queued() } }}</p>
                 <p class="text-sm text-ink-muted">{{ 'scans.mockNotice' | transloco }}</p>
               }
             }
@@ -128,6 +129,7 @@ export class ScanWizardPage implements OnInit {
   protected readonly confirmOpen = signal(false);
   protected readonly typedHost = signal('');
   protected readonly submitting = signal(false);
+  protected readonly queued = signal(0);
 
   ngOnInit(): void {
     this.load();
@@ -137,6 +139,7 @@ export class ScanWizardPage implements OnInit {
   protected next(): Step { return Math.min(2, this.step() + 1) as Step; }
 
   protected load(): void {
+    this.scansApi.getAll({ status: 'Queued', pageSize: 1 }).subscribe({ next: (r) => this.queued.set(r.paging?.totalItems ?? 0) });
     this.loading.set(true);
     this.error.set(null);
     this.targetsApi.getAll({ pageSize: 100, projectId: this.projectId() }).subscribe({

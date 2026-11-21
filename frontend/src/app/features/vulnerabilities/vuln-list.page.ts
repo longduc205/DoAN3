@@ -8,7 +8,7 @@ import { apiErrorMessage } from '../../core/services/base-api.service';
 import { SeverityBadge, VulnStatusBadge } from '../../shared/components/badges';
 import { DialogComponent } from '../../shared/components/dialog';
 import { PageState, Pagination } from '../../shared/components/page-state';
-import { PagingInfo, Severity, UserLookup, Vulnerability, VulnerabilityStatus } from '../../shared/models/api.models';
+import { PagingInfo, Severity, UserLookup, Vulnerability, VulnerabilityFacets, VulnerabilityStatus } from '../../shared/models/api.models';
 import { VulnerabilitiesApi, VulnerabilitySearch } from '../api.services';
 
 type StatusFilter = 'open' | 'closed' | 'all' | VulnerabilityStatus;
@@ -41,7 +41,8 @@ const STATUSES: VulnerabilityStatus[] = ['Open', 'Triaged', 'Assigned', 'InProgr
             [class]="!sev() ? 'bg-ink text-white border-ink' : 'bg-white border-line'" (click)="setSeverity(null)">{{ 'projects.tabAll' | transloco }}</button>
           @for (s of severities; track s) {
             <button type="button" class="h-8 px-3 rounded-full text-[13px] border cursor-pointer" [attr.aria-pressed]="sev() === s"
-              [class]="sev() === s ? 'bg-ink text-white border-ink' : 'bg-white border-line'" (click)="setSeverity(s)">{{ 'severity.' + s | transloco }}</button>
+              [class]="sev() === s ? 'bg-ink text-white border-ink' : 'bg-white border-line'" (click)="setSeverity(s)">{{ 'severity.' + s | transloco }}
+              <span class="opacity-70">{{ facets()?.bySeverity?.[s] ?? 0 }}</span></button>
           }
         </div>
         <select class="h-9 px-2.5 rounded-[10px] border border-line bg-white text-sm" [attr.aria-label]="'common.status' | transloco"
@@ -51,6 +52,18 @@ const STATUSES: VulnerabilityStatus[] = ['Open', 'Triaged', 'Assigned', 'InProgr
           <option value="all">{{ 'projects.tabAll' | transloco }}</option>
           @for (s of statuses; track s) { <option [value]="s">{{ 'vulnStatus.' + s | transloco }}</option> }
         </select>
+        <select class="h-9 px-2.5 rounded-[10px] border border-line bg-white text-sm" [attr.aria-label]="'vulns.type' | transloco"
+          [ngModel]="findingType()" (ngModelChange)="findingType.set($event); load(1)">
+          <option value="">{{ 'vulns.allTypes' | transloco }}</option>
+          @for (t of facets()?.findingTypes ?? []; track t) { <option [value]="t">{{ t }}</option> }
+        </select>
+        @if (canTriage && !assignedToMe()) {
+          <select class="h-9 px-2.5 rounded-[10px] border border-line bg-white text-sm" [attr.aria-label]="'vulns.assignee' | transloco"
+            [ngModel]="assigneeFilter()" (ngModelChange)="assigneeFilter.set($event); load(1)" (focus)="loadAssignees()">
+            <option value="">{{ 'vulns.allAssignees' | transloco }}</option>
+            @for (u of assignees(); track u.id) { <option [value]="u.id">{{ u.fullName }}</option> }
+          </select>
+        }
         <select class="h-9 px-2.5 rounded-[10px] border border-line bg-white text-sm" [attr.aria-label]="'projects.sortLabel' | transloco"
           [ngModel]="sort()" (ngModelChange)="sort.set($event); load(1)">
           <option value="severity">{{ 'vulns.sortSeverity' | transloco }}</option>
@@ -153,7 +166,10 @@ export class VulnListPage implements OnInit {
   protected readonly assignOpen = signal(false);
   protected readonly assignees = signal<UserLookup[]>([]);
   protected readonly assigneeId = signal<string | null>(null);
-  protected readonly filtered = computed(() => this.sev() !== null || this.statusFilter() !== 'open');
+  protected readonly findingType = signal('');
+  protected readonly assigneeFilter = signal('');
+  protected readonly facets = signal<VulnerabilityFacets | null>(null);
+  protected readonly filtered = computed(() => this.sev() !== null || this.statusFilter() !== 'open' || !!this.findingType() || !!this.assigneeFilter());
   protected readonly allChecked = computed(() => this.items().length > 0 && this.items().every((v) => this.selected().has(v.id)));
 
   ngOnInit(): void {
@@ -163,7 +179,17 @@ export class VulnListPage implements OnInit {
 
   protected setSeverity(s: Severity | null): void { this.sev.set(s); this.load(1); }
   protected setStatus(s: StatusFilter): void { this.statusFilter.set(s); this.load(1); }
-  protected clearFilters(): void { this.sev.set(null); this.statusFilter.set('open'); this.load(1); }
+  protected clearFilters(): void {
+    this.sev.set(null);
+    this.statusFilter.set('open');
+    this.findingType.set('');
+    this.assigneeFilter.set('');
+    this.load(1);
+  }
+
+  protected loadAssignees(): void {
+    if (this.assignees().length === 0) this.api.getAssignees().subscribe({ next: (r) => this.assignees.set(r.data ?? []) });
+  }
 
   protected clearSelection(): void { this.selected.set(new Set()); }
 
@@ -179,7 +205,7 @@ export class VulnListPage implements OnInit {
 
   protected openAssign(): void {
     this.assignOpen.set(true);
-    if (this.assignees().length === 0) this.api.getAssignees().subscribe({ next: (r) => this.assignees.set(r.data ?? []) });
+    this.loadAssignees();
   }
 
   protected assign(): void {
@@ -201,7 +227,10 @@ export class VulnListPage implements OnInit {
       page, pageSize: 20, projectId: this.projectId(), assignedToMe: this.assignedToMe(), severity: this.sev() ?? undefined,
       sortBy: this.sort(), sortDirection: 'Desc',
       isOpen: f === 'open' ? true : f === 'closed' ? false : null, status: f === 'open' || f === 'closed' || f === 'all' ? undefined : f,
+      findingType: this.findingType() || undefined, assigneeId: this.assigneeFilter() || undefined,
     };
+    // Chip counts / type options ignore the severity and type filters themselves (server side).
+    this.api.getFacets(p).subscribe({ next: (r) => this.facets.set(r.data) });
     this.api.getAll(p).subscribe({
       next: (res) => {
         this.items.set(res.data ?? []);

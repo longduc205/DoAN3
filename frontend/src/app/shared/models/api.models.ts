@@ -125,6 +125,19 @@ export interface ScanFinding {
   evidenceRedacted: boolean;
   detectorName: string;
   detectedAt: string;
+  vulnerabilityId: string | null;
+  vulnerabilityStatus: VulnerabilityStatus | null;
+  occurrenceTag: OccurrenceTag | null;
+}
+
+export type OccurrenceTag = 'New' | 'Known' | 'Reappeared';
+
+export interface VulnerabilityFacets { findingTypes: string[]; bySeverity: Partial<Record<Severity, number>> }
+
+export interface AuditStats {
+  last7Days: number; blocked: number; failedLogins: number;
+  byDay: { date: string; count: number }[];
+  byEntityType: Partial<Record<string, number>>;
 }
 
 export interface DashboardSummary {

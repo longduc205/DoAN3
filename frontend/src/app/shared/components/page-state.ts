@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, computed, input, output } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { PagingInfo } from '../models/api.models';
 
@@ -34,11 +34,22 @@ export class PageState {
   imports: [TranslocoPipe],
   template: `
     @if (paging(); as p) {
-      @if (p.totalPages > 1) {
-        <nav class="flex items-center justify-end gap-2 p-3 text-sm" [attr.aria-label]="'common.pagination' | transloco">
-          <button type="button" class="btn h-8" [disabled]="p.page <= 1" (click)="pageChange.emit(p.page - 1)">{{ 'common.prev' | transloco }}</button>
-          <span class="mono">{{ p.page }} / {{ p.totalPages }}</span>
-          <button type="button" class="btn h-8" [disabled]="p.page >= p.totalPages" (click)="pageChange.emit(p.page + 1)">{{ 'common.next' | transloco }}</button>
+      @if (p.totalItems > 0) {
+        <nav class="flex flex-wrap items-center justify-between gap-2 p-3 text-sm" [attr.aria-label]="'common.pagination' | transloco">
+          <span class="mono">{{ (p.page - 1) * p.pageSize + 1 }}–{{ min(p.page * p.pageSize, p.totalItems) }} / {{ p.totalItems }}</span>
+          @if (p.totalPages > 1) {
+            <span class="flex items-center gap-1">
+              <button type="button" class="btn h-8 px-2" [disabled]="p.page <= 1" (click)="pageChange.emit(p.page - 1)" [attr.aria-label]="'common.prev' | transloco">‹</button>
+              @for (n of pages(); track $index) {
+                @if (n === 0) { <span class="px-1 text-ink-muted" aria-hidden="true">…</span> }
+                @else {
+                  <button type="button" class="btn h-8 min-w-8 px-2" [class.bg-ink]="n === p.page" [class.text-white]="n === p.page"
+                    [attr.aria-current]="n === p.page ? 'page' : null" (click)="pageChange.emit(n)">{{ n }}</button>
+                }
+              }
+              <button type="button" class="btn h-8 px-2" [disabled]="p.page >= p.totalPages" (click)="pageChange.emit(p.page + 1)" [attr.aria-label]="'common.next' | transloco">›</button>
+            </span>
+          }
         </nav>
       }
     }
@@ -47,4 +58,13 @@ export class PageState {
 export class Pagination {
   readonly paging = input<PagingInfo | null>(null);
   readonly pageChange = output<number>();
+  protected readonly min = Math.min;
+  /** First, last and the current page ±1; 0 marks a gap. */
+  protected readonly pages = computed(() => {
+    const p = this.paging();
+    if (!p) return [];
+    const keep = new Set([1, p.totalPages, p.page - 1, p.page, p.page + 1].filter((n) => n >= 1 && n <= p.totalPages));
+    const sorted = [...keep].sort((a, b) => a - b);
+    return sorted.flatMap((n, i) => (i > 0 && n - sorted[i - 1] > 1 ? [0, n] : [n]));
+  });
 }

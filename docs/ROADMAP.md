@@ -18,7 +18,7 @@
 - Mock scan engine only; no real HTTP requests or passive header checks yet.
 - No refresh token; token in `sessionStorage` (60 min).
 - Project access is owner-based; `project_members` not implemented.
-- AI Assistant keeps the conversation in memory only (no `ai_conversations` table) and answers with the mock advisor; users cannot be created or locked from the UI yet.
+- AI Assistant keeps the conversation in memory only (no `ai_conversations` table) and answers with the mock advisor; users cannot be created from the UI yet.
 - Reports are generated synchronously and "PDF" is the browser print dialog (no stored file, no AI summary section).
 - Audit log does not record 403s rejected by authorization policies (only explicit events, incl. scope-rejected scans).
 

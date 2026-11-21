@@ -51,8 +51,9 @@ Search params (`BaseSearchParam`): `page` (default 1), `pageSize` (default 10, m
 | `POST /api/scans/create` | `{ targetId, scanType: "Mock" }` | `ScanModel` (status `Queued`) | `Scan.Create` |
 | `POST /api/scans/get-progress` | `{ id }` | `{ id, status, progressPercent, totalUrls, totalRequests, totalFindings, isTerminal }` | `Scan.View` |
 | `POST /api/scans/cancel` | `{ id }` | `ScanModel` (Queued→Cancelled, Running→Cancelling) | `Scan.Create` |
-| `POST /api/scans/get-findings` | `FindingSearchParam { scanId, severity? }` | `ScanFindingModel[]` + paging (ordered by severity) | `Scan.View` |
+| `POST /api/scans/get-findings` | `FindingSearchParam { scanId, severity? }` | `ScanFindingModel[]` + paging (ordered by severity), each with `vulnerabilityId`, `vulnerabilityStatus`, `occurrenceTag` (New/Known/Reappeared) | `Scan.View` |
 | `POST /api/vulnerabilities/get-all` | `VulnerabilitySearchParam { projectId?, severity?, status?, isOpen?, findingType?, assigneeId?, assignedToMe, keyword?, sortBy: severity\|lastDetected\|firstDetected\|status\|title }` | `VulnerabilityModel[]` + paging | `Vulnerability.View` (own projects + items assigned to me) |
+| `POST /api/vulnerabilities/get-facets` | same params as `get-all` | `{ findingTypes, bySeverity }` ignoring the severity/type filters themselves (chip counts) | `Vulnerability.View` |
 | `POST /api/vulnerabilities/get-by-id` | `{ id }` | `VulnerabilityDetailModel` (+ `latestFinding`, `occurrences`, `allowedTransitions` for the caller) | `Vulnerability.View` |
 | `POST /api/vulnerabilities/update-status` | `{ id, status, reason?, reviewAt? }` | `VulnerabilityDetailModel`; 409 for a transition not allowed by `VulnerabilityStateMachine`, 400 when the reason / review date is missing | `Vulnerability.Update` (+ `Vulnerability.Triage` or being the assignee, per transition) |
 | `POST /api/vulnerabilities/assign` | `{ ids: [...], assigneeId }` (bulk) | number assigned; Open/Triaged → Assigned, re-assign keeps status | `Vulnerability.Triage` |
@@ -65,8 +66,11 @@ Search params (`BaseSearchParam`): `page` (default 1), `pageSize` (default 10, m
 | `POST /api/reports/retry` | `{ id }` | `ReportDetailModel`; 409 unless the report is `Failed` (Ready reports are immutable) | `Report.Generate` |
 | `POST /api/users/get-all` | `UserSearchParam { role?, keyword? }` | `UserAdminModel[]` (+ `lastLoginAt` from the audit trail) | `User.Manage` |
 | `POST /api/users/change-role` | `{ userId, role }` (one role per user) | `UserAdminModel`; 409 when changing your own role | `User.Manage` |
+| `POST /api/users/set-active` | `{ userId, isActive }` | `UserAdminModel`; 409 when locking yourself; audited as `USER_LOCKED` / `USER_UNLOCKED` | `User.Manage` |
 | `POST /api/users/get-role-permissions` | `{}` | `RolePermissionsModel[]` (read-only matrix from the database) | `User.Manage` |
 | `POST /api/audit-logs/get-all` | `AuditLogSearchParam { userId?, action?, entityType?, result?, from?, to?, keyword? }` | `AuditLogModel[]` + paging (newest first). Read-only: no update/delete endpoint exists | `AuditLog.View` |
+| `POST /api/audit-logs/get-stats` | `{}` | `AuditStatsModel { last7Days, blocked, failedLogins, byDay[7], byEntityType }` | `AuditLog.View` |
+| `POST /api/audit-logs/export` | same filters as `get-all` | `text/csv` file (max 5000 rows, formula-safe quoting, values already masked) | `AuditLog.View` |
 | `POST /api/ai/get-context` | `{ findingId }` or `{ vulnerabilityId }` | `AiContextModel` – exactly what would be sent (redacted, ≤1000 chars evidence); does not call the provider | `AI.Ask`, rate-limited 20/min/user |
 | `POST /api/ai/ask` | `{ vulnerabilityId, question }` (question ≤ 1000 chars; a vulnerability must be chosen as context) | `AiAdviceModel`; read-only, never changes status/severity | `AI.Ask`, rate-limited 20/min/user |
 | `POST /api/ai/explain-vulnerability` | `{ findingId }` or `{ vulnerabilityId }` (latest occurrence) | `AiAdviceModel { content, provider, model, isAiAssisted: true, generatedAt }` | `AI.Ask`, rate-limited 20/min/user |
@@ -85,4 +89,4 @@ Authorization: Bearer eyJ…
 ```
 
 ## Planned (not implemented – routes do not exist yet)
-`auth/refresh`, creating / locking users, stored AI conversations.
+`auth/refresh`, creating users, stored AI conversations.

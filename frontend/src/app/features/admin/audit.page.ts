@@ -2,10 +2,11 @@ import { DatePipe } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { AuthService } from '../../core/auth/auth.service';
 import { apiErrorMessage } from '../../core/services/base-api.service';
 import { PageState, Pagination } from '../../shared/components/page-state';
-import { AuditLog, AuditResult, PagingInfo } from '../../shared/models/api.models';
-import { AuditLogsApi } from '../api.services';
+import { AuditLog, AuditResult, AuditStats, PagingInfo, UserAdmin } from '../../shared/models/api.models';
+import { AuditLogSearch, AuditLogsApi, UsersApi } from '../api.services';
 
 const RESULT_CLASS: Record<AuditResult, string> = { Success: 'text-ok bg-ok-bg', Blocked: 'text-warn bg-warn-bg', Failed: 'text-danger bg-danger-bg' };
 const ENTITY_TYPES = ['User', 'Project', 'Target', 'Scan', 'Vulnerability', 'Report'];
@@ -16,10 +17,38 @@ const ENTITY_TYPES = ['User', 'Project', 'Target', 'Scan', 'Vulnerability', 'Rep
   imports: [FormsModule, TranslocoPipe, DatePipe, PageState, Pagination],
   template: `
     <div class="flex flex-col gap-5">
-      <div>
-        <h1 class="page-title">{{ 'nav.audit' | transloco }}</h1>
-        <p class="mt-1 text-sm text-ink-muted">{{ 'audit.subtitle' | transloco: { count: paging()?.totalItems ?? 0 } }}</p>
+      <div class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 class="page-title">{{ 'nav.audit' | transloco }}</h1>
+          <p class="mt-1 text-sm text-ink-muted">{{ 'audit.subtitle' | transloco: { count: paging()?.totalItems ?? 0 } }}</p>
+        </div>
+        <button type="button" class="btn h-10" [disabled]="exporting()" (click)="exportCsv()">{{ 'audit.export' | transloco }}</button>
       </div>
+
+      @if (stats(); as st) {
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div class="glass p-4"><div class="text-sm text-ink-muted">{{ 'audit.last7' | transloco }}</div><div class="text-2xl font-semibold">{{ st.last7Days }}</div></div>
+          <div class="glass p-4"><div class="text-sm text-ink-muted">{{ 'audit.result_Blocked' | transloco }}</div><div class="text-2xl font-semibold text-warn">{{ st.blocked }}</div></div>
+          <div class="glass p-4"><div class="text-sm text-ink-muted">{{ 'audit.failedLogins' | transloco }}</div><div class="text-2xl font-semibold text-danger">{{ st.failedLogins }}</div></div>
+          <div class="glass p-4 col-span-2 lg:col-span-1">
+            <div class="text-sm text-ink-muted mb-2">{{ 'audit.perDay' | transloco }}</div>
+            <ol class="flex items-end gap-1 h-12" role="img" [attr.aria-label]="dayLabel()">
+              @for (d of st.byDay; track d.date) {
+                <li class="flex-1 rounded-t bg-ink/80" [style.height.%]="maxDay() ? (d.count / maxDay()) * 100 : 0" [style.min-height.px]="d.count ? 3 : 1" [title]="d.date + ': ' + d.count"></li>
+              }
+            </ol>
+          </div>
+        </div>
+        <div role="group" [attr.aria-label]="'audit.entity' | transloco" class="flex flex-wrap p-[3px] rounded-[10px] bg-black/[.04] self-start">
+          <button type="button" class="min-h-[34px] px-3 rounded-lg text-[13px] cursor-pointer" [attr.aria-pressed]="!entityType()"
+            [class]="!entityType() ? 'bg-white font-semibold' : 'text-ink-muted hover:text-ink'" (click)="entityType.set(''); load(1)">{{ 'audit.allEntities' | transloco }}</button>
+          @for (e of entityTypes; track e) {
+            <button type="button" class="min-h-[34px] px-3 rounded-lg text-[13px] cursor-pointer" [attr.aria-pressed]="entityType() === e"
+              [class]="entityType() === e ? 'bg-white font-semibold' : 'text-ink-muted hover:text-ink'" (click)="entityType.set(e); load(1)">
+              {{ 'audit.entity_' + e | transloco }} <span class="text-ink-muted">{{ st.byEntityType[e] ?? 0 }}</span></button>
+          }
+        </div>
+      }
 
       <div class="flex flex-wrap items-center gap-2.5">
         <div role="group" [attr.aria-label]="'audit.result' | transloco" class="flex p-[3px] rounded-[10px] bg-black/[.04]">
@@ -28,10 +57,10 @@ const ENTITY_TYPES = ['User', 'Project', 'Target', 'Scan', 'Vulnerability', 'Rep
               [class]="result() === r.value ? 'bg-white font-semibold' : 'text-ink-muted hover:text-ink'" (click)="result.set(r.value); load(1)">{{ r.key | transloco }}</button>
           }
         </div>
-        <select class="h-9 px-2.5 rounded-[10px] border border-line bg-white text-sm" [attr.aria-label]="'audit.entity' | transloco"
-          [ngModel]="entityType()" (ngModelChange)="entityType.set($event); load(1)">
-          <option value="">{{ 'audit.allEntities' | transloco }}</option>
-          @for (e of entityTypes; track e) { <option [value]="e">{{ 'audit.entity_' + e | transloco }}</option> }
+        <select class="h-9 px-2.5 rounded-[10px] border border-line bg-white text-sm" [attr.aria-label]="'audit.actor' | transloco"
+          [ngModel]="userId()" (ngModelChange)="userId.set($event); load(1)">
+          <option value="">{{ 'audit.allActors' | transloco }}</option>
+          @for (u of users(); track u.id) { <option [value]="u.id">{{ u.fullName }}</option> }
         </select>
         <label class="flex items-center gap-1.5 text-sm">{{ 'audit.from' | transloco }}
           <input type="date" class="h-9 px-2 rounded-[10px] border border-line bg-white" [ngModel]="from()" (ngModelChange)="from.set($event); load(1)" /></label>
@@ -100,6 +129,8 @@ const ENTITY_TYPES = ['User', 'Project', 'Target', 'Scan', 'Vulnerability', 'Rep
 })
 export class AuditPage implements OnInit {
   private readonly api = inject(AuditLogsApi);
+  private readonly usersApi = inject(UsersApi);
+  private readonly auth = inject(AuthService);
   protected readonly resultClass = RESULT_CLASS;
   protected readonly entityTypes = ENTITY_TYPES;
   protected readonly results: { key: string; value: AuditResult | undefined }[] = [
@@ -109,6 +140,12 @@ export class AuditPage implements OnInit {
 
   protected readonly result = signal<AuditResult | undefined>(undefined);
   protected readonly entityType = signal('');
+  protected readonly userId = signal('');
+  protected readonly users = signal<UserAdmin[]>([]);
+  protected readonly stats = signal<AuditStats | null>(null);
+  protected readonly exporting = signal(false);
+  protected readonly maxDay = computed(() => Math.max(0, ...(this.stats()?.byDay.map((d) => d.count) ?? [])));
+  protected readonly dayLabel = computed(() => (this.stats()?.byDay ?? []).map((d) => `${d.date}: ${d.count}`).join(', '));
   protected readonly from = signal('');
   protected readonly to = signal('');
   protected readonly keyword = signal('');
@@ -130,11 +167,33 @@ export class AuditPage implements OnInit {
 
   ngOnInit(): void {
     this.load();
+    this.api.getStats().subscribe({ next: (r) => this.stats.set(r.data) });
+    // The actor filter needs the user list; Audit is admin-only and admins hold User.Manage.
+    if (this.auth.hasPermission('User.Manage')) this.usersApi.getAll({ pageSize: 100 }).subscribe({ next: (r) => this.users.set(r.data ?? []) });
+  }
+
+  protected exportCsv(): void {
+    this.exporting.set(true);
+    this.api.exportCsv(this.filters()).subscribe({
+      next: (blob) => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `audit-logs-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+        this.exporting.set(false);
+      },
+      error: (err) => {
+        this.error.set(apiErrorMessage(err));
+        this.exporting.set(false);
+      },
+    });
   }
 
   protected clearFilters(): void {
     this.result.set(undefined);
     this.entityType.set('');
+    this.userId.set('');
     this.from.set('');
     this.to.set('');
     this.keyword.set('');
@@ -145,15 +204,19 @@ export class AuditPage implements OnInit {
     try { return JSON.stringify(JSON.parse(json), null, 2); } catch { return json; }
   }
 
+  private filters(): AuditLogSearch {
+    // "to" is inclusive in the UI: send the start of the next day.
+    const to = this.to() ? new Date(new Date(this.to()).getTime() + 86_400_000).toISOString() : undefined;
+    return {
+      result: this.result(), entityType: this.entityType() || undefined, userId: this.userId() || undefined,
+      keyword: this.keyword().trim() || undefined, from: this.from() ? new Date(this.from()).toISOString() : undefined, to,
+    };
+  }
+
   protected load(page = 1): void {
     this.loading.set(true);
     this.error.set(null);
-    // "to" is inclusive in the UI: send the start of the next day.
-    const to = this.to() ? new Date(new Date(this.to()).getTime() + 86_400_000).toISOString() : undefined;
-    this.api.getAll({
-      page, pageSize: 50, result: this.result(), entityType: this.entityType() || undefined, keyword: this.keyword().trim() || undefined,
-      from: this.from() ? new Date(this.from()).toISOString() : undefined, to,
-    }).subscribe({
+    this.api.getAll({ ...this.filters(), page, pageSize: 50 }).subscribe({
       next: (res) => {
         this.items.set(res.data ?? []);
         this.paging.set(res.paging);

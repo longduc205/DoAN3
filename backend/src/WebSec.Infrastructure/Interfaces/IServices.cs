@@ -64,12 +64,15 @@ public interface IUserAdminService
 {
     Task<PagedResult<UserAdminModel>> GetAllAsync(UserSearchParam param, CancellationToken ct);
     Task<UserAdminModel> ChangeRoleAsync(ChangeUserRoleRequest request, CancellationToken ct);
+    Task<UserAdminModel> SetActiveAsync(SetUserActiveRequest request, CancellationToken ct);
     Task<IReadOnlyList<RolePermissionsModel>> GetRolePermissionsAsync(CancellationToken ct);
 }
 
 public interface IAuditLogService
 {
     Task<PagedResult<AuditLogModel>> GetAllAsync(AuditLogSearchParam param, CancellationToken ct);
+    Task<AuditStatsModel> GetStatsAsync(CancellationToken ct);
+    Task<string> ExportCsvAsync(AuditLogSearchParam param, CancellationToken ct);
 }
 
 public interface IReportService
@@ -83,6 +86,7 @@ public interface IReportService
 public interface IVulnerabilityService
 {
     Task<PagedResult<VulnerabilityModel>> GetAllAsync(VulnerabilitySearchParam param, CancellationToken ct);
+    Task<VulnerabilityFacetsModel> GetFacetsAsync(VulnerabilitySearchParam param, CancellationToken ct);
     Task<VulnerabilityDetailModel> GetByIdAsync(Guid id, CancellationToken ct);
     Task<VulnerabilityDetailModel> UpdateStatusAsync(UpdateVulnerabilityStatusRequest request, CancellationToken ct);
     Task<int> AssignAsync(AssignVulnerabilitiesRequest request, CancellationToken ct);

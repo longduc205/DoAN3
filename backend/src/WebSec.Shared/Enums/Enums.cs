@@ -11,6 +11,8 @@ public enum Severity { Info, Low, Medium, High, Critical }
 public enum Confidence { Low, Medium, High }
 public enum SortDirection { Asc, Desc }
 // Lifecycle from the canvas S2 state machine; transitions live in VulnerabilityStateMachine.
+/// <summary>How a scan finding relates to its vulnerability (W07 tags).</summary>
+public enum OccurrenceTag { New, Known, Reappeared }
 public enum AuditResult { Success, Blocked, Failed }
 public enum ReportStatus { Generating, Ready, Failed }
 public enum ReportTemplate { Executive, Technical }

@@ -59,4 +59,34 @@ public class AdminTests
         Assert.Equal(admin.Id, log.UserId);
         Assert.Contains(Permissions.ScanCreate, log.DetailJson); // gained
     }
+
+    [Fact]
+    public void Csv_QuotesAndDefusesFormulas()
+    {
+        Assert.Equal("'=HYPERLINK(1)", AuditLogService.Csv("=HYPERLINK(1)"));
+        Assert.Equal("\"a,b\"", AuditLogService.Csv("a,b"));
+        Assert.Equal("\"say \"\"hi\"\"\"", AuditLogService.Csv("say \"hi\""));
+        Assert.Equal("plain", AuditLogService.Csv("plain"));
+    }
+
+    [Fact]
+    public async Task SetActive_BlocksSelf_LocksOthers_AndAudits()
+    {
+        var db = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+        var admin = new User { Id = Guid.NewGuid(), UserName = "admin", FullName = "Admin" };
+        var viewer = new User { Id = Guid.NewGuid(), UserName = "viewer", FullName = "Viewer" };
+        db.AddRange(admin, viewer);
+        await db.SaveChangesAsync();
+        var me = new FakeUser(admin.Id, Roles.Admin);
+        var svc = new UserAdminService(db, me, new AuditLogger(db, me));
+
+        await Assert.ThrowsAsync<AppException>(() => svc.SetActiveAsync(new SetUserActiveRequest { UserId = admin.Id, IsActive = false }, default));
+        var locked = await svc.SetActiveAsync(new SetUserActiveRequest { UserId = viewer.Id, IsActive = false }, default);
+
+        Assert.False(locked.IsActive);
+        Assert.Equal("USER_LOCKED", (await db.AuditLogs.SingleAsync()).Action);
+        var csv = await new AuditLogService(db).ExportCsvAsync(new WebSec.Shared.Params.AuditLogSearchParam(), default);
+        Assert.StartsWith("time_utc,action,result", csv);
+        Assert.Contains("USER_LOCKED", csv);
+    }
 }

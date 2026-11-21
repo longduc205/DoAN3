@@ -7,8 +7,10 @@ import { apiErrorMessage } from '../../core/services/base-api.service';
 import { StatusBadge } from '../../shared/components/badges';
 import { DialogComponent } from '../../shared/components/dialog';
 import { PageState } from '../../shared/components/page-state';
-import { Project, Scan, Target } from '../../shared/models/api.models';
-import { ProjectsApi, ScansApi, TargetsApi } from '../api.services';
+import { Project, Scan, Target, Vulnerability, VulnerabilityStatus } from '../../shared/models/api.models';
+
+const CLOSED: VulnerabilityStatus[] = ['Resolved', 'FalsePositive', 'AcceptedRisk'];
+import { ProjectsApi, ScansApi, TargetsApi, VulnerabilitiesApi } from '../api.services';
 import { TargetFormComponent } from '../targets/target-form.component';
 import { ReportListPage } from '../reports/report-list.page';
 import { VulnListPage } from '../vulnerabilities/vuln-list.page';
@@ -49,8 +51,10 @@ type Tab = 'overview' | 'targets' | 'scans' | 'vulns' | 'reports';
             <div class="glass p-4"><dt class="text-sm text-ink-muted">{{ 'nav.targets' | transloco }}</dt>
               <dd class="text-2xl font-semibold mt-1">{{ targets().length }}
                 @if (needScope() > 0) { <span class="text-sm font-medium text-warn">· {{ 'projects.needScope' | transloco: { count: needScope() } }}</span> }</dd></div>
-            <div class="glass p-4"><dt class="text-sm text-ink-muted">{{ 'nav.scans' | transloco }}</dt><dd class="text-2xl font-semibold mt-1">{{ scans().length }}</dd></div>
-            <div class="glass p-4"><dt class="text-sm text-ink-muted">{{ 'scans.findings' | transloco }}</dt><dd class="text-2xl font-semibold mt-1">{{ findingTotal() }}</dd></div>
+            <div class="glass p-4"><dt class="text-sm text-ink-muted">{{ 'dashboard.openVulns' | transloco }}</dt>
+              <dd class="text-2xl font-semibold mt-1">{{ openVulns().length }}
+                @if (criticalOpen() > 0) { <span class="text-sm font-medium text-sev-critical">· {{ 'projects.criticalCount' | transloco: { count: criticalOpen() } }}</span> }</dd></div>
+            <div class="glass p-4"><dt class="text-sm text-ink-muted">{{ 'projects.resolved' | transloco }}</dt><dd class="text-2xl font-semibold mt-1">{{ resolvedCount() }}</dd></div>
             <div class="glass p-4"><dt class="text-sm text-ink-muted">{{ 'projects.lastScanLabel' | transloco }}</dt>
               <dd class="text-lg font-semibold mt-1">{{ lastScan() ? (lastScan() | date: 'dd/MM HH:mm') : ('projects.neverScanned' | transloco) }}</dd></div>
           </dl>
@@ -107,6 +111,13 @@ type Tab = 'overview' | 'targets' | 'scans' | 'vulns' | 'reports';
                       <div><dt class="text-ink-muted text-xs">{{ 'targets.scopeMode' | transloco }}</dt><dd>{{ 'scopeMode.' + t.scopeMode | transloco }}</dd></div>
                       <div><dt class="text-ink-muted text-xs">{{ 'targets.lastScan' | transloco }}</dt><dd>{{ t.lastScanAt ? (t.lastScanAt | date: 'dd/MM') : '—' }}</dd></div>
                     </dl>
+                    <div class="flex flex-wrap items-center gap-3 text-sm">
+                      <span>{{ 'projects.openOnTarget' | transloco: { count: openByTarget()[t.id] ?? 0 } }}</span>
+                      @if (runningByTarget()[t.id]; as run) {
+                        <a [routerLink]="['/scans', run.id]" class="flex items-center gap-2 text-run">
+                          <span class="size-1.5 rounded-full bg-current animate-pulse" aria-hidden="true"></span>{{ 'projects.scanningPct' | transloco: { pct: run.progressPercent } }}</a>
+                      }
+                    </div>
                     @if (!t.isEnabled) { <p class="text-xs text-ink-muted">{{ 'targets.disabled' | transloco }}</p> }
                     <div class="flex flex-wrap gap-2 pt-1">
                       @if (canScan && t.isEnabled && t.isAuthorized) {
@@ -170,6 +181,7 @@ export class ProjectDetailPage implements OnInit {
   private readonly projectsApi = inject(ProjectsApi);
   private readonly targetsApi = inject(TargetsApi);
   private readonly scansApi = inject(ScansApi);
+  private readonly vulnApi = inject(VulnerabilitiesApi);
   private readonly auth = inject(AuthService);
   protected readonly canEdit = this.auth.hasPermission('Project.Update');
   protected readonly canScan = this.auth.hasPermission('Scan.Create');
@@ -188,7 +200,15 @@ export class ProjectDetailPage implements OnInit {
   protected readonly toDelete = signal<Target | null>(null);
 
   protected readonly needScope = computed(() => this.targets().filter((t) => t.isEnabled && !t.isAuthorized).length);
-  protected readonly findingTotal = computed(() => this.scans().reduce((n, s) => n + s.totalFindings, 0));
+  // shortcut: counts come from the first 100 vulnerabilities of the project; add a count API if projects grow past that.
+  protected readonly vulns = signal<Vulnerability[]>([]);
+  protected readonly openVulns = computed(() => this.vulns().filter((v) => !CLOSED.includes(v.status)));
+  protected readonly criticalOpen = computed(() => this.openVulns().filter((v) => v.severity === 'Critical').length);
+  protected readonly resolvedCount = computed(() => this.vulns().filter((v) => v.status === 'Resolved').length);
+  protected readonly openByTarget = computed(() =>
+    this.openVulns().reduce<Partial<Record<string, number>>>((m, v) => ({ ...m, [v.targetId]: (m[v.targetId] ?? 0) + 1 }), {}));
+  protected readonly runningByTarget = computed(() =>
+    Object.fromEntries(this.scans().filter((s) => s.status === 'Running' || s.status === 'Queued').map((s) => [s.targetId, s])) as Partial<Record<string, Scan>>);
   protected readonly lastScan = computed(() => this.scans()[0]?.createdAt ?? null);
 
   ngOnInit(): void {
@@ -204,6 +224,7 @@ export class ProjectDetailPage implements OnInit {
         this.loading.set(false);
         this.loadTargets();
         this.scansApi.getAll({ projectId: this.id(), pageSize: 100 }).subscribe({ next: (r) => this.scans.set(r.data ?? []) });
+        this.vulnApi.getAll({ projectId: this.id(), pageSize: 100 }).subscribe({ next: (r) => this.vulns.set(r.data ?? []) });
       },
       error: (err) => {
         this.error.set(apiErrorMessage(err));

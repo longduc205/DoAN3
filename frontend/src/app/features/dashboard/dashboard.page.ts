@@ -5,10 +5,10 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../core/auth/auth.service';
 import { apiErrorMessage } from '../../core/services/base-api.service';
-import { SeverityBadge, StatusBadge } from '../../shared/components/badges';
+import { SeverityBadge, StatusBadge, VulnStatusBadge } from '../../shared/components/badges';
 import { PageState } from '../../shared/components/page-state';
-import { DashboardSummary, Scan, Severity } from '../../shared/models/api.models';
-import { DashboardApi, ScansApi } from '../api.services';
+import { DashboardSummary, Scan, Severity, Vulnerability } from '../../shared/models/api.models';
+import { DashboardApi, ScansApi, VulnerabilitiesApi } from '../api.services';
 
 const SEV_BAR: Record<Severity, string> = {
   Critical: 'bg-sev-critical', High: 'bg-sev-high', Medium: 'bg-sev-medium', Low: 'bg-sev-low', Info: 'bg-sev-info',
@@ -16,16 +16,20 @@ const SEV_BAR: Record<Severity, string> = {
 
 const RISK_WEIGHTS = { Critical: 25, High: 10, Medium: 4, Low: 1 } as const;
 
-// W02 Dashboard. shortcut: no SLA / due dates yet, so the "to do" block shows counts instead of an SLA-sorted queue.
+// W02 Dashboard. shortcut: no SLA / due dates yet, so the queue is sorted by severity instead of time left.
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, TranslocoPipe, DatePipe, PageState, SeverityBadge, StatusBadge],
+  imports: [RouterLink, TranslocoPipe, DatePipe, PageState, SeverityBadge, StatusBadge, VulnStatusBadge],
   template: `
     <div class="flex flex-col gap-5">
       <div class="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 class="page-title">{{ 'dashboard.title' | transloco }}</h1>
-          <p class="mt-1 text-sm text-ink-muted">{{ 'dashboard.subtitle' | transloco }}</p>
+          <p class="mt-1 text-sm text-ink-muted">
+            @if (recent()[0]; as last) {
+              {{ 'dashboard.insight' | transloco: { target: last.targetName, count: last.totalFindings, unassigned: summary()?.unassigned ?? 0 } }}
+            } @else { {{ 'dashboard.subtitle' | transloco }} }
+          </p>
         </div>
         @if (canScan) {
           <a routerLink="/scans/new" class="btn btn-primary h-10 rounded-[10px] font-semibold">{{ 'dashboard.newScan' | transloco }}</a>
@@ -92,10 +96,14 @@ const RISK_WEIGHTS = { Critical: 25, High: 10, Medium: 4, Low: 1 } as const;
                 <h3 class="text-sm font-semibold mt-2">{{ 'dashboard.pipeline' | transloco }}</h3>
                 <ol class="grid grid-cols-5 gap-2 text-sm">
                   @for (st of pipeline; track st) {
-                    <li class="rounded-xl bg-white/60 p-3"><div class="text-xs text-ink-muted">{{ 'vulnStatus.' + st | transloco }}</div>
+                    <li class="rounded-xl p-3" [class]="st === bottleneck() ? 'bg-warn-bg ring-1 ring-warn/30' : 'bg-white/60'">
+                      <div class="text-xs text-ink-muted">{{ 'vulnStatus.' + st | transloco }}</div>
                       <div class="text-xl font-semibold">{{ s.byStatus[st] ?? 0 }}</div></li>
                   }
                 </ol>
+                @if (bottleneck(); as b) {
+                  <p class="text-xs text-warn">{{ 'dashboard.bottleneck' | transloco: { status: ('vulnStatus.' + b | transloco), count: s.byStatus[b] } }}</p>
+                }
               </section>
 
               <section class="glass col-span-12 lg:col-span-4 p-5 flex flex-col gap-3">
@@ -120,6 +128,32 @@ const RISK_WEIGHTS = { Critical: 25, High: 10, Medium: 4, Low: 1 } as const;
                 } @empty {
                   <p class="text-sm text-ink-muted">{{ 'dashboard.noActiveScans' | transloco }}</p>
                 }
+              </section>
+
+              <section class="glass col-span-12">
+                <div class="flex justify-between items-center px-5 pt-4 pb-2">
+                  <h2 class="font-semibold">{{ 'dashboard.queue' | transloco }}</h2>
+                  <a routerLink="/vulnerabilities" class="text-sm hover:underline">{{ 'dashboard.viewOpen' | transloco: { count: s.openVulnerabilities } }}</a>
+                </div>
+                <div class="overflow-x-auto">
+                  <table class="table">
+                    <thead><tr><th>{{ 'vulns.severity' | transloco }}</th><th>{{ 'vulns.issue' | transloco }}</th><th>{{ 'common.status' | transloco }}</th>
+                      <th>{{ 'vulns.assignee' | transloco }}</th><th><span class="sr-only">{{ 'dashboard.action' | transloco }}</span></th></tr></thead>
+                    <tbody>
+                      @for (v of queue(); track v.id) {
+                        <tr>
+                          <td><app-severity-badge [severity]="v.severity" /></td>
+                          <td class="min-w-[220px]"><span class="font-medium">{{ v.title }}</span><div class="mono">{{ v.projectName }} · {{ v.lastDetectedAt | date: 'dd/MM' }}</div></td>
+                          <td><app-vuln-status-badge [status]="v.status" [reappeared]="v.isReappeared" /></td>
+                          <td class="whitespace-nowrap">{{ v.assigneeName ?? ('vulns.unassigned' | transloco) }}</td>
+                          <td class="text-right"><a [routerLink]="['/vulnerabilities', v.id]" class="btn h-8">{{ actionKey(v) | transloco }}</a></td>
+                        </tr>
+                      } @empty {
+                        <tr><td colspan="5" class="text-center text-ink-muted">{{ 'dashboard.queueEmpty' | transloco }}</td></tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
               </section>
 
               <section class="glass col-span-12">
@@ -155,6 +189,7 @@ const RISK_WEIGHTS = { Critical: 25, High: 10, Medium: 4, Low: 1 } as const;
 export class DashboardPage implements OnInit {
   private readonly dashboardApi = inject(DashboardApi);
   private readonly scansApi = inject(ScansApi);
+  private readonly vulnApi = inject(VulnerabilitiesApi);
   protected readonly canScan = inject(AuthService).hasPermission('Scan.Create');
 
   protected readonly cards = [
@@ -166,6 +201,7 @@ export class DashboardPage implements OnInit {
   protected readonly summary = signal<DashboardSummary | null>(null);
   protected readonly recent = signal<Scan[]>([]);
   protected readonly active = signal<Scan[]>([]);
+  protected readonly queue = signal<Vulnerability[]>([]);
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly severityLabel = computed(() =>
@@ -176,6 +212,19 @@ export class DashboardPage implements OnInit {
     const o = this.summary()?.openBySeverity ?? {};
     return (['Critical', 'High', 'Medium', 'Low'] as const).filter((k) => o[k]).map((k) => `${o[k]}×${RISK_WEIGHTS[k]} ${k}`).join(' + ');
   });
+
+  /** The pipeline step holding the most items (W02 "nút thắt"); none when everything is empty. */
+  protected readonly bottleneck = computed(() => {
+    const by = this.summary()?.byStatus ?? {};
+    const top = [...this.pipeline].sort((a, b) => (by[b] ?? 0) - (by[a] ?? 0))[0];
+    return (by[top] ?? 0) > 0 ? top : null;
+  });
+
+  protected actionKey(v: Vulnerability): string {
+    if (v.status === 'PendingVerification') return 'dashboard.actVerify';
+    if (!v.assigneeId) return 'dashboard.actAssign';
+    return 'dashboard.actView';
+  }
 
   ngOnInit(): void {
     this.load();
@@ -189,11 +238,13 @@ export class DashboardPage implements OnInit {
       recent: this.scansApi.getAll({ pageSize: 5 }),
       running: this.scansApi.getAll({ pageSize: 3, status: 'Running' }),
       queued: this.scansApi.getAll({ pageSize: 3, status: 'Queued' }),
+      queue: this.vulnApi.getAll({ isOpen: true, sortBy: 'severity', sortDirection: 'Desc', pageSize: 6 }),
     }).subscribe({
       next: (r) => {
         this.summary.set(r.summary.data);
         this.recent.set(r.recent.data ?? []);
         this.active.set([...(r.running.data ?? []), ...(r.queued.data ?? [])].slice(0, 3));
+        this.queue.set(r.queue.data ?? []);
         this.loading.set(false);
       },
       error: (err) => {

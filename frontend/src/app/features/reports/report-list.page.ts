@@ -6,6 +6,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '../../core/auth/auth.service';
 import { apiErrorMessage } from '../../core/services/base-api.service';
 import { DialogComponent } from '../../shared/components/dialog';
+import { FOLDER_FRONT_PATH, FOLDER_STYLES, folderArt } from '../../shared/components/folder';
 import { PageState } from '../../shared/components/page-state';
 import { Project, Report, ReportStatus, ReportTemplate } from '../../shared/models/api.models';
 import { ProjectsApi, ReportsApi } from '../api.services';
@@ -15,10 +16,28 @@ const STATUS_CLASS: Record<ReportStatus, string> = {
 };
 
 // W11 Reports: list grouped by project + create dialog. Also embedded as the project "Reports" tab (projectId input).
-// shortcut: plain glass groups instead of the canvas' animated folder/sheet cards.
 @Component({
   selector: 'app-report-list',
   imports: [RouterLink, FormsModule, TranslocoPipe, DatePipe, PageState, DialogComponent],
+  // Sheets peek out of the folder on hover / keyboard focus, like the canvas' .gf-sheet.
+  styles: [FOLDER_STYLES, `
+    .sheets { position: absolute; inset: 0; z-index: 5; pointer-events: none; clip-path: inset(-400px -400px 10px -400px); }
+    .sheet { position: absolute; left: 34px; top: 96px; width: 272px; height: 184px; box-sizing: border-box; border-radius: 16px;
+      padding: 11px 14px; pointer-events: auto; color: inherit; text-decoration: none;
+      background: linear-gradient(180deg, #fff, #f2f2f0); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 0 0 0.5px rgb(0 0 0 / 0.1), 0 10px 26px -8px rgb(10 12 20 / 0.28);
+      transform-origin: 50% 100%; transform: translate(0, calc(42px - var(--i) * 15px));
+      transition: transform 0.75s cubic-bezier(0.34, 1.36, 0.5, 1) calc(var(--i) * 40ms); }
+    .folder:hover .sheet, .folder:focus-within .sheet {
+      transform: translate(calc((var(--i) - 1) * 10px), calc(-60px - var(--i) * 14px)) rotate(calc((var(--i) - 1) * 2.5deg)); }
+    .sheet:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; }
+    .sheet-head { display: flex; justify-content: space-between; gap: 10px; white-space: nowrap; }
+    .sheet-name { overflow: hidden; text-overflow: ellipsis; font-size: 12.5px; font-weight: 600; }
+    .sheet-meta { flex: none; font-family: var(--font-mono); font-size: 10px; color: rgb(24 24 27 / 0.62); }
+    .lines { position: absolute; left: 14px; right: 14px; top: 40px; display: flex; flex-direction: column; gap: 9px; }
+    .lines i { display: block; height: 5px; border-radius: 3px; background: rgb(24 24 27 / 0.08); }
+    .lines i:first-child { height: 9px; margin-bottom: 4px; background: rgb(24 24 27 / 0.14); }
+    @media (prefers-reduced-motion: reduce) { .sheet { transition: none; } }
+  `],
   template: `
     <div class="flex flex-col gap-5">
       <div class="flex flex-wrap items-end justify-between gap-4">
@@ -37,23 +56,46 @@ const STATUS_CLASS: Record<ReportStatus, string> = {
       <app-page-state [loading]="loading()" [error]="error()" [empty]="items().length === 0" emptyKey="reports.empty" (retry)="load()">
         <div class="flex flex-col gap-5">
           @for (g of groups(); track g.projectId) {
-            <section class="glass p-5 flex flex-col gap-3">
-              @if (!projectId()) { <h2 class="font-semibold">{{ g.projectName }}</h2> }
-              <ul class="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
-                @for (r of g.reports; track r.id) {
-                  <li class="rounded-2xl bg-white/80 border border-line p-4 flex flex-col gap-2">
-                    <div class="flex items-start justify-between gap-2">
-                      @if (r.status === 'Ready') {
-                        <a [routerLink]="['/reports', r.id]" class="font-medium hover:underline">{{ r.title }}</a>
-                      } @else {
-                        <span class="font-medium">{{ r.title }}</span>
+            <section class="flex flex-wrap items-start gap-6">
+              <div class="pt-12"><div class="folder-box">
+                <div class="folder">
+                  <div class="stage">
+                    <div class="shadow" aria-hidden="true"></div>
+                    <div class="back" aria-hidden="true"><img [src]="art(g.projectId)" alt="" width="364" height="296" /></div>
+                    <div class="sheets">
+                      @for (r of g.reports.slice(0, 3); track r.id; let i = $index) {
+                        <a class="sheet" [style.--i]="i" [routerLink]="r.status === 'Ready' ? ['/reports', r.id] : null"
+                          [attr.aria-label]="r.title" [attr.tabindex]="r.status === 'Ready' ? 0 : -1">
+                          <span class="sheet-head"><span class="sheet-name">{{ r.title }}</span>
+                            <span class="sheet-meta">{{ 'reportStatus.' + r.status | transloco }}</span></span>
+                          <span class="lines" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+                        </a>
                       }
-                      <span class="px-2 py-0.5 rounded-md text-xs font-medium whitespace-nowrap" [class]="statusClass[r.status]">{{ 'reportStatus.' + r.status | transloco }}</span>
                     </div>
-                    <p class="mono">{{ 'reportTemplate.' + r.template | transloco }} · {{ r.createdAt | date: 'dd/MM/yyyy HH:mm' }} · {{ r.createdByName }}</p>
+                    <div class="front">
+                      <div class="tint" aria-hidden="true"></div>
+                      <svg class="rim" viewBox="0 0 340 198" aria-hidden="true">
+                        <path [attr.d]="frontPath" stroke="rgb(255 255 255 / 0.8)" stroke-width="2.4" />
+                      </svg>
+                      <div class="label">
+                        <span class="title">{{ g.projectName }}</span>
+                        <span class="meta">{{ 'reports.count' | transloco: { count: g.reports.length } }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div></div>
+              <ul class="flex-1 min-w-[260px] flex flex-col gap-2 pt-12">
+                @for (r of g.reports; track r.id) {
+                  <li class="rounded-2xl bg-white/80 border border-line p-3 flex flex-wrap items-center gap-2">
+                    @if (r.status === 'Ready') {
+                      <a [routerLink]="['/reports', r.id]" class="font-medium hover:underline flex-1 min-w-0 truncate">{{ r.title }}</a>
+                    } @else { <span class="font-medium flex-1 min-w-0 truncate">{{ r.title }}</span> }
+                    <span class="px-2 py-0.5 rounded-md text-xs font-medium whitespace-nowrap" [class]="statusClass[r.status]">{{ 'reportStatus.' + r.status | transloco }}</span>
+                    <span class="mono w-full">{{ 'reportTemplate.' + r.template | transloco }} · {{ r.createdAt | date: 'dd/MM/yyyy HH:mm' }} · {{ r.createdByName }}</span>
                     @if (r.status === 'Failed') {
-                      <p class="text-sm text-danger">{{ r.errorSafe }}</p>
-                      @if (canGenerate) { <button type="button" class="btn h-8 self-start" (click)="retry(r)">{{ 'common.retry' | transloco }}</button> }
+                      <span class="text-sm text-danger">{{ r.errorSafe }}</span>
+                      @if (canGenerate) { <button type="button" class="btn h-8" (click)="retry(r)">{{ 'common.retry' | transloco }}</button> }
                     }
                   </li>
                 }
@@ -105,6 +147,8 @@ export class ReportListPage implements OnInit {
   protected readonly canGenerate = inject(AuthService).hasPermission('Report.Generate');
   protected readonly statusClass = STATUS_CLASS;
   protected readonly templates: ReportTemplate[] = ['Executive', 'Technical'];
+  protected readonly frontPath = FOLDER_FRONT_PATH;
+  protected readonly art = folderArt;
 
   readonly projectId = input<string | undefined>(undefined);
   protected readonly items = signal<Report[]>([]);

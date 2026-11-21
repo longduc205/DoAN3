@@ -25,6 +25,8 @@ public static partial class AppMapper
     public static partial ScanModel ToModel(this Scan entity);
 
     [MapperIgnoreSource(nameof(ScanFinding.Fingerprint))]
+    [MapperIgnoreTarget(nameof(ScanFindingModel.VulnerabilityStatus))]
+    [MapperIgnoreTarget(nameof(ScanFindingModel.OccurrenceTag))]
     public static partial ScanFindingModel ToModel(this ScanFinding entity);
 
     // Request -> entity: only copy user-editable fields; ids, ownership and audit fields are set by services.

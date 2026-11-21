@@ -1,15 +1,15 @@
 import { DatePipe } from '@angular/common';
 import { Component, computed, DestroyRef, inject, input, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { switchMap, takeWhile, timer } from 'rxjs';
 import { AuthService } from '../../core/auth/auth.service';
 import { apiErrorMessage } from '../../core/services/base-api.service';
-import { SeverityBadge, StatusBadge } from '../../shared/components/badges';
+import { SeverityBadge, StatusBadge, VulnStatusBadge } from '../../shared/components/badges';
 import { DialogComponent } from '../../shared/components/dialog';
 import { PageState } from '../../shared/components/page-state';
-import { AiAdvice, Scan, ScanFinding } from '../../shared/models/api.models';
+import { AiAdvice, OccurrenceTag, Scan, ScanFinding } from '../../shared/models/api.models';
 import { AiApi, ScansApi } from '../api.services';
 
 const POLL_MS = 1500;
@@ -18,12 +18,15 @@ const PHASE_CLASS: Record<PhaseState, string> = {
   done: 'bg-ok-bg text-ok', now: 'bg-run-bg text-run', wait: 'bg-black/[.04] text-ink-muted',
   fail: 'bg-danger-bg text-danger', stop: 'bg-sev-info-bg text-sev-info',
 };
+const TAG_CLASS: Record<OccurrenceTag, string> = { New: 'text-run bg-run-bg', Known: 'text-sev-info bg-sev-info-bg', Reappeared: 'text-warn bg-warn-bg' };
+type EventLevel = 'INFO' | 'RUN' | 'FIND' | 'OK' | 'FAIL' | 'STOP';
+const EVENT_CLASS: Record<EventLevel, string> = { INFO: 'text-ink-muted', RUN: 'text-run', FIND: 'text-warn', OK: 'text-ok', FAIL: 'text-danger', STOP: 'text-sev-info' };
 // shortcut: phases are derived from progress % (mock engine reports 10/40/75/100); add a real phase field with a real engine.
 const PHASES = [{ key: 'crawl', end: 40 }, { key: 'detect', end: 100 }, { key: 'analyze', end: 101 }] as const;
 
 @Component({
   selector: 'app-scan-detail',
-  imports: [TranslocoPipe, DatePipe, PageState, StatusBadge, SeverityBadge, DialogComponent],
+  imports: [RouterLink, TranslocoPipe, DatePipe, PageState, StatusBadge, SeverityBadge, VulnStatusBadge, DialogComponent],
   template: `
     <app-page-state [loading]="loading()" [error]="error()" (retry)="load()">
       @if (scan(); as s) {
@@ -45,6 +48,9 @@ const PHASES = [{ key: 'crawl', end: 40 }, { key: 'detect', end: 100 }, { key: '
                   <button type="button" class="btn btn-primary h-10" (click)="retry(s)">{{ 'scans.retry' | transloco }}</button>
                 }
               </div>
+            }
+            @if (s.status === 'Completed' && canReport) {
+              <a routerLink="/reports" class="btn h-10">{{ 'reports.new' | transloco }}</a>
             }
           </div>
 
@@ -88,7 +94,16 @@ const PHASES = [{ key: 'crawl', end: 40 }, { key: 'detect', end: 100 }, { key: '
           </section>
 
           <section class="glass">
-            <h2 class="font-semibold px-5 pt-4 pb-2">{{ 'scans.findings' | transloco }}</h2>
+            <div class="flex flex-wrap items-center justify-between gap-3 px-5 pt-4 pb-2">
+              <h2 class="font-semibold">{{ 'scans.findings' | transloco }}</h2>
+              @if (findings().length > 0) {
+                <ul class="flex flex-wrap gap-1.5 text-xs" [attr.aria-label]="'scans.findingSummary' | transloco">
+                  @for (t of tagCounts(); track t.tag) {
+                    <li class="px-2 py-0.5 rounded-md font-medium" [class]="tagClass[t.tag]">{{ 'scans.tag_' + t.tag | transloco }} {{ t.count }}</li>
+                  }
+                </ul>
+              }
+            </div>
             <app-page-state [empty]="findings().length === 0" emptyKey="scans.noFindings">
               <ul>
                 @for (f of findings(); track f.id) {
@@ -96,7 +111,13 @@ const PHASES = [{ key: 'crawl', end: 40 }, { key: 'detect', end: 100 }, { key: '
                     <div class="flex flex-wrap items-start gap-3">
                       <app-severity-badge [severity]="f.severity" />
                       <div class="flex-1 min-w-0">
-                        <div class="font-medium">{{ f.title }}</div>
+                        <div class="flex flex-wrap items-center gap-2">
+                          @if (f.vulnerabilityId) {
+                            <a [routerLink]="['/vulnerabilities', f.vulnerabilityId]" class="font-medium hover:underline">{{ f.title }}</a>
+                          } @else { <span class="font-medium">{{ f.title }}</span> }
+                          @if (f.occurrenceTag) { <span class="px-1.5 py-0.5 rounded text-[11px] font-medium" [class]="tagClass[f.occurrenceTag]">{{ 'scans.tag_' + f.occurrenceTag | transloco }}</span> }
+                          @if (f.vulnerabilityStatus) { <app-vuln-status-badge [status]="f.vulnerabilityStatus" /> }
+                        </div>
                         <div class="mono break-all">{{ f.url }} · {{ f.detectorName }} · {{ 'confidence.' + f.confidence | transloco }}</div>
                         <p class="text-sm text-ink-muted mt-1">{{ f.evidenceSummary }}</p>
                       </div>
@@ -125,6 +146,17 @@ const PHASES = [{ key: 'crawl', end: 40 }, { key: 'detect', end: 100 }, { key: '
               </ul>
             </app-page-state>
           </section>
+
+          <section class="glass p-5 flex flex-col gap-3">
+            <h2 class="font-semibold">{{ 'scans.eventLog' | transloco }}</h2>
+            <ol class="flex flex-col gap-1.5 font-mono text-xs" aria-live="polite">
+              @for (e of events(); track $index) {
+                <li class="flex gap-3"><span class="text-ink-muted shrink-0">{{ e.at | date: 'HH:mm:ss' }}</span>
+                  <span class="w-12 shrink-0 font-semibold" [class]="eventClass[e.level]">{{ e.level }}</span>
+                  <span class="text-ink">{{ e.key | transloco: e.params }}</span></li>
+              }
+            </ol>
+          </section>
         </div>
 
         <app-dialog [open]="cancelOpen()" [heading]="'scans.cancelTitle' | transloco" (closed)="cancelOpen.set(false)">
@@ -148,6 +180,24 @@ export class ScanDetailPage implements OnInit {
   protected readonly canAi = this.auth.hasPermission('AI.Ask');
   protected readonly phaseClass = PHASE_CLASS;
   protected readonly cancelOpen = signal(false);
+  protected readonly canReport = this.auth.hasPermission('Report.Generate');
+  protected readonly tagClass = TAG_CLASS;
+  protected readonly eventClass = EVENT_CLASS;
+  protected readonly tagCounts = computed(() => (['New', 'Known', 'Reappeared'] as const)
+    .map((tag) => ({ tag, count: this.findings().filter((f) => f.occurrenceTag === tag).length })).filter((t) => t.count > 0));
+  // shortcut: the event log is rebuilt from scan timestamps + finding times (no scan_events table); store events with a real engine.
+  protected readonly events = computed(() => {
+    const s = this.scan();
+    if (!s) return [];
+    const list: { at: string; level: EventLevel; key: string; params?: Record<string, unknown> }[] = [{ at: s.createdAt, level: 'INFO', key: 'scans.evQueued' }];
+    if (s.startedAt) list.push({ at: s.startedAt, level: 'RUN', key: 'scans.evStarted' });
+    for (const f of this.findings()) list.push({ at: f.detectedAt, level: 'FIND', key: 'scans.evFinding', params: { title: f.title, severity: f.severity } });
+    if (s.completedAt) {
+      const end: Partial<Record<string, EventLevel>> = { Completed: 'OK', Failed: 'FAIL', Cancelled: 'STOP' };
+      list.push({ at: s.completedAt, level: end[s.status] ?? 'INFO', key: 'scans.ev' + s.status, params: { count: s.totalFindings, error: s.errorCode ?? '' } });
+    }
+    return list.sort((a, b) => a.at.localeCompare(b.at));
+  });
 
   readonly id = input.required<string>();
   protected readonly scan = signal<Scan | null>(null);

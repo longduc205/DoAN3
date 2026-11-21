@@ -50,6 +50,21 @@ public class UserAdminService(AppDbContext db, ICurrentUser currentUser, IAuditL
         return await Project(db.Users.Where(u => u.Id == user.Id)).FirstAsync(ct);
     }
 
+    /// <summary>Lock / unlock. Login already rejects inactive users; existing tokens expire within 60 minutes.</summary>
+    public async Task<UserAdminModel> SetActiveAsync(SetUserActiveRequest request, CancellationToken ct)
+    {
+        if (request.UserId == currentUser.UserId) throw AppException.Conflict("You cannot lock your own account.");
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Id == request.UserId, ct) ?? throw AppException.NotFound("user");
+        if (user.IsActive != request.IsActive)
+        {
+            user.IsActive = request.IsActive;
+            audit?.Add(request.IsActive ? "USER_UNLOCKED" : "USER_LOCKED", "User", user.Id,
+                $"{user.UserName} {(request.IsActive ? "unlocked" : "locked")}");
+            await db.SaveChangesAsync(ct);
+        }
+        return await Project(db.Users.Where(u => u.Id == user.Id)).FirstAsync(ct);
+    }
+
     public async Task<IReadOnlyList<RolePermissionsModel>> GetRolePermissionsAsync(CancellationToken ct) =>
         await db.Roles.OrderBy(r => r.Code).Select(r => new RolePermissionsModel
         {

@@ -11,7 +11,7 @@ import { RolePermissions, UserAdmin } from '../../shared/models/api.models';
 import { UsersApi } from '../api.services';
 
 // W12 Users & Roles. Permissions are fixed per role (A3); the editor only changes the user's single role.
-// shortcut: no create / lock user yet (needs a password-reset flow); add with account lifecycle.
+// shortcut: no create user yet (needs a password / invite flow); add with account lifecycle.
 @Component({
   selector: 'app-users',
   imports: [FormsModule, TranslocoPipe, DatePipe, PageState, DialogComponent],
@@ -22,11 +22,25 @@ import { UsersApi } from '../api.services';
         <p class="mt-1 text-sm text-ink-muted">{{ 'users.subtitle' | transloco: { count: users().length } }}</p>
       </div>
 
-      <dl class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        @for (r of matrix(); track r.role) {
-          <div class="glass p-4"><dt class="text-sm text-ink-muted">{{ 'roles.' + r.role | transloco }}</dt><dd class="text-2xl font-semibold">{{ countByRole()[r.role] ?? 0 }}</dd></div>
-        }
+      <dl class="grid grid-cols-3 gap-3">
+        <div class="glass p-4"><dt class="text-sm text-ink-muted">{{ 'users.total' | transloco }}</dt><dd class="text-2xl font-semibold">{{ users().length }}</dd></div>
+        <div class="glass p-4"><dt class="text-sm text-ink-muted">{{ 'users.active' | transloco }}</dt><dd class="text-2xl font-semibold">{{ activeCount() }}</dd></div>
+        <div class="glass p-4"><dt class="text-sm text-ink-muted">{{ 'users.locked' | transloco }}</dt><dd class="text-2xl font-semibold" [class.text-danger]="users().length - activeCount() > 0">{{ users().length - activeCount() }}</dd></div>
       </dl>
+
+      <div class="flex flex-wrap items-center gap-2.5">
+        <select class="h-9 px-2.5 rounded-[10px] border border-line bg-white text-sm" [attr.aria-label]="'users.role' | transloco"
+          [ngModel]="roleFilter()" (ngModelChange)="roleFilter.set($event)">
+          <option value="">{{ 'users.allRoles' | transloco }}</option>
+          @for (r of matrix(); track r.role) { <option [value]="r.role">{{ 'roles.' + r.role | transloco }} ({{ countByRole()[r.role] ?? 0 }})</option> }
+        </select>
+        <div role="group" [attr.aria-label]="'common.status' | transloco" class="flex p-[3px] rounded-[10px] bg-black/[.04]">
+          @for (f of statusFilters; track f.key) {
+            <button type="button" class="min-h-[34px] px-3 rounded-lg text-[13px] cursor-pointer" [attr.aria-pressed]="statusFilter() === f.value"
+              [class]="statusFilter() === f.value ? 'bg-white font-semibold' : 'text-ink-muted hover:text-ink'" (click)="statusFilter.set(f.value)">{{ f.key | transloco }}</button>
+          }
+        </div>
+      </div>
 
       @if (actionError()) { <div role="alert" class="px-4 py-3 rounded-xl bg-danger-bg text-danger text-sm">{{ actionError()! | transloco }}</div> }
       @if (notice()) { <div role="status" class="px-4 py-3 rounded-xl bg-ok-bg text-ok text-sm">{{ notice()! | transloco }}</div> }
@@ -37,7 +51,7 @@ import { UsersApi } from '../api.services';
             <table class="table">
               <thead><tr><th>{{ 'users.name' | transloco }}</th><th>{{ 'users.role' | transloco }}</th><th>{{ 'common.status' | transloco }}</th><th>{{ 'users.lastLogin' | transloco }}</th></tr></thead>
               <tbody>
-                @for (u of users(); track u.id) {
+                @for (u of visibleUsers(); track u.id) {
                   <tr class="cursor-pointer hover:bg-black/[.02]" [class.bg-black/[.04]]="selected()?.id === u.id" (click)="select(u)">
                     <td>
                       <button type="button" class="flex items-center gap-3 text-left cursor-pointer" (click)="select(u); $event.stopPropagation()">
@@ -80,6 +94,9 @@ import { UsersApi } from '../api.services';
               <p class="text-xs text-ink-muted mt-2">{{ 'users.readOnlyMatrix' | transloco }}</p>
             </div>
             <button type="button" class="btn btn-primary" [disabled]="u.id === meId || draftRole() === u.role" (click)="confirmOpen.set(true)">{{ 'users.changeRole' | transloco }}</button>
+            @if (u.id !== meId) {
+              <button type="button" class="btn" [class.btn-danger]="u.isActive" (click)="lockOpen.set(true)">{{ (u.isActive ? 'users.lock' : 'users.unlock') | transloco }}</button>
+            }
           } @else {
             <p class="text-sm text-ink-muted">{{ 'users.pick' | transloco }}</p>
           }
@@ -104,6 +121,16 @@ import { UsersApi } from '../api.services';
           </div>
         }
       </app-dialog>
+
+      <app-dialog [open]="lockOpen()" [heading]="(selected()?.isActive ? 'users.lock' : 'users.unlock') | transloco" (closed)="lockOpen.set(false)">
+        @if (selected(); as u) {
+          <p class="text-sm">{{ (u.isActive ? 'users.lockBody' : 'users.unlockBody') | transloco: { name: u.fullName } }}</p>
+          <div class="flex justify-end gap-2">
+            <button type="button" class="btn" (click)="lockOpen.set(false)">{{ 'common.cancel' | transloco }}</button>
+            <button type="button" class="btn" [class.btn-danger]="u.isActive" (click)="toggleActive(u)">{{ (u.isActive ? 'users.lock' : 'users.unlock') | transloco }}</button>
+          </div>
+        }
+      </app-dialog>
     </div>
   `,
 })
@@ -120,6 +147,15 @@ export class UsersPage implements OnInit {
   protected readonly actionError = signal<string | null>(null);
   protected readonly notice = signal<string | null>(null);
   protected readonly confirmOpen = signal(false);
+  protected readonly lockOpen = signal(false);
+  protected readonly roleFilter = signal('');
+  protected readonly statusFilter = signal<boolean | null>(null);
+  protected readonly statusFilters: { key: string; value: boolean | null }[] = [
+    { key: 'projects.tabAll', value: null }, { key: 'users.active', value: true }, { key: 'users.locked', value: false },
+  ];
+  protected readonly activeCount = computed(() => this.users().filter((u) => u.isActive).length);
+  protected readonly visibleUsers = computed(() => this.users().filter((u) =>
+    (!this.roleFilter() || u.role === this.roleFilter()) && (this.statusFilter() === null || u.isActive === this.statusFilter())));
 
   protected readonly countByRole = computed(() =>
     this.users().reduce<Partial<Record<string, number>>>((m, u) => ({ ...m, [u.role]: (m[u.role] ?? 0) + 1 }), {}));
@@ -159,6 +195,20 @@ export class UsersPage implements OnInit {
 
   protected initials(name: string): string {
     return name.split(/\s+/).filter(Boolean).slice(-2).map((w) => w[0]).join('').toUpperCase();
+  }
+
+  protected toggleActive(u: UserAdmin): void {
+    this.lockOpen.set(false);
+    this.actionError.set(null);
+    this.api.setActive(u.id, !u.isActive).subscribe({
+      next: (r) => {
+        if (!r.data) return;
+        this.users.update((list) => list.map((x) => (x.id === r.data!.id ? r.data! : x)));
+        this.select(r.data);
+        this.notice.set(r.data.isActive ? 'users.unlocked' : 'users.lockedNotice');
+      },
+      error: (err) => this.actionError.set(apiErrorMessage(err)),
+    });
   }
 
   protected save(): void {

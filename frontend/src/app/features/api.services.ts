@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { BaseApiService } from '../core/services/base-api.service';
 import {
-  AiAdvice, AiContext, AuditLog, AuditResult, Report, RolePermissions, UserAdmin, ReportDetail, ReportTemplate, ApiResponse, BaseSearchParam, DashboardSummary, PaginatedResponse, Project, ProjectStatus, Scan,
+  AiAdvice, AiContext, AuditLog, AuditStats, VulnerabilityFacets, AuditResult, Report, RolePermissions, UserAdmin, ReportDetail, ReportTemplate, ApiResponse, BaseSearchParam, DashboardSummary, PaginatedResponse, Project, ProjectStatus, Scan,
   ScanFinding, ScanProgress, ScanStatus, ScopeMode, Severity, Target, TargetEnvironment, UserLookup, Vulnerability,
   VulnerabilityComment, VulnerabilityDetail, VulnerabilityHistory, VulnerabilityStatus,
 } from '../shared/models/api.models';
@@ -59,12 +59,14 @@ export type AiRef = { findingId: string } | { vulnerabilityId: string };
 
 export interface VulnerabilitySearch extends BaseSearchParam {
   projectId?: string; severity?: Severity; status?: VulnerabilityStatus; isOpen?: boolean | null; assignedToMe?: boolean;
+  findingType?: string; assigneeId?: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class VulnerabilitiesApi extends BaseApiService {
   protected readonly resource = 'vulnerabilities';
   getAll(p: VulnerabilitySearch): Observable<PaginatedResponse<Vulnerability[]>> { return this.post('get-all', p); }
+  getFacets(p: VulnerabilitySearch): Observable<ApiResponse<VulnerabilityFacets>> { return this.post('get-facets', p); }
   getById(id: string): Observable<ApiResponse<VulnerabilityDetail>> { return this.post('get-by-id', { id }); }
   updateStatus(body: { id: string; status: VulnerabilityStatus; reason?: string | null; reviewAt?: string | null }): Observable<ApiResponse<VulnerabilityDetail>> {
     return this.post('update-status', body);
@@ -98,6 +100,7 @@ export class UsersApi extends BaseApiService {
   protected readonly resource = 'users';
   getAll(p: BaseSearchParam & { role?: string }): Observable<PaginatedResponse<UserAdmin[]>> { return this.post('get-all', p); }
   changeRole(userId: string, role: string): Observable<ApiResponse<UserAdmin>> { return this.post('change-role', { userId, role }); }
+  setActive(userId: string, isActive: boolean): Observable<ApiResponse<UserAdmin>> { return this.post('set-active', { userId, isActive }); }
   getRolePermissions(): Observable<ApiResponse<RolePermissions[]>> { return this.post('get-role-permissions'); }
 }
 
@@ -109,4 +112,7 @@ export interface AuditLogSearch extends BaseSearchParam {
 export class AuditLogsApi extends BaseApiService {
   protected readonly resource = 'audit-logs';
   getAll(p: AuditLogSearch): Observable<PaginatedResponse<AuditLog[]>> { return this.post('get-all', p); }
+  getStats(): Observable<ApiResponse<AuditStats>> { return this.post('get-stats'); }
+  /** CSV file (not the JSON envelope), so it bypasses post(). */
+  exportCsv(p: AuditLogSearch): Observable<Blob> { return this.http.post(`/api/${this.resource}/export`, p, { responseType: 'blob' }); }
 }

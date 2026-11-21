@@ -16,6 +16,10 @@ public class VulnerabilitiesController(IVulnerabilityService vulns) : ApiControl
     public async Task<PaginatedResponse<IReadOnlyList<VulnerabilityModel>>> GetAll(VulnerabilitySearchParam param, CancellationToken ct) =>
         Paged(await vulns.GetAllAsync(param, ct));
 
+    [HttpPost("get-facets"), Authorize(Policy = Permissions.VulnerabilityView)]
+    public async Task<ApiResponse<VulnerabilityFacetsModel>> GetFacets(VulnerabilitySearchParam param, CancellationToken ct) =>
+        Success(await vulns.GetFacetsAsync(param, ct));
+
     [HttpPost("get-by-id"), Authorize(Policy = Permissions.VulnerabilityView)]
     public async Task<ApiResponse<VulnerabilityDetailModel>> GetById(IdRequest request, CancellationToken ct) =>
         Success(await vulns.GetByIdAsync(request.Id, ct));

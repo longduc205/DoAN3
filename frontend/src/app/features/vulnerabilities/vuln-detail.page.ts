@@ -178,14 +178,18 @@ type AiState = { kind: 'idle' } | { kind: 'loading' } | { kind: 'error'; message
         <app-dialog [open]="!!pending()" [heading]="pending() ? ('vulns.to_' + pending() | transloco) : ''" (closed)="pending.set(null)">
           <form class="flex flex-col gap-3" (ngSubmit)="confirmTransition()">
             <label class="label" for="reason">{{ 'vulns.reason' | transloco }} *</label>
-            <textarea id="reason" name="reason" class="input h-24 py-2" required [ngModel]="reason()" (ngModelChange)="reason.set($event)"></textarea>
+            <textarea id="reason" name="reason" class="input h-24 py-2" required aria-describedby="reason-hint" [ngModel]="reason()" (ngModelChange)="reason.set($event)"></textarea>
+            @if (minReason() > 0) {
+              <p id="reason-hint" class="text-xs" [class]="reason().trim().length < minReason() ? 'text-warn' : 'text-ok'">
+                {{ 'vulns.reasonMin' | transloco: { min: minReason(), count: reason().trim().length } }}</p>
+            }
             @if (pending() === 'AcceptedRisk') {
               <label class="label" for="review">{{ 'vulns.reviewDate' | transloco }} *</label>
               <input id="review" name="review" type="date" class="input" required [ngModel]="reviewAt()" (ngModelChange)="reviewAt.set($event)" />
             }
             <div class="flex justify-end gap-2">
               <button type="button" class="btn" (click)="pending.set(null)">{{ 'common.cancel' | transloco }}</button>
-              <button type="submit" class="btn btn-primary" [disabled]="!reason().trim() || (pending() === 'AcceptedRisk' && !reviewAt())">{{ 'common.save' | transloco }}</button>
+              <button type="submit" class="btn btn-primary" [disabled]="reason().trim().length < Math.max(1, minReason()) || (pending() === 'AcceptedRisk' && !reviewAt())">{{ 'common.save' | transloco }}</button>
             </div>
           </form>
         </app-dialog>
@@ -212,6 +216,9 @@ export class VulnDetailPage implements OnInit {
   protected readonly pending = signal<VulnerabilityStatus | null>(null);
   protected readonly reason = signal('');
   protected readonly reviewAt = signal('');
+  protected readonly Math = Math;
+  /** Same rule as the server (VulnerabilityService.MinCloseReason): closing without a fix needs a real justification. */
+  protected readonly minReason = computed(() => (this.pending() === 'FalsePositive' || this.pending() === 'AcceptedRisk' ? 20 : 0));
   protected readonly assignees = signal<UserLookup[]>([]);
   protected readonly assigneeId = signal<string | null>(null);
   protected readonly aiContext = signal<AiContext | null>(null);

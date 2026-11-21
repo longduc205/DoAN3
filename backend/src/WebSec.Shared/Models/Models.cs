@@ -100,7 +100,28 @@ public sealed class ScanFindingModel
     public bool EvidenceRedacted { get; set; }
     public string DetectorName { get; set; } = string.Empty;
     public DateTimeOffset DetectedAt { get; set; }
+    public Guid? VulnerabilityId { get; set; }
+    public VulnerabilityStatus? VulnerabilityStatus { get; set; }
+    public OccurrenceTag? OccurrenceTag { get; set; }
 }
+
+public sealed class VulnerabilityFacetsModel
+{
+    public IReadOnlyList<string> FindingTypes { get; set; } = [];
+    public IReadOnlyDictionary<Severity, int> BySeverity { get; set; } = new Dictionary<Severity, int>();
+}
+
+public sealed class AuditStatsModel
+{
+    public int Last7Days { get; set; }
+    public int Blocked { get; set; }
+    public int FailedLogins { get; set; }
+    /// <summary>Oldest first, one entry per UTC day (yyyy-MM-dd), zero-filled.</summary>
+    public IReadOnlyList<AuditDayCount> ByDay { get; set; } = [];
+    public IReadOnlyDictionary<string, int> ByEntityType { get; set; } = new Dictionary<string, int>();
+}
+
+public sealed record AuditDayCount(string Date, int Count);
 
 public sealed class DashboardSummaryModel
 {
