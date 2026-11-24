@@ -36,9 +36,17 @@ public sealed class ProjectModel
     public int UnauthorizedTargetCount { get; set; }
     /// <summary>Distinct findings (by fingerprint) across all scans.</summary>
     public int FindingCount { get; set; }
+    /// <summary>Vulnerabilities in an open status.</summary>
+    public int OpenVulnerabilityCount { get; set; }
+    /// <summary>0–100, same formula as the dashboard, over open vulnerabilities.</summary>
+    public int RiskScore { get; set; }
     public bool IsScanning { get; set; }
     public DateTimeOffset? LastScanAt { get; set; }
+    /// <summary>Up to 3 targets (most recent first) for the folder's sheets.</summary>
+    public List<ProjectTargetPreview> Targets { get; set; } = [];
 }
+
+public sealed record ProjectTargetPreview(Guid Id, string Name, bool IsAuthorized, bool IsScanning);
 
 public sealed class TargetModel
 {

@@ -95,6 +95,40 @@ public class ServiceTests
         Assert.Equal(1, p.UnauthorizedTargetCount);
         Assert.Equal(2, p.FindingCount);
         Assert.True(p.IsScanning); // seeded scan is Queued
+        Assert.Equal(2, p.Targets.Count);
+        Assert.True(Assert.Single(p.Targets, x => x.Id == scan.TargetId).IsScanning);
+        Assert.False(Assert.Single(p.Targets, x => x.Id == other.Id).IsAuthorized);
+    }
+
+    [Fact]
+    public async Task ProjectGetAll_RiskScore_EnvironmentFilter_AndRiskSort()
+    {
+        var db = NewDb();
+        Project NewProject(string name, TargetEnvironment env)
+        {
+            var project = new Project { Id = Guid.NewGuid(), Code = name, Name = name, OwnerId = UserId };
+            db.Projects.Add(project);
+            db.Targets.Add(new Target { Id = Guid.NewGuid(), ProjectId = project.Id, Name = name, BaseUrl = "http://127.0.0.1/", Environment = env });
+            return project;
+        }
+        Vulnerability Vuln(Project p, Severity sev, VulnerabilityStatus status) =>
+            new() { Id = Guid.NewGuid(), ProjectId = p.Id, TargetId = db.Targets.Local.First(t => t.ProjectId == p.Id).Id, Severity = sev, Status = status };
+        var low = NewProject("A-low", TargetEnvironment.Lab);
+        var high = NewProject("B-high", TargetEnvironment.Staging);
+        db.Vulnerabilities.AddRange(
+            Vuln(low, Severity.Low, VulnerabilityStatus.Open),
+            Vuln(high, Severity.High, VulnerabilityStatus.Triaged),
+            Vuln(high, Severity.Critical, VulnerabilityStatus.Resolved)); // closed: not counted
+        await db.SaveChangesAsync();
+        var service = new Infrastructure.Services.ProjectService(db, new FakeUser(UserId, Roles.SecurityAnalyst));
+
+        var byRisk = await service.GetAllAsync(new Shared.Params.ProjectSearchParam { SortBy = "risk" }, default);
+        Assert.Equal(["B-high", "A-low"], byRisk.Items.Select(p => p.Name));
+        Assert.Equal((1, 10), (byRisk.Items[0].OpenVulnerabilityCount, byRisk.Items[0].RiskScore));
+        Assert.Equal((1, 1), (byRisk.Items[1].OpenVulnerabilityCount, byRisk.Items[1].RiskScore));
+
+        var staging = await service.GetAllAsync(new Shared.Params.ProjectSearchParam { Environment = TargetEnvironment.Staging }, default);
+        Assert.Equal("B-high", Assert.Single(staging.Items).Name);
     }
 
     [Fact]

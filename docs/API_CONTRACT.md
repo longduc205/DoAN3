@@ -36,7 +36,7 @@ Search params (`BaseSearchParam`): `page` (default 1), `pageSize` (default 10, m
 | `POST /api/auth/me` | `{}` | `CurrentUserModel` | authenticated |
 | `POST /api/auth/logout` | `{}` | `true` (client drops token) | authenticated |
 | `POST /api/dashboard/get-summary` | `{}` | `{ projects, targets, scans, findings, findingsBySeverity, openVulnerabilities, openBySeverity, byStatus, reappeared, unassigned, riskScore }` | `Project.View` |
-| `POST /api/projects/get-all` | `ProjectSearchParam` | `ProjectModel[]` + paging | `Project.View` |
+| `POST /api/projects/get-all` | `ProjectSearchParam { status?, environment?, sortBy: code\|name\|createdDate\|updatedDate\|risk }` | `ProjectModel[]` + paging, each with `targetCount`, `unauthorizedTargetCount`, `findingCount`, `openVulnerabilityCount`, `riskScore`, `isScanning`, `lastScanAt`, `targets` (≤3 `{ id, name, isAuthorized, isScanning }`) | `Project.View` |
 | `POST /api/projects/get-by-id` | `{ id }` | `ProjectModel` | `Project.View` |
 | `POST /api/projects/create` | `{ code, name, description? }` | `ProjectModel` | `Project.Create` |
 | `POST /api/projects/update` | `{ id, code, name, description?, status }` | `ProjectModel` | `Project.Update` |

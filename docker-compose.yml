@@ -54,6 +54,11 @@ services:
     build: { context: ./frontend }
     environment:
       API_PROXY_TARGET: http://api:8080
+    # Live reload: source comes from the host; node_modules stays in the image (host copy may be another OS).
+    # Rebuild the image only after changing package.json / package-lock.json.
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     ports:
       - "127.0.0.1:4200:4200"
     depends_on:

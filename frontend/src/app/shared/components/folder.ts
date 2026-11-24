@@ -35,3 +35,23 @@ export const FOLDER_STYLES = `
     .key { position: absolute; right: 22px; bottom: 22px; z-index: 12; }
     @media (prefers-reduced-motion: reduce) { .front { transition: none; } }
 `;
+
+// Sheets peek out of the folder on hover / keyboard focus, like the canvas' .gf-sheet. Item index goes in --i.
+export const FOLDER_SHEET_STYLES = `
+    .sheets { position: absolute; inset: 0; z-index: 5; pointer-events: none; clip-path: inset(-400px -400px 10px -400px); }
+    .sheet { position: absolute; left: 34px; top: 96px; width: 272px; height: 184px; box-sizing: border-box; border-radius: 16px;
+      padding: 11px 14px; pointer-events: auto; color: inherit; text-decoration: none;
+      background: linear-gradient(180deg, #fff, #f2f2f0); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 0 0 0.5px rgb(0 0 0 / 0.1), 0 10px 26px -8px rgb(10 12 20 / 0.28);
+      transform-origin: 50% 100%; transform: translate(0, calc(42px - var(--i) * 15px));
+      transition: transform 0.75s cubic-bezier(0.34, 1.36, 0.5, 1) calc(var(--i) * 40ms); }
+    .folder:hover .sheet, .folder:focus-within .sheet, .folder.open .sheet {
+      transform: translate(calc((var(--i) - 1) * 10px), calc(-60px - var(--i) * 14px)) rotate(calc((var(--i) - 1) * 2.5deg)); }
+    .sheet:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; }
+    .sheet-head { display: flex; justify-content: space-between; gap: 10px; white-space: nowrap; }
+    .sheet-name { overflow: hidden; text-overflow: ellipsis; font-size: 12.5px; font-weight: 600; }
+    .sheet-meta { flex: none; font-family: var(--font-mono); font-size: 10px; color: rgb(24 24 27 / 0.62); }
+    .lines { position: absolute; left: 14px; right: 14px; top: 40px; display: flex; flex-direction: column; gap: 9px; }
+    .lines i { display: block; height: 5px; border-radius: 3px; background: rgb(24 24 27 / 0.08); }
+    .lines i:first-child { height: 9px; margin-bottom: 4px; background: rgb(24 24 27 / 0.14); }
+    @media (prefers-reduced-motion: reduce) { .sheet { transition: none; } }
+`;

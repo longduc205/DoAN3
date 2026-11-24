@@ -16,7 +16,7 @@ export interface TargetInput {
 @Injectable({ providedIn: 'root' })
 export class ProjectsApi extends BaseApiService {
   protected readonly resource = 'projects';
-  getAll(p: BaseSearchParam & { status?: ProjectStatus | null }): Observable<PaginatedResponse<Project[]>> { return this.post('get-all', p); }
+  getAll(p: BaseSearchParam & { status?: ProjectStatus | null; environment?: TargetEnvironment | null }): Observable<PaginatedResponse<Project[]>> { return this.post('get-all', p); }
   getById(id: string): Observable<ApiResponse<Project>> { return this.post('get-by-id', { id }); }
   create(body: ProjectInput): Observable<ApiResponse<Project>> { return this.post('create', body); }
   update(body: ProjectInput & { id: string }): Observable<ApiResponse<Project>> { return this.post('update', body); }

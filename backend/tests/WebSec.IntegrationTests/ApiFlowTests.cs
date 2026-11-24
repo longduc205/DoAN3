@@ -66,8 +66,12 @@ public class ApiFlowTests(ApiFixture api)
         Assert.Equal(HttpStatusCode.OK, created.StatusCode);
         var id = project.Data!.Id;
 
-        var (_, list) = await admin.PostAsync<List<ProjectModel>>("/api/projects/get-all", new { keyword = code });
+        // sortBy=risk and environment run as SQL subqueries, so exercise them on real PostgreSQL.
+        var (listed, list) = await admin.PostAsync<List<ProjectModel>>("/api/projects/get-all", new { keyword = code, sortBy = "risk" });
+        Assert.Equal(HttpStatusCode.OK, listed.StatusCode);
         Assert.Contains(list.Data!, p => p.Id == id);
+        var (_, byEnv) = await admin.PostAsync<List<ProjectModel>>("/api/projects/get-all", new { keyword = code, environment = "Staging" });
+        Assert.DoesNotContain(byEnv.Data!, p => p.Id == id); // no targets yet
 
         var (updated, renamed) = await admin.PostAsync<ProjectModel>("/api/projects/update", new { id, code, name = "IT project renamed", status = "Active" });
         Assert.Equal(HttpStatusCode.OK, updated.StatusCode);

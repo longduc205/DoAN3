@@ -13,8 +13,11 @@ public static partial class AppMapper
     [MapperIgnoreTarget(nameof(ProjectModel.TargetCount))]
     [MapperIgnoreTarget(nameof(ProjectModel.UnauthorizedTargetCount))]
     [MapperIgnoreTarget(nameof(ProjectModel.FindingCount))]
+    [MapperIgnoreTarget(nameof(ProjectModel.OpenVulnerabilityCount))]
+    [MapperIgnoreTarget(nameof(ProjectModel.RiskScore))]
     [MapperIgnoreTarget(nameof(ProjectModel.IsScanning))]
     [MapperIgnoreTarget(nameof(ProjectModel.LastScanAt))]
+    [MapperIgnoreTarget(nameof(ProjectModel.Targets))]
     public static partial ProjectModel ToModel(this Project entity);
 
     [MapperIgnoreSource(nameof(Target.Project))]

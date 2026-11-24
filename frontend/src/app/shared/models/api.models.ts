@@ -65,9 +65,14 @@ export interface Project {
   targetCount: number;
   unauthorizedTargetCount: number;
   findingCount: number;
+  openVulnerabilityCount: number;
+  riskScore: number;
   isScanning: boolean;
   lastScanAt: string | null;
+  targets: ProjectTargetPreview[];
 }
+
+export interface ProjectTargetPreview { id: string; name: string; isAuthorized: boolean; isScanning: boolean; }
 
 export interface Target {
   id: string;

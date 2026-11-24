@@ -27,6 +27,8 @@ public class BaseSearchParam
 public class ProjectSearchParam : BaseSearchParam
 {
     public ProjectStatus? Status { get; set; }
+    /// <summary>Projects with at least one target in this environment.</summary>
+    public TargetEnvironment? Environment { get; set; }
 }
 
 public class TargetSearchParam : BaseSearchParam

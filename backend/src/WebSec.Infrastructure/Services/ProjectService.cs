@@ -4,6 +4,7 @@ using WebSec.Infrastructure.Data;
 using WebSec.Infrastructure.Interfaces;
 using WebSec.Infrastructure.Security;
 using WebSec.Infrastructure.Mapping;
+using WebSec.Infrastructure.Vulnerabilities;
 using WebSec.Shared.DTOs;
 using WebSec.Shared.Entities;
 using WebSec.Shared.Enums;
@@ -37,9 +38,20 @@ public class ProjectService(AppDbContext db, ICurrentUser currentUser, IAuditLog
         }
         if (param.IsActive is { } active) query = query.Where(p => p.IsActive == active);
         if (param.Status is { } status) query = query.Where(p => p.Status == status);
-        var page = await query.SortBy(param, Sorts, "createdDate").ToPagedAsync(param, AppMapper.ToModel, ct);
+        if (param.Environment is { } env) query = query.Where(p => db.Targets.Any(t => t.ProjectId == p.Id && t.Environment == env));
+        var sorted = string.Equals(param.SortBy, "risk", StringComparison.OrdinalIgnoreCase) ? SortByRisk(query, param.SortDirection) : query.SortBy(param, Sorts, "createdDate");
+        var page = await sorted.ToPagedAsync(param, AppMapper.ToModel, ct);
         await FillSummaryAsync(page.Items, ct);
         return page;
+    }
+
+    /// <summary>Orders by the uncapped risk sum so the database can sort it; weights mirror DashboardService.RiskWeights.</summary>
+    private IQueryable<Project> SortByRisk(IQueryable<Project> query, SortDirection direction)
+    {
+        var open = VulnerabilityStateMachine.OpenStatuses;
+        Expression<Func<Project, int>> risk = p => db.Vulnerabilities.Where(v => v.ProjectId == p.Id && open.Contains(v.Status))
+            .Sum(v => v.Severity == Severity.Critical ? 25 : v.Severity == Severity.High ? 10 : v.Severity == Severity.Medium ? 4 : v.Severity == Severity.Low ? 1 : 0);
+        return (direction == SortDirection.Asc ? query.OrderBy(risk) : query.OrderByDescending(risk)).ThenBy(p => p.Name);
     }
 
     /// <summary>One grouped query per metric for the whole page (no N+1).</summary>
@@ -59,14 +71,30 @@ public class ProjectService(AppDbContext db, ICurrentUser currentUser, IAuditLog
             })
             .ToDictionaryAsync(x => x.ProjectId, ct);
 
-        var scanning = (await db.Scans.Where(s => ids.Contains(s.ProjectId) && ActiveScanStatuses.Contains(s.Status))
-            .Select(s => s.ProjectId).Distinct().ToListAsync(ct)).ToHashSet();
+        var scanningTargets = (await db.Scans.Where(s => ids.Contains(s.ProjectId) && ActiveScanStatuses.Contains(s.Status))
+            .Select(s => new { s.ProjectId, s.TargetId }).Distinct().ToListAsync(ct));
+        var scanning = scanningTargets.Select(s => s.ProjectId).ToHashSet();
+        var scanningTargetIds = scanningTargets.Select(s => s.TargetId).ToHashSet();
+
+        // shortcut: loads every target of the page's projects, then keeps 3 each; fine while projects hold a handful of targets.
+        var previews = (await db.Targets.Where(t => ids.Contains(t.ProjectId))
+            .OrderByDescending(t => t.CreatedDate)
+            .Select(t => new { t.ProjectId, t.Id, t.Name, t.IsAuthorized })
+            .ToListAsync(ct))
+            .ToLookup(t => t.ProjectId, t => new ProjectTargetPreview(t.Id, t.Name, t.IsAuthorized, scanningTargetIds.Contains(t.Id)));
 
         var findings = await db.ScanFindings
             .Join(db.Targets.Where(t => ids.Contains(t.ProjectId)), f => f.TargetId, t => t.Id, (f, t) => new { t.ProjectId, f.Fingerprint })
             .GroupBy(x => x.ProjectId)
             .Select(g => new { ProjectId = g.Key, Count = g.Select(x => x.Fingerprint).Distinct().Count() })
             .ToDictionaryAsync(x => x.ProjectId, x => x.Count, ct);
+
+        var openStatuses = VulnerabilityStateMachine.OpenStatuses;
+        var openVulns = (await db.Vulnerabilities.Where(v => ids.Contains(v.ProjectId) && openStatuses.Contains(v.Status))
+            .GroupBy(v => new { v.ProjectId, v.Severity })
+            .Select(g => new { g.Key.ProjectId, g.Key.Severity, Count = g.Count() })
+            .ToListAsync(ct))
+            .ToLookup(x => x.ProjectId);
 
         foreach (var p in items)
         {
@@ -77,7 +105,11 @@ public class ProjectService(AppDbContext db, ICurrentUser currentUser, IAuditLog
                 p.LastScanAt = t.LastScanAt;
             }
             p.IsScanning = scanning.Contains(p.Id);
+            p.Targets = previews[p.Id].Take(3).ToList();
             p.FindingCount = findings.GetValueOrDefault(p.Id);
+            var bySeverity = openVulns[p.Id].ToDictionary(x => x.Severity, x => x.Count);
+            p.OpenVulnerabilityCount = bySeverity.Values.Sum();
+            p.RiskScore = DashboardService.RiskScore(bySeverity);
         }
     }
 

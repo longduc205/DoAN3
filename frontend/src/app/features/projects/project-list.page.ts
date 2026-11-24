@@ -5,13 +5,14 @@ import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { apiErrorMessage } from '../../core/services/base-api.service';
 import { DialogComponent } from '../../shared/components/dialog';
-import { FOLDER_FRONT_PATH, FOLDER_STYLES, folderArt } from '../../shared/components/folder';
+import { FOLDER_FRONT_PATH, FOLDER_SHEET_STYLES, FOLDER_STYLES, folderArt } from '../../shared/components/folder';
 import { PageState, Pagination } from '../../shared/components/page-state';
-import { PagingInfo, Project, ProjectStatus } from '../../shared/models/api.models';
+import { PagingInfo, Project, ProjectStatus, TargetEnvironment } from '../../shared/models/api.models';
 import { ProjectsApi } from '../api.services';
 import { ProjectFormComponent } from './project-form.component';
 
 const SORTS = {
+  risk: { sortBy: 'risk', sortDirection: 'Desc' },
   newest: { sortBy: 'createdDate', sortDirection: 'Desc' },
   updated: { sortBy: 'updatedDate', sortDirection: 'Desc' },
   name: { sortBy: 'name', sortDirection: 'Asc' },
@@ -21,7 +22,7 @@ type SortKey = keyof typeof SORTS;
 @Component({
   selector: 'app-project-list',
   imports: [RouterLink, ReactiveFormsModule, TranslocoPipe, DatePipe, PageState, Pagination, DialogComponent, ProjectFormComponent],
-  styles: FOLDER_STYLES,
+  styles: [FOLDER_STYLES, FOLDER_SHEET_STYLES],
   template: `
     <div class="flex flex-col gap-5">
       <div class="flex flex-wrap items-end justify-between gap-4">
@@ -58,8 +59,14 @@ type SortKey = keyof typeof SORTS;
               [placeholder]="'projects.searchPh' | transloco" [attr.aria-label]="'projects.searchPh' | transloco" />
           </label>
         </form>
+        <select #envSel class="h-10 px-2.5 rounded-[10px] border border-line bg-white text-sm" [attr.aria-label]="'projects.envLabel' | transloco"
+          [value]="environment() ?? ''" (change)="setEnvironment(envSel.value)">
+          <option value="">{{ 'projects.allEnvs' | transloco }}</option>
+          @for (e of environments; track e) { <option [value]="e">{{ 'environment.' + e | transloco }}</option> }
+        </select>
         <select #sortSel class="h-10 px-2.5 rounded-[10px] border border-line bg-white text-sm" [attr.aria-label]="'projects.sortLabel' | transloco"
           [value]="sort()" (change)="setSort(sortSel.value)">
+          <option value="risk">{{ 'projects.sortRisk' | transloco }}</option>
           <option value="newest">{{ 'projects.sortNewest' | transloco }}</option>
           <option value="updated">{{ 'projects.sortUpdated' | transloco }}</option>
           <option value="name">{{ 'projects.sortName' | transloco }}</option>
@@ -92,6 +99,16 @@ type SortKey = keyof typeof SORTS;
                       <div class="back" aria-hidden="true">
                         @if (p.status === 'Active') { <img [src]="art(p)" alt="" width="364" height="296" /> }
                       </div>
+                      <div class="sheets">
+                        <!-- Mouse shortcut only: keyboard users reach targets through the project page. -->
+                        @for (t of p.targets; track t.id; let i = $index) {
+                          <a class="sheet" [style.--i]="i" [routerLink]="['/projects', p.id]" tabindex="-1" aria-hidden="true">
+                            <span class="sheet-head"><span class="sheet-name">{{ t.name }}</span>
+                              <span class="sheet-meta">{{ (t.isScanning ? 'projects.sheetScanning' : t.isAuthorized ? 'projects.sheetConfirmed' : 'projects.sheetUnconfirmed') | transloco }}</span></span>
+                            <span class="lines"><i></i><i></i><i></i><i></i></span>
+                          </a>
+                        }
+                      </div>
                       <div class="front">
                         <div class="tint" aria-hidden="true"></div>
                         <svg class="rim" viewBox="0 0 340 198" aria-hidden="true">
@@ -112,7 +129,7 @@ type SortKey = keyof typeof SORTS;
                             @if (p.status === 'Archived') {
                               {{ 'projects.archivedOn' | transloco: { date: (p.updatedDate ?? p.createdDate | date: 'dd/MM') } }}
                             } @else {
-                              {{ p.code }} · {{ 'projects.targetCount' | transloco: { count: p.targetCount } }}
+                              {{ 'projects.riskMeta' | transloco: { score: p.riskScore } }} · {{ 'projects.targetCount' | transloco: { count: p.targetCount } }}
                             }
                           </span>
                         </div>
@@ -131,7 +148,7 @@ type SortKey = keyof typeof SORTS;
                     <span>{{ 'projects.archivedHint' | transloco }}</span>
                   } @else {
                   <span>
-                    {{ 'projects.findingCount' | transloco: { count: p.findingCount } }} ·
+                    {{ 'projects.openVulnCount' | transloco: { count: p.openVulnerabilityCount } }} ·
                     @if (p.lastScanAt) {
                       {{ 'projects.lastScan' | transloco: { date: (p.lastScanAt | date: 'dd/MM/yyyy') } }}
                     } @else {
@@ -146,15 +163,21 @@ type SortKey = keyof typeof SORTS;
                   }
                   }
                 </div>
-                <div class="flex gap-3 text-xs">
-                  <button type="button" class="text-ink-muted hover:text-ink hover:underline cursor-pointer" (click)="modal.set({ mode: 'edit', project: p })">{{ 'common.edit' | transloco }}</button>
-                  <button type="button" class="text-ink-muted hover:text-danger hover:underline cursor-pointer" (click)="toDelete.set(p)">{{ 'common.delete' | transloco }}</button>
+                <div class="flex gap-2">
+                  <button type="button" class="btn h-8 px-3 text-[13px]" [attr.aria-label]="('common.edit' | transloco) + ' ' + p.name" (click)="modal.set({ mode: 'edit', project: p })">
+                    <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z" /><path d="M13.5 6.5l4 4" /></svg>
+                    {{ 'common.edit' | transloco }}
+                  </button>
+                  <button type="button" class="btn btn-danger h-8 px-3 text-[13px]" [attr.aria-label]="('common.delete' | transloco) + ' ' + p.name" (click)="toDelete.set(p)">
+                    <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" /></svg>
+                    {{ 'common.delete' | transloco }}
+                  </button>
                 </div>
               </li>
             }
           </ul>
           <app-pagination [paging]="paging()" (pageChange)="load($event)" />
-        } @else if (!searched() && status() === null) {
+        } @else if (!searched() && status() === null && environment() === null) {
           <div class="flex flex-col items-center gap-3.5 px-6 py-14 text-center rounded-2xl border border-line bg-white">
             <span class="size-[72px] rounded-[20px] grid place-items-center bg-black/5">
               <svg aria-hidden="true" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -200,7 +223,9 @@ export class ProjectListPage implements OnInit {
 
   protected readonly formSearch = inject(FormBuilder).nonNullable.group({ keyword: ['', Validators.maxLength(200)] });
   protected readonly status = signal<ProjectStatus | null>(null);
-  protected readonly sort = signal<SortKey>('newest');
+  protected readonly environments: TargetEnvironment[] = ['Lab', 'Development', 'Staging', 'Production'];
+  protected readonly environment = signal<TargetEnvironment | null>(null);
+  protected readonly sort = signal<SortKey>('risk');
   /** Keyword of the last load, for the "no results" message. */
   protected readonly searched = signal('');
   protected readonly items = signal<Project[]>([]);
@@ -238,6 +263,11 @@ export class ProjectListPage implements OnInit {
     this.load(1);
   }
 
+  protected setEnvironment(value: string): void {
+    this.environment.set(this.environments.find((e) => e === value) ?? null);
+    this.load(1);
+  }
+
   protected setSort(value: string): void {
     if (!(value in SORTS)) return;
     this.sort.set(value as SortKey);
@@ -247,6 +277,7 @@ export class ProjectListPage implements OnInit {
   protected clearFilters(): void {
     this.formSearch.reset();
     this.status.set(null);
+    this.environment.set(null);
     this.load(1);
   }
 
@@ -254,7 +285,7 @@ export class ProjectListPage implements OnInit {
     this.loading.set(true);
     this.error.set(null);
     const keyword = this.formSearch.getRawValue().keyword.trim();
-    this.api.getAll({ page, pageSize: 12, keyword, status: this.status(), ...SORTS[this.sort()] }).subscribe({
+    this.api.getAll({ page, pageSize: 12, keyword, status: this.status(), environment: this.environment(), ...SORTS[this.sort()] }).subscribe({
       next: (res) => {
         this.items.set(res.data ?? []);
         this.paging.set(res.paging);
