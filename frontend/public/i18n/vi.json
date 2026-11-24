@@ -31,6 +31,8 @@
   },
   "errors": { "network": "Không kết nối được tới API.", "unknown": "Đã xảy ra lỗi không xác định." },
   "dashboard": {
+    "risk": { "high": "Cao", "medium": "Trung bình", "low": "Thấp" }, "recent": "Gần đây", "scanRunning": "Scan {{target}} đang chạy",
+    "riskFrom": "Điểm {{score}} đến từ", "riskRow": "{{count}} lỗi {{sev}} đang mở × {{weight}}", "riskCap": "Critical 25 · High 10 · Medium 4 · Low 1 điểm mỗi lỗi, tối đa 100.",
     "title": "Tổng quan bảo mật", "newScan": "Scan mới", "projects": "Projects", "targets": "Targets", "scans": "Scans",
     "findings": "Findings", "recentScans": "Scan gần đây", "noScans": "Chưa có scan nào.", "bySeverity": "Theo severity",
     "subtitle": "Số liệu từ các project bạn được xem.", "emptyTitle": "Chưa có scan nào. Bắt đầu trong 3 bước:", "step1": "Tạo project cho ứng dụng cần kiểm tra.", "step2": "Thêm target và xác nhận bạn được ủy quyền kiểm tra.", "step3": "Chạy scan và xem findings.", "findingTotal": "{{count}} finding", "activeScans": "Scan đang chạy", "noActiveScans": "Không có scan nào đang chạy hoặc chờ.",
@@ -38,6 +40,8 @@
     "insight": "Scan gần nhất trên {{target}} ghi nhận {{count}} finding · {{unassigned}} lỗ hổng đang mở chưa ai nhận.", "bottleneck": "Nút thắt: {{count}} lỗ hổng đang dồn ở bước \"{{status}}\".", "queue": "Cần bạn xử lý", "action": "Hành động", "queueEmpty": "Không có lỗ hổng nào đang mở.", "actVerify": "Xác minh", "actAssign": "Giao việc", "actView": "Xem"
   },
   "projects": {
+    "targetTotal": "{{count}} target",
+    "runScan": "Chạy scan", "riskShort": "rủi ro", "riskAria": "Điểm rủi ro {{score}} trên 100", "activityScan": "Scan trên {{target}}: {{status}}", "archivedHint": "Lưu trữ: chỉ xem lại, không chạy scan mới.",
     "new": "Tạo project", "edit": "Sửa project", "code": "Mã", "name": "Tên", "description": "Mô tả", "empty": "Chưa có project nào. Hãy tạo project đầu tiên.",
     "subtitle": "{{count}} project", "needScope": "{{count}} target chưa xác nhận scope",
     "tabAll": "Tất cả", "tabActive": "Active", "tabArchived": "Archived",
@@ -60,6 +64,12 @@
   },
   "projectStatus": { "Active": "Đang hoạt động", "Archived": "Lưu trữ" },
   "targets": {
+    "pageSub": "Khai báo website thuộc project {{project}} và phạm vi được phép kiểm thử.",
+    "isAuthorizedLong": "Tôi xác nhận target này do nhóm sở hữu hoặc đã được chủ sở hữu ủy quyền kiểm thử bằng văn bản, và chỉ quét trong phạm vi ở trên.",
+    "disableTarget": "Ngừng sử dụng target", "enableTarget": "Dùng lại target",
+    "afterSave": "Trạng thái sau khi lưu", "afterSaveOk": "Sửa URL hoặc phạm vi sau này sẽ đưa target về \"Chưa xác nhận\" cho đến khi xác nhận lại.", "afterSaveWarn": "Chưa tick xác nhận ủy quyền thì target không chọn được khi tạo scan.",
+    "safetyTitle": "Giới hạn an toàn", "safety1": "Một host cho mỗi target, không hỗ trợ wildcard domain.", "safety2": "Không quét IP public ngoài danh sách lab.", "safety3": "Không khai thác, không brute force, không gửi payload hàng loạt.",
+    "addHint": "Chỉ target <b>Scope confirmed</b> mới chọn được khi tạo scan.", "confirmedBy": "{{env}} · thêm {{date}}", "unconfirmedHint": "Chưa xác nhận ủy quyền kiểm thử · chưa chọn được khi tạo scan", "openCount": "{{count}} lỗ hổng mở", "disabledTag": "Đã ngừng",
     "new": "Thêm target", "edit": "Sửa target", "name": "Tên", "baseUrl": "Base URL", "environment": "Môi trường", "scopeMode": "Phạm vi",
     "scope": "Phạm vi / quyền", "lastScan": "Lần quét cuối", "isEnabled": "Bật target",
     "isAuthorized": "Tôi sở hữu hoặc được ủy quyền kiểm thử target này",

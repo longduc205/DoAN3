@@ -20,6 +20,14 @@ export const routes: Routes = [
         path: 'projects/new', canActivate: [permissionGuard], data: { openCreate: true, permission: 'Project.Create' },
         loadComponent: () => import('./features/projects/project-list.page').then((m) => m.ProjectListPage),
       },
+      {
+        path: 'projects/:id/targets/new', canActivate: [permissionGuard], data: { permission: 'Project.Update', crumb: 'crumb.targetNew' },
+        loadComponent: () => import('./features/targets/target-form.page').then((m) => m.TargetFormPage),
+      },
+      {
+        path: 'projects/:id/targets/:targetId/edit', canActivate: [permissionGuard], data: { permission: 'Project.Update', crumb: 'crumb.targetEdit' },
+        loadComponent: () => import('./features/targets/target-form.page').then((m) => m.TargetFormPage),
+      },
       { path: 'projects/:id', data: { crumb: 'crumb.projectDetail' }, loadComponent: () => import('./features/projects/project-detail.page').then((m) => m.ProjectDetailPage) },
       { path: 'targets', loadComponent: () => import('./features/targets/target-list.page').then((m) => m.TargetListPage) },
       { path: 'scans', canActivate: [permissionGuard], data: { permission: 'Scan.View' }, loadComponent: () => import('./features/scans/scan-list.page').then((m) => m.ScanListPage) },

@@ -31,6 +31,8 @@
   },
   "errors": { "network": "Cannot reach the API.", "unknown": "An unknown error occurred." },
   "dashboard": {
+    "risk": { "high": "High", "medium": "Medium", "low": "Low" }, "recent": "Recent", "scanRunning": "Scan on {{target}} running",
+    "riskFrom": "Where {{score}} comes from", "riskRow": "{{count}} open {{sev}} × {{weight}}", "riskCap": "Critical 25 · High 10 · Medium 4 · Low 1 point each, capped at 100.",
     "title": "Security overview", "newScan": "New scan", "projects": "Projects", "targets": "Targets", "scans": "Scans",
     "findings": "Findings", "recentScans": "Recent scans", "noScans": "No scans yet.", "bySeverity": "By severity",
     "subtitle": "Figures from the projects you can see.", "emptyTitle": "No scans yet. Get started in 3 steps:", "step1": "Create a project for the app you will test.", "step2": "Add a target and confirm you are authorized to test it.", "step3": "Run a scan and review the findings.", "findingTotal": "{{count}} findings", "activeScans": "Active scans", "noActiveScans": "No scans running or queued.",
@@ -38,6 +40,8 @@
     "insight": "Latest scan on {{target}} reported {{count}} findings · {{unassigned}} open vulnerabilities are unassigned.", "bottleneck": "Bottleneck: {{count}} vulnerabilities are waiting at \"{{status}}\".", "queue": "Needs your attention", "action": "Action", "queueEmpty": "No open vulnerabilities.", "actVerify": "Verify", "actAssign": "Assign", "actView": "View"
   },
   "projects": {
+    "targetTotal": "{{count}} targets",
+    "runScan": "Run scan", "riskShort": "risk", "riskAria": "Risk score {{score}} of 100", "activityScan": "Scan on {{target}}: {{status}}", "archivedHint": "Archived: read-only, no new scans.",
     "new": "New project", "edit": "Edit project", "code": "Code", "name": "Name", "description": "Description", "empty": "No projects yet. Create your first one.",
     "subtitle": "{{count}} projects", "needScope": "{{count}} targets awaiting scope confirmation",
     "tabAll": "All", "tabActive": "Active", "tabArchived": "Archived",
@@ -60,6 +64,12 @@
   },
   "projectStatus": { "Active": "Active", "Archived": "Archived" },
   "targets": {
+    "pageSub": "Register a website of project {{project}} and the scope you may test.",
+    "isAuthorizedLong": "I confirm this target is owned by our team or its owner has authorized testing in writing, and it will only be scanned within the scope above.",
+    "disableTarget": "Stop using target", "enableTarget": "Use target again",
+    "afterSave": "Status after saving", "afterSaveOk": "Changing the URL or scope later moves the target back to \"Not confirmed\" until it is confirmed again.", "afterSaveWarn": "Without the authorization tick the target cannot be picked for a scan.",
+    "safetyTitle": "Safety limits", "safety1": "One host per target, no wildcard domains.", "safety2": "No scanning of public IPs outside the lab list.", "safety3": "No exploitation, no brute force, no payload flooding.",
+    "addHint": "Only <b>Scope confirmed</b> targets can be picked for a scan.", "confirmedBy": "{{env}} · added {{date}}", "unconfirmedHint": "Testing authorization not confirmed · cannot be picked for a scan", "openCount": "{{count}} open vulnerabilities", "disabledTag": "Stopped",
     "new": "Add target", "edit": "Edit target", "name": "Name", "baseUrl": "Base URL", "environment": "Environment", "scopeMode": "Scope",
     "scope": "Scope / authorization", "lastScan": "Last scan", "isEnabled": "Target enabled",
     "isAuthorized": "I own or am authorized to test this target",

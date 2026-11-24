@@ -9,7 +9,6 @@ import { FOLDER_FRONT_PATH, FOLDER_STYLES, folderArt } from '../../shared/compon
 import { PageState, Pagination } from '../../shared/components/page-state';
 import { PagingInfo, Project, ProjectStatus } from '../../shared/models/api.models';
 import { ProjectsApi } from '../api.services';
-import { TargetFormComponent } from '../targets/target-form.component';
 import { ProjectFormComponent } from './project-form.component';
 
 const SORTS = {
@@ -21,7 +20,7 @@ type SortKey = keyof typeof SORTS;
 
 @Component({
   selector: 'app-project-list',
-  imports: [RouterLink, ReactiveFormsModule, TranslocoPipe, DatePipe, PageState, Pagination, DialogComponent, ProjectFormComponent, TargetFormComponent],
+  imports: [RouterLink, ReactiveFormsModule, TranslocoPipe, DatePipe, PageState, Pagination, DialogComponent, ProjectFormComponent],
   styles: FOLDER_STYLES,
   template: `
     <div class="flex flex-col gap-5">
@@ -29,7 +28,7 @@ type SortKey = keyof typeof SORTS;
         <div>
           <h1 class="page-title">{{ 'nav.projects' | transloco }}</h1>
           <p class="mt-1 text-sm text-ink-muted">
-            {{ 'projects.subtitle' | transloco: { count: paging()?.totalItems ?? 0 } }}
+            {{ 'projects.subtitle' | transloco: { count: paging()?.totalItems ?? 0 } }} · {{ 'projects.targetTotal' | transloco: { count: targetTotal() } }}
             @if (needScope() > 0) {
               · <span class="font-semibold text-warn">{{ 'projects.needScope' | transloco: { count: needScope() } }}</span>
             }
@@ -48,7 +47,7 @@ type SortKey = keyof typeof SORTS;
               [class]="status() === t.value ? 'bg-white font-semibold' : 'text-ink-muted hover:text-ink'"
               [attr.aria-pressed]="status() === t.value" (click)="setStatus(t.value)">
               {{ t.key | transloco }}
-              @if (status() === t.value && paging(); as p) { <span class="text-ink-muted">{{ p.totalItems }}</span> }
+              <span class="text-ink-muted">{{ counts()[t.key] ?? '' }}</span>
             </button>
           }
         </div>
@@ -69,12 +68,6 @@ type SortKey = keyof typeof SORTS;
 
       <app-dialog [open]="!!modal()" [heading]="(modal()?.project ? 'projects.edit' : 'projects.new') | transloco" (closed)="modal.set(null)">
         @if (modal(); as m) { <app-project-form [project]="m.project ?? null" (saved)="onSaved()" (cancelled)="modal.set(null)" /> }
-      </app-dialog>
-      <app-dialog [open]="!!addTargetTo()" [heading]="'targets.new' | transloco" (closed)="addTargetTo.set(null)">
-        @if (addTargetTo(); as p) {
-          <p class="mono">{{ p.code }} · {{ p.name }}</p>
-          <app-target-form [projectId]="p.id" (saved)="onTargetSaved()" (cancelled)="addTargetTo.set(null)" />
-        }
       </app-dialog>
       <app-dialog [open]="!!toDelete()" [heading]="'projects.deleteTitle' | transloco" (closed)="toDelete.set(null)">
         <p class="text-sm">{{ 'projects.deleteBody' | transloco: { name: toDelete()?.name } }}</p>
@@ -125,15 +118,18 @@ type SortKey = keyof typeof SORTS;
                         </div>
                       </div>
                       @if (p.status === 'Active') {
-                        <button type="button" class="btn-key key size-[58px] p-0 rounded-[18px]"
-                          [attr.aria-label]="'projects.addTarget' | transloco: { name: p.name }" (click)="addTargetTo.set(p)">
+                        <a class="btn-key key size-[58px] p-0 rounded-[18px]" [routerLink]="['/projects', p.id, 'targets', 'new']"
+                          [attr.aria-label]="'projects.addTarget' | transloco: { name: p.name }">
                           <svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 4.5v15M4.5 12h15" /></svg>
-                        </button>
+                        </a>
                       }
                     </div>
                   </div>
                 </div>
                 <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-ink-muted">
+                  @if (p.status === 'Archived') {
+                    <span>{{ 'projects.archivedHint' | transloco }}</span>
+                  } @else {
                   <span>
                     {{ 'projects.findingCount' | transloco: { count: p.findingCount } }} ·
                     @if (p.lastScanAt) {
@@ -147,6 +143,7 @@ type SortKey = keyof typeof SORTS;
                   }
                   @if (p.unauthorizedTargetCount > 0) {
                     <span class="px-2 py-0.5 rounded-full bg-warn-bg text-warn text-xs font-medium">{{ 'projects.needsScope' | transloco }}</span>
+                  }
                   }
                 </div>
                 <div class="flex gap-3 text-xs">
@@ -212,14 +209,24 @@ export class ProjectListPage implements OnInit {
   protected readonly error = signal<string | null>(null);
   protected readonly actionError = signal<string | null>(null);
   protected readonly modal = signal<{ mode: 'add' | 'edit'; project?: Project } | null>(null);
-  protected readonly addTargetTo = signal<Project | null>(null);
+  /** Per-tab totals (tab key → count), loaded once and after changes. */
+  protected readonly counts = signal<Partial<Record<string, number>>>({});
   protected readonly toDelete = signal<Project | null>(null);
   // shortcut: counts only the current page; add a workspace-wide total to the API if pages get large.
+  protected readonly targetTotal = computed(() => this.items().reduce((n, p) => n + p.targetCount, 0));
   protected readonly needScope = computed(() => this.items().reduce((n, p) => n + p.unauthorizedTargetCount, 0));
 
   ngOnInit(): void {
     if (this.openCreate()) this.modal.set({ mode: 'add' });
     this.load();
+    this.loadCounts();
+  }
+
+  private loadCounts(): void {
+    for (const t of this.tabs)
+      this.api.getAll({ page: 1, pageSize: 1, status: t.value }).subscribe({
+        next: (r) => this.counts.update((c) => ({ ...c, [t.key]: r.paging?.totalItems ?? 0 })),
+      });
   }
 
   protected art(p: Project): string {
@@ -263,11 +270,7 @@ export class ProjectListPage implements OnInit {
 
   protected onSaved(): void {
     this.modal.set(null);
-    this.load(this.paging()?.page ?? 1);
-  }
-
-  protected onTargetSaved(): void {
-    this.addTargetTo.set(null);
+    this.loadCounts();
     this.load(this.paging()?.page ?? 1);
   }
 
@@ -276,6 +279,6 @@ export class ProjectListPage implements OnInit {
     this.toDelete.set(null);
     if (!p) return;
     this.actionError.set(null);
-    this.api.delete(p.id).subscribe({ next: () => this.load(), error: (err) => this.actionError.set(apiErrorMessage(err)) });
+    this.api.delete(p.id).subscribe({ next: () => { this.load(); this.loadCounts(); }, error: (err) => this.actionError.set(apiErrorMessage(err)) });
   }
 }

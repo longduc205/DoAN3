@@ -68,7 +68,7 @@ const NAV: NavGroup[] = [
           }
         </nav>
         <div class="border-t border-line pt-3 flex items-center justify-between gap-2">
-          <span class="grid place-items-center size-8 shrink-0 rounded-full bg-ink text-white text-xs font-semibold" aria-hidden="true">{{ initials() }}</span>
+          <span class="grid place-items-center size-8 shrink-0 rounded-full bg-ink/10 text-ink text-xs font-semibold" aria-hidden="true">{{ initials() }}</span>
           <div class="min-w-0 flex-1">
             <div class="text-sm font-medium truncate">{{ auth.user()?.fullName }}</div>
             <div class="text-xs text-ink-muted truncate">{{ auth.user()?.roles?.join(', ') }}</div>

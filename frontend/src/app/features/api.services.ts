@@ -27,6 +27,7 @@ export class ProjectsApi extends BaseApiService {
 export class TargetsApi extends BaseApiService {
   protected readonly resource = 'targets';
   getAll(p: BaseSearchParam & { projectId?: string }): Observable<PaginatedResponse<Target[]>> { return this.post('get-all', p); }
+  getById(id: string): Observable<ApiResponse<Target>> { return this.post('get-by-id', { id }); }
   create(body: TargetInput): Observable<ApiResponse<Target>> { return this.post('create', body); }
   update(body: TargetInput & { id: string }): Observable<ApiResponse<Target>> { return this.post('update', body); }
   delete(id: string): Observable<ApiResponse<boolean>> { return this.post('delete', { id }); }
