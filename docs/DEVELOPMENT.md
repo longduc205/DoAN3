@@ -48,7 +48,7 @@ All ports bind to `127.0.0.1` only.
 ```bash
 docker compose up -d postgres                          # integration tests need it
 dotnet test backend/WebSecPlatform.sln                 # xUnit: unit + integration
-cd frontend && npx ng test --watch=false               # Vitest (auth guard/interceptor)
+cd frontend && npx ng test --watch=false               # Vitest (auth guard/interceptor, audit diff, target form)
 cd frontend && npx ng build                            # production build
 ```
 `WebSec.IntegrationTests` boots the real API (Development: migrations + dev seed) with `WebApplicationFactory`, creates a throwaway database `websec_it_<guid>` on the server in `TEST_DATABASE_URL` (default: the compose server, `Database=postgres`, user `websec_dev`), and drops it afterwards. The user needs `CREATEDB`. The worker step is run in-process (claim + `ScanProcessor`) with the mock engine's delay set to zero. CI starts a `postgres:17-alpine` service for it.
