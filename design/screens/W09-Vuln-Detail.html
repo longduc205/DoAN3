@@ -1,4 +1,10 @@
-<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>09 Vulnerability detail</title>
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>09 Vulnerability detail</title>
+
 <style>
 body{margin:0}
 a{color:#141416;text-decoration-thickness:1px;text-underline-offset:3px}a:hover{color:#000}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #4c8dff;outline-offset:2px}body{-webkit-font-smoothing:antialiased}
@@ -8,7 +14,10 @@ body{font-variant-numeric:tabular-nums}
 .tl-rail{transform-origin:top;animation:rail .9s cubic-bezier(.2,.8,.2,1) both}@keyframes rail{from{transform:scaleY(0)}}
 @media (prefers-reduced-motion:reduce){.tl-item,.tl-rail{animation:none}}
 </style>
-</head><body>
+
+</head>
+<body>
+
 
 <div style="min-height: 100vh; display: flex; flex-wrap: wrap; background-color: #ECEDF1; background-image: radial-gradient(60% 50% at 88% 0%, rgba(111, 151, 194, 0.30), transparent 70%), radial-gradient(55% 50% at 0% 100%, rgba(233, 194, 184, 0.50), transparent 70%), radial-gradient(45% 40% at 50% 45%, rgba(255, 255, 255, 0.65), transparent 70%); background-attachment: fixed; font-family: ui-sans-serif, system-ui, -apple-system, 'SF Pro Text', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #141416">
 
@@ -19,7 +28,7 @@ body{font-variant-numeric:tabular-nums}
 <a href="W02-Dashboard.dc.html" style="display: flex; align-items: center; gap: 10px; min-height: 34px; padding: 0 10px; border-radius: 8px; text-decoration: none; font-size: 14px; color: #484245"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Dashboard</a>
 <a href="W03-Projects.dc.html" style="display: flex; align-items: center; gap: 10px; min-height: 34px; padding: 0 10px; border-radius: 8px; text-decoration: none; font-size: 14px; color: #484245"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Projects</a>
 <div style="font-size: 12px; color: #696366; padding: 18px 10px 6px">Quét</div>
-<a href="W07-Scan-Detail.dc.html" style="display: flex; align-items: center; gap: 10px; min-height: 34px; padding: 0 10px; border-radius: 8px; text-decoration: none; font-size: 14px; color: #484245"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 12l6-6"/></svg>Scans<span style="margin-left: auto; width: 8px; height: 8px; border-radius: 4px; background: #38BDF8"></span></a>
+<a href="W14-Scans.dc.html" style="display: flex; align-items: center; gap: 10px; min-height: 34px; padding: 0 10px; border-radius: 8px; text-decoration: none; font-size: 14px; color: #484245"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 12l6-6"/></svg>Scans<span style="margin-left: auto; width: 8px; height: 8px; border-radius: 4px; background: #38BDF8"></span></a>
 <a href="W06-Scan-Wizard.dc.html" style="display: flex; align-items: center; gap: 10px; min-height: 34px; padding: 0 10px; border-radius: 8px; text-decoration: none; font-size: 14px; color: #484245"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>New scan</a>
 <div style="font-size: 12px; color: #696366; padding: 18px 10px 6px">Bảo mật</div>
 <a href="W08-Vulns.dc.html" aria-current="page" style="display: flex; align-items: center; gap: 10px; min-height: 34px; padding: 0 10px; border-radius: 8px; text-decoration: none; font-size: 14px; background: #E6E4E5; color: #141416; font-weight: 500"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M12 8v5M12 16h.01"/></svg>Vulnerabilities</a>
@@ -64,19 +73,9 @@ body{font-variant-numeric:tabular-nums}
 </div>
 </div>
 <ol aria-label="Tiến trình xử lý" style="margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px">
-
-<li style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #141416; font-weight: 400"><span style="height: 6px; border-radius: 3px; background: #141416"></span>Open</li>
-
-<li style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #141416; font-weight: 400"><span style="height: 6px; border-radius: 3px; background: #141416"></span>Triaged</li>
-
-<li style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #141416; font-weight: 400"><span style="height: 6px; border-radius: 3px; background: #141416"></span>Assigned</li>
-
-<li style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #141416; font-weight: 400"><span style="height: 6px; border-radius: 3px; background: #141416"></span>In Progress</li>
-
-<li style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #141416; font-weight: 700"><span style="height: 6px; border-radius: 3px; background: #EF4A2B"></span>Chờ xác minh</li>
-
-<li style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #696366; font-weight: 400"><span style="height: 6px; border-radius: 3px; background: #F0EFEF"></span>Resolved</li>
-
+<sc-for list="[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]" as="step" hint-placeholder-count="6">
+<li style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: ; font-weight: "><span style="height: 6px; border-radius: 3px; background: "></span></li>
+</sc-for>
 </ol>
 </section>
 
@@ -135,4 +134,6 @@ Cookie: session=<span style="color: #847A7E">••••••••</span>
 
 
 </div>
-</body></html>
+
+</body>
+</html>
