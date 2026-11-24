@@ -10,6 +10,7 @@ AGENTS.md (imported above) is the source of truth for commands, layer boundaries
 - Single backend test: `dotnet test backend/WebSecPlatform.sln --filter "FullyQualifiedName~CoreRulesTests"` (xUnit, in `backend/tests/WebSec.UnitTests`)
 - Single frontend spec: `cd frontend && npx ng test --watch=false --include src/app/core/auth.spec.ts` (Vitest via `@angular/build`)
 - CI (`.github/workflows/build.yml`) runs `dotnet build` + `dotnet test --no-build`, then `npm ci`, `ng build` and `ng test` on Node 22.
+- Integration tests (`backend/tests/WebSec.IntegrationTests`) need PostgreSQL: `docker compose up -d postgres`, or point `TEST_DATABASE_URL` at a server where the user may `CREATE DATABASE`.
 - No `dotnet` on the host? Run the SDK in Docker: `docker run --rm -v "$PWD/backend":/src -w /src mcr.microsoft.com/dotnet/sdk:8.0 dotnet test WebSecPlatform.sln`
 - macOS: Docker Desktop's CLI may be missing from `PATH`; it lives at `/Applications/Docker.app/Contents/Resources/bin`.
 - `dotnet run` for the API and the compose `api` container both bind `127.0.0.1:5080`, so stop one before starting the other.

@@ -11,10 +11,9 @@
 | 4 | Project/Target vertical slice | Done | CRUD + paging/search/soft delete through UI → API → PostgreSQL. |
 | 5 | Scan queue & safe worker | Done | Persistent `scan_jobs` queue with SKIP LOCKED claim, mock engine, progress polling, cancel, scope rejection. |
 | 6 | Vulnerability & AI abstractions | Done | Vulnerabilities deduplicated by fingerprint, S2 lifecycle, bulk assign, comments, history, My items, AI panel with context preview and "save as note". Not yet: CVSS, priority/SLA. |
-| 7 | QA, docs & handoff | In progress | Builds/tests/smoke tests run; integration test project and CI on GitHub not yet verified. |
+| 7 | QA, docs & handoff | In progress | Builds/tests run in CI (GitHub Actions, green). `WebSec.IntegrationTests` covers health, login, 401/403, project CRUD + soft delete, scan Queued → Completed with findings and scope rejection on PostgreSQL. Compose smoke test and handoff checklist still open. |
 
 ## Known limitations
-- No `WebSec.IntegrationTests` project; the vertical slice was verified by a curl smoke test and a headless-browser walkthrough (not committed as automated tests).
 - Mock scan engine only; no real HTTP requests or passive header checks yet.
 - No refresh token; token in `sessionStorage` (60 min).
 - Project access is owner-based; `project_members` not implemented.
@@ -23,8 +22,7 @@
 - Audit log does not record 403s rejected by authorization policies (only explicit events, incl. scope-rejected scans).
 
 ## Next steps
-1. Integration tests (WebApplicationFactory + disposable PostgreSQL / Testcontainers) for auth, project CRUD and scan lifecycle.
-2. Passive `SecurityHeadersDetector` with `ICrawler`/`IVulnerabilityDetector`, request limits and redirect scope checks.
-4. Refresh tokens (HttpOnly cookie); create / lock users; log policy 403s to the audit trail.
-5. Real AI provider adapter behind `IAiAdvisor` with timeouts and safe error mapping; AI conversations.
-7. Upgrade to .NET 10 LTS before .NET 8 end of support (10 Nov 2026).
+1. Passive `SecurityHeadersDetector` with `ICrawler`/`IVulnerabilityDetector`, request limits and redirect scope checks.
+2. Refresh tokens (HttpOnly cookie); create / lock users; log policy 403s to the audit trail.
+3. Real AI provider adapter behind `IAiAdvisor` with timeouts and safe error mapping; AI conversations.
+4. Upgrade to .NET 10 LTS before .NET 8 end of support (10 Nov 2026).

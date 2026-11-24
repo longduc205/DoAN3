@@ -42,7 +42,7 @@ Controller (`[Authorize(Policy = "<Permission>")]`) → service (access check vi
 |---|---|---|
 | .NET 10 LTS | **.NET 8 (`net8.0`)** | Only the .NET 8 SDK is installed on the dev machine; whole solution pinned via `backend/Directory.Build.props`. Upgrade = change `TargetFramework` + bump EF/ASP.NET packages to 10.x. |
 | Repo root `websec-platform/` | Repo root is `DoAN3/` | Existing repository. |
-| `WebSec.IntegrationTests` | Not created | Vertical slice verified by a scripted curl smoke test and a headless-browser walkthrough instead; see ROADMAP. |
+| `WebSec.IntegrationTests` (Testcontainers) | WebApplicationFactory + a throwaway database on an existing PostgreSQL (`TEST_DATABASE_URL`) | Same PostgreSQL behaviour without a Docker-in-test dependency; CI provides a Postgres service. |
 | `ICrawler`, `IVulnerabilityDetector` | Not created | Mock engine neither crawls nor detects; empty abstractions were avoided. Add them with the first real passive detector. |
 | Refresh tokens | Not implemented | Short-lived JWT only (60 min), stored in `sessionStorage`; `auth/logout` is client-side. |
 | Vulnerability tables, comments, history, audit logs, reports, AI conversations | Not created yet | Findings (`scan_findings`) are the vertical slice; see `DATA_MODEL.md` for the planned tables. |
