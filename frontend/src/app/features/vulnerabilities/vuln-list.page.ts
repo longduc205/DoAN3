@@ -12,11 +12,18 @@ import { PagingInfo, Severity, UserLookup, Vulnerability, VulnerabilityFacets, V
 import { VulnerabilitiesApi, VulnerabilitySearch } from '../api.services';
 
 type StatusFilter = 'open' | 'closed' | 'all' | VulnerabilityStatus;
+const SEV_BAR: Record<Severity, string> = {
+  Critical: 'bg-sev-critical', High: 'bg-sev-high', Medium: 'bg-sev-medium-bar', Low: 'bg-sev-low', Info: 'bg-ink/30',
+};
 const STATUSES: VulnerabilityStatus[] = ['Open', 'Triaged', 'Assigned', 'InProgress', 'PendingVerification', 'Reopened', 'Resolved', 'FalsePositive', 'AcceptedRisk'];
 
 // W08 Vulnerability list. Same component for /vulnerabilities, /my-items (route data) and the project tab (projectId input).
 @Component({
   selector: 'app-vuln-list',
+  styles: `
+    .filter-pill { display: inline-flex; align-items: center; gap: 4px; height: 40px; padding: 0 10px 0 12px; border-radius: 12px; border: 1px solid var(--color-line); background: rgb(255 255 255 / 0.85); font-size: 14px; }
+    .filter-pill select { background: transparent; font-weight: 600; outline: none; cursor: pointer; }
+  `,
   imports: [RouterLink, FormsModule, TranslocoPipe, DatePipe, PageState, Pagination, SeverityBadge, VulnStatusBadge, DialogComponent],
   template: `
     <div class="flex flex-col gap-4">
@@ -27,95 +34,132 @@ const STATUSES: VulnerabilityStatus[] = ['Open', 'Triaged', 'Assigned', 'InProgr
             <p class="mt-1 text-sm text-ink-muted">{{ (assignedToMe() ? 'vulns.mineHint' : 'vulns.subtitle') | transloco: { count: paging()?.totalItems ?? 0 } }}</p>
           </div>
           @if (canUpdate) {
-            <nav class="flex p-[3px] rounded-[10px] bg-black/[.04]" [attr.aria-label]="'nav.vulnerabilities' | transloco">
-              <a routerLink="/vulnerabilities" class="min-h-[34px] px-3 grid place-items-center rounded-lg text-[13px]" [class]="!assignedToMe() ? 'bg-white font-semibold' : 'text-ink-muted'">{{ 'projects.tabAll' | transloco }}</a>
-              <a routerLink="/my-items" class="min-h-[34px] px-3 grid place-items-center rounded-lg text-[13px]" [class]="assignedToMe() ? 'bg-white font-semibold' : 'text-ink-muted'">{{ 'nav.myItems' | transloco }}</a>
+            <nav class="flex p-[3px] rounded-[12px] bg-white/60 ring-1 ring-line" [attr.aria-label]="'nav.vulnerabilities' | transloco">
+              <a routerLink="/vulnerabilities" class="min-h-[34px] px-3 flex items-center gap-1.5 rounded-[9px] text-[13px]" [class]="!assignedToMe() ? 'bg-white font-semibold shadow-sm' : 'text-ink-muted'">
+                {{ 'projects.tabAll' | transloco }} <span class="text-ink-muted font-normal">{{ tabCounts().all }}</span></a>
+              <a routerLink="/my-items" class="min-h-[34px] px-3 flex items-center gap-1.5 rounded-[9px] text-[13px]" [class]="assignedToMe() ? 'bg-white font-semibold shadow-sm' : 'text-ink-muted'">
+                {{ 'nav.myItems' | transloco }} <span class="text-ink-muted font-normal">{{ tabCounts().mine }}</span></a>
             </nav>
           }
         </div>
       }
 
-      <div class="flex flex-wrap items-center gap-2.5">
-        <div role="group" [attr.aria-label]="'vulns.severity' | transloco" class="flex flex-wrap gap-1.5">
-          <button type="button" class="h-8 px-3 rounded-full text-[13px] border cursor-pointer" [attr.aria-pressed]="!sev()"
-            [class]="!sev() ? 'bg-ink text-white border-ink' : 'bg-white border-line'" (click)="setSeverity(null)">{{ 'projects.tabAll' | transloco }}</button>
-          @for (s of severities; track s) {
-            <button type="button" class="h-8 px-3 rounded-full text-[13px] border cursor-pointer" [attr.aria-pressed]="sev() === s"
-              [class]="sev() === s ? 'bg-ink text-white border-ink' : 'bg-white border-line'" (click)="setSeverity(s)">{{ 'severity.' + s | transloco }}
-              <span class="opacity-70">{{ facets()?.bySeverity?.[s] ?? 0 }}</span></button>
-          }
-        </div>
-        <select class="h-9 px-2.5 rounded-[10px] border border-line bg-white text-sm" [attr.aria-label]="'common.status' | transloco"
-          [ngModel]="statusFilter()" (ngModelChange)="setStatus($event)">
-          <option value="open">{{ 'vulns.filterOpen' | transloco }}</option>
-          <option value="closed">{{ 'vulns.filterClosed' | transloco }}</option>
-          <option value="all">{{ 'projects.tabAll' | transloco }}</option>
-          @for (s of statuses; track s) { <option [value]="s">{{ 'vulnStatus.' + s | transloco }}</option> }
-        </select>
-        <select class="h-9 px-2.5 rounded-[10px] border border-line bg-white text-sm" [attr.aria-label]="'vulns.type' | transloco"
-          [ngModel]="findingType()" (ngModelChange)="findingType.set($event); load(1)">
-          <option value="">{{ 'vulns.allTypes' | transloco }}</option>
-          @for (t of facets()?.findingTypes ?? []; track t) { <option [value]="t">{{ t }}</option> }
-        </select>
-        @if (canTriage && !assignedToMe()) {
-          <select class="h-9 px-2.5 rounded-[10px] border border-line bg-white text-sm" [attr.aria-label]="'vulns.assignee' | transloco"
-            [ngModel]="assigneeFilter()" (ngModelChange)="assigneeFilter.set($event); load(1)" (focus)="loadAssignees()">
-            <option value="">{{ 'vulns.allAssignees' | transloco }}</option>
-            @for (u of assignees(); track u.id) { <option [value]="u.id">{{ u.fullName }}</option> }
-          </select>
+      <div role="group" [attr.aria-label]="'vulns.severity' | transloco" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        @for (s of severities; track s) {
+          <button type="button" class="glass flex items-center gap-3 p-3.5 text-left cursor-pointer hover:bg-white/80" [attr.aria-pressed]="sev() === s"
+            [class.ring-2]="sev() === s" [class.ring-ink]="sev() === s" (click)="setSeverity(sev() === s ? null : s)">
+            <span aria-hidden="true" class="w-2 h-9 rounded-full" [class]="sevBar[s]"></span>
+            <span><span class="block text-[13px] text-ink-muted">{{ 'severity.' + s | transloco }}</span>
+              <b class="block text-xl font-semibold leading-tight">{{ facets()?.bySeverity?.[s] ?? 0 }}</b></span>
+          </button>
         }
-        <select class="h-9 px-2.5 rounded-[10px] border border-line bg-white text-sm" [attr.aria-label]="'projects.sortLabel' | transloco"
-          [ngModel]="sort()" (ngModelChange)="sort.set($event); load(1)">
-          <option value="severity">{{ 'vulns.sortSeverity' | transloco }}</option>
-          <option value="lastDetected">{{ 'vulns.sortLast' | transloco }}</option>
-        </select>
       </div>
 
-      @if (selected().size > 0) {
-        <div class="flex flex-wrap items-center gap-3 px-4 py-2.5 rounded-xl bg-ink text-white text-sm" role="region" [attr.aria-label]="'vulns.bulk' | transloco">
-          <span>{{ 'vulns.selected' | transloco: { count: selected().size } }}</span>
-          <button type="button" class="btn h-8" (click)="openAssign()">{{ 'vulns.assignTo' | transloco }}</button>
-          <button type="button" class="underline cursor-pointer" (click)="clearSelection()">{{ 'vulns.clearSelection' | transloco }}</button>
-        </div>
-      }
+      <div class="flex flex-wrap items-center gap-2">
+        <form class="flex-[1_1_280px] min-w-0" role="search" (ngSubmit)="load(1)">
+          <label class="flex items-center gap-2 h-10 px-3 rounded-xl border border-line bg-white/85 text-ink-muted">
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
+            <input type="search" name="keyword" class="flex-1 min-w-0 bg-transparent text-sm text-ink outline-none" [placeholder]="'vulns.searchPh' | transloco"
+              [attr.aria-label]="'vulns.searchPh' | transloco" [ngModel]="keyword()" (ngModelChange)="keyword.set($event)" />
+          </label>
+        </form>
+        <label class="filter-pill">
+          <span class="text-ink-muted">{{ 'common.status' | transloco }}:</span>
+          <select [ngModel]="statusFilter()" (ngModelChange)="setStatus($event)" [attr.aria-label]="'common.status' | transloco">
+            <option value="open">{{ 'vulns.filterOpen' | transloco }}</option>
+            <option value="closed">{{ 'vulns.filterClosed' | transloco }}</option>
+            <option value="all">{{ 'projects.tabAll' | transloco }}</option>
+            @for (s of statuses; track s) { <option [value]="s">{{ 'vulnStatus.' + s | transloco }}</option> }
+          </select>
+        </label>
+        <label class="filter-pill">
+          <select [ngModel]="findingType()" (ngModelChange)="findingType.set($event); load(1)" [attr.aria-label]="'vulns.type' | transloco">
+            <option value="">{{ 'vulns.type' | transloco }}</option>
+            @for (t of facets()?.findingTypes ?? []; track t) { <option [value]="t">{{ t }}</option> }
+          </select>
+        </label>
+        @if (canTriage && !assignedToMe()) {
+          <label class="filter-pill">
+            <select [ngModel]="assigneeFilter()" (ngModelChange)="assigneeFilter.set($event); load(1)" (focus)="loadAssignees()" [attr.aria-label]="'vulns.assignee' | transloco">
+              <option value="">{{ 'vulns.assignee' | transloco }}</option>
+              @for (u of assignees(); track u.id) { <option [value]="u.id">{{ u.fullName }}</option> }
+            </select>
+          </label>
+        }
+        @if (filtered()) {
+          <button type="button" class="h-10 px-3 rounded-xl border border-dashed border-ink/25 text-sm text-ink-muted hover:text-ink cursor-pointer" (click)="clearFilters()">{{ 'projects.clearFilters' | transloco }}</button>
+        }
+      </div>
+
       @if (actionError()) { <div role="alert" class="px-4 py-3 rounded-xl bg-danger-bg text-danger text-sm">{{ actionError()! | transloco }}</div> }
 
-      <section class="rounded-2xl border border-line bg-white overflow-x-auto">
+      <section class="glass overflow-hidden">
+        @if (selected().size > 0) {
+          <div class="flex flex-wrap items-center gap-3 px-4 py-3 bg-ink/[.04] border-b border-line text-sm" role="region" [attr.aria-label]="'vulns.bulk' | transloco">
+            <b class="font-semibold">{{ 'vulns.selected' | transloco: { count: selected().size } }}</b>
+            <button type="button" class="btn btn-primary h-9 rounded-[10px]" (click)="openAssign()">
+              <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 19v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1M8.5 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6M19 8v6M22 11h-6" /></svg>
+              {{ 'vulns.assignTo' | transloco }}</button>
+            <button type="button" class="underline underline-offset-4 cursor-pointer" (click)="clearSelection()">{{ 'vulns.clearSelection' | transloco }}</button>
+          </div>
+        }
         <app-page-state [loading]="loading()" [error]="error()" (retry)="load()">
           @if (items().length > 0) {
-            <table class="table">
-              <thead>
-                <tr>
-                  @if (canTriage) {
-                    <th class="w-10"><input type="checkbox" class="check" [checked]="allChecked()" (change)="toggleAll()" [attr.aria-label]="'vulns.selectAll' | transloco" /></th>
-                  }
-                  <th>{{ 'vulns.issue' | transloco }}</th><th>{{ 'vulns.severity' | transloco }}</th><th>{{ 'scans.target' | transloco }}</th>
-                  <th>{{ 'common.status' | transloco }}</th><th>{{ 'vulns.assignee' | transloco }}</th><th>{{ 'vulns.lastSeen' | transloco }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (v of items(); track v.id) {
-                  <tr class="hover:bg-black/[.02]">
+            <div class="overflow-x-auto">
+              <table class="table">
+                <thead>
+                  <tr>
                     @if (canTriage) {
-                      <td><input type="checkbox" class="check" [checked]="selected().has(v.id)" (change)="toggle(v.id)" [attr.aria-label]="v.title" /></td>
+                      <th class="w-10"><input type="checkbox" class="check" [checked]="allChecked()" (change)="toggleAll()" [attr.aria-label]="'vulns.selectAll' | transloco" /></th>
                     }
-                    <td class="min-w-[260px]">
-                      <a [routerLink]="['/vulnerabilities', v.id]" class="font-medium hover:underline">{{ v.title }}</a>
-                      <div class="mono break-all">{{ v.findingType }} · {{ v.url }}</div>
-                    </td>
-                    <td><app-severity-badge [severity]="v.severity" /></td>
-                    <td class="whitespace-nowrap">{{ v.targetName }}<div class="mono">{{ v.projectName }}</div></td>
-                    <td><app-vuln-status-badge [status]="v.status" [reappeared]="v.isReappeared" /></td>
-                    <td class="whitespace-nowrap">{{ v.assigneeName ?? ('vulns.unassigned' | transloco) }}</td>
-                    <td class="whitespace-nowrap">{{ v.lastDetectedAt | date: 'dd/MM' }}</td>
+                    <th>{{ 'vulns.issue' | transloco }}</th>
+                    <th [attr.aria-sort]="sort() === 'severity' ? 'descending' : 'none'">
+                      <button type="button" class="inline-flex items-center gap-1 cursor-pointer hover:text-ink" (click)="setSort('severity')">{{ 'vulns.severity' | transloco }}
+                        @if (sort() === 'severity') { <span aria-hidden="true">↓</span> }</button></th>
+                    <th>{{ 'scans.target' | transloco }}</th>
+                    <th>{{ 'common.status' | transloco }}</th><th>{{ 'vulns.assignee' | transloco }}</th>
+                    <th [attr.aria-sort]="sort() === 'lastDetected' ? 'descending' : 'none'">
+                      <button type="button" class="inline-flex items-center gap-1 cursor-pointer hover:text-ink" (click)="setSort('lastDetected')">{{ 'vulns.lastSeen' | transloco }}
+                        @if (sort() === 'lastDetected') { <span aria-hidden="true">↓</span> }</button></th>
                   </tr>
-                }
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  @for (v of items(); track v.id) {
+                    <tr class="hover:bg-white/40">
+                      @if (canTriage) {
+                        <td><input type="checkbox" class="check" [checked]="selected().has(v.id)" (change)="toggle(v.id)" [attr.aria-label]="v.title" /></td>
+                      }
+                      <td class="min-w-[260px]">
+                        <a [routerLink]="['/vulnerabilities', v.id]" class="font-medium hover:underline">{{ v.title }}</a>
+                        <div class="text-xs text-ink-muted">{{ v.findingType }} · {{ v.firstDetectedAt | date: 'dd/MM' }}
+                          @if (v.isReappeared) { · <b class="font-semibold text-warn">{{ 'vulns.reappeared' | transloco }}</b> }</div>
+                      </td>
+                      <td><app-severity-badge [severity]="v.severity" /></td>
+                      <td class="whitespace-nowrap font-mono text-[13px]">{{ v.targetName }}</td>
+                      <td><app-vuln-status-badge [status]="v.status" /></td>
+                      <td class="whitespace-nowrap">
+                        @if (v.assigneeName) {
+                          <span class="inline-flex items-center gap-2"><span aria-hidden="true" class="grid place-items-center size-6 rounded-full bg-sev-medium-bg text-sev-medium text-[10px] font-bold">{{ initials(v.assigneeName) }}</span>{{ v.assigneeName }}</span>
+                        } @else { <span class="text-ink-muted">{{ 'vulns.unassigned' | transloco }}</span> }
+                      </td>
+                      <td class="whitespace-nowrap">{{ v.lastDetectedAt | date: 'dd/MM' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
             <app-pagination [paging]="paging()" (pageChange)="load($event)" />
           } @else {
-            <div class="flex flex-col items-center gap-2.5 px-6 py-11 text-center">
+            <div class="flex flex-col items-center gap-2.5 px-6 py-12 text-center">
+              <span class="size-14 rounded-full grid place-items-center bg-black/[.04] text-ink-muted">
+                @if (filtered()) {
+                  <svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5M8.5 11h5" /></svg>
+                } @else {
+                  <svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z" /><path d="M9 12l2 2 4-4" /></svg>
+                }
+              </span>
               <h2 class="text-[17px] font-semibold">{{ (filtered() ? 'vulns.noResults' : assignedToMe() ? 'vulns.emptyMine' : 'vulns.empty') | transloco }}</h2>
+              <p class="max-w-md text-sm text-ink-muted">{{ (filtered() ? 'vulns.noResultsHint' : 'vulns.emptyHint') | transloco }}</p>
               @if (filtered()) {
                 <button type="button" class="btn h-10" (click)="clearFilters()">{{ 'projects.clearFilters' | transloco }}</button>
               } @else if (canScan && !assignedToMe()) {
@@ -148,6 +192,10 @@ export class VulnListPage implements OnInit {
   protected readonly canScan = this.auth.hasPermission('Scan.Create');
   protected readonly severities: Severity[] = ['Critical', 'High', 'Medium', 'Low', 'Info'];
   protected readonly statuses = STATUSES;
+  protected readonly sevBar = SEV_BAR;
+  protected readonly keyword = signal('');
+  /** Open items for the All / My items switch. */
+  protected readonly tabCounts = signal<{ all: number | null; mine: number | null }>({ all: null, mine: null });
 
   /** Route data (/my-items) or query params (?severity=), or set by the project tab. */
   readonly assignedToMe = input(false);
@@ -169,18 +217,29 @@ export class VulnListPage implements OnInit {
   protected readonly findingType = signal('');
   protected readonly assigneeFilter = signal('');
   protected readonly facets = signal<VulnerabilityFacets | null>(null);
-  protected readonly filtered = computed(() => this.sev() !== null || this.statusFilter() !== 'open' || !!this.findingType() || !!this.assigneeFilter());
+  protected readonly filtered = computed(() => this.sev() !== null || !!this.keyword().trim() || this.statusFilter() !== 'open' || !!this.findingType() || !!this.assigneeFilter());
   protected readonly allChecked = computed(() => this.items().length > 0 && this.items().every((v) => this.selected().has(v.id)));
 
   ngOnInit(): void {
     this.sev.set(this.severity() ?? null);
     this.load();
+    if (!this.projectId() && this.canUpdate) {
+      this.api.getAll({ isOpen: true, pageSize: 1 }).subscribe({ next: (r) => this.tabCounts.update((c) => ({ ...c, all: r.paging?.totalItems ?? 0 })) });
+      this.api.getAll({ isOpen: true, assignedToMe: true, pageSize: 1 }).subscribe({ next: (r) => this.tabCounts.update((c) => ({ ...c, mine: r.paging?.totalItems ?? 0 })) });
+    }
+  }
+
+  protected setSort(s: 'severity' | 'lastDetected'): void { this.sort.set(s); this.load(1); }
+
+  protected initials(name: string): string {
+    return name.split(/\s+/).filter(Boolean).slice(-2).map((w) => w[0]).join('').toUpperCase();
   }
 
   protected setSeverity(s: Severity | null): void { this.sev.set(s); this.load(1); }
   protected setStatus(s: StatusFilter): void { this.statusFilter.set(s); this.load(1); }
   protected clearFilters(): void {
     this.sev.set(null);
+    this.keyword.set('');
     this.statusFilter.set('open');
     this.findingType.set('');
     this.assigneeFilter.set('');
@@ -224,7 +283,7 @@ export class VulnListPage implements OnInit {
     this.error.set(null);
     const f = this.statusFilter();
     const p: VulnerabilitySearch = {
-      page, pageSize: 20, projectId: this.projectId(), assignedToMe: this.assignedToMe(), severity: this.sev() ?? undefined,
+      page, pageSize: 20, keyword: this.keyword().trim() || undefined, projectId: this.projectId(), assignedToMe: this.assignedToMe(), severity: this.sev() ?? undefined,
       sortBy: this.sort(), sortDirection: 'Desc',
       isOpen: f === 'open' ? true : f === 'closed' ? false : null, status: f === 'open' || f === 'closed' || f === 'all' ? undefined : f,
       findingType: this.findingType() || undefined, assigneeId: this.assigneeFilter() || undefined,

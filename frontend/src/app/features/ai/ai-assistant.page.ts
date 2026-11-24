@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { apiErrorMessage } from '../../core/services/base-api.service';
-import { SeverityBadge } from '../../shared/components/badges';
+import { SeverityBadge, VulnStatusBadge } from '../../shared/components/badges';
 import { AiAdvice, AiContext, Vulnerability } from '../../shared/models/api.models';
 import { AiApi, VulnerabilitiesApi } from '../api.services';
 
@@ -17,106 +17,118 @@ const SUGGESTIONS = ['ai.suggestExplain', 'ai.suggestFix', 'ai.suggestVerify'];
 // shortcut: the conversation lives in memory only (no ai_conversations table); persist it when history is needed.
 @Component({
   selector: 'app-ai-assistant',
-  imports: [FormsModule, RouterLink, TranslocoPipe, SeverityBadge],
+  imports: [FormsModule, RouterLink, TranslocoPipe, SeverityBadge, VulnStatusBadge],
   template: `
-    <div class="flex flex-col gap-5">
-      <div>
-        <h1 class="page-title">{{ 'nav.aiAssistant' | transloco }}</h1>
-        <p class="mt-1 text-sm text-ink-muted">{{ 'ai.assistantSubtitle' | transloco }}</p>
-      </div>
-
-      <div class="grid lg:grid-cols-[340px_1fr] gap-5 items-start">
-        <aside class="glass p-5 flex flex-col gap-4">
-          <div>
-            <label class="label" for="ctx">{{ 'ai.pickContext' | transloco }}</label>
-            <select id="ctx" class="input" [ngModel]="vulnId()" (ngModelChange)="pick($event)">
-              <option [ngValue]="null" disabled>{{ 'ai.pickContextPh' | transloco }}</option>
-              @for (v of vulns(); track v.id) { <option [ngValue]="v.id">[{{ v.severity }}] {{ v.title }} · {{ v.projectName }} / {{ v.targetName }}</option> }
-            </select>
-            @if (vulns().length === 0 && !loadingVulns()) { <p class="text-xs text-ink-muted mt-1">{{ 'ai.noContext' | transloco }}</p> }
-          </div>
+    <h1 class="sr-only">{{ 'nav.aiAssistant' | transloco }}</h1>
+    <div class="grid lg:grid-cols-[360px_1fr] gap-4 items-start">
+      <aside class="flex flex-col gap-4">
+        <section class="glass p-5 flex flex-col gap-2.5">
           @if (selected(); as v) {
-            <div class="flex flex-wrap items-center gap-2">
-              <app-severity-badge [severity]="v.severity" />
-              <a [routerLink]="['/vulnerabilities', v.id]" class="text-sm underline">{{ 'ai.backToVuln' | transloco }}</a>
-            </div>
+            <span class="text-[13px] font-medium text-ink-muted">{{ 'ai.analyzing' | transloco }}</span>
+            <h2 class="text-lg font-semibold leading-snug">{{ v.title }}</h2>
+            <div class="flex flex-wrap gap-2"><app-severity-badge [severity]="v.severity" /><app-vuln-status-badge [status]="v.status" /></div>
+            <a [routerLink]="['/vulnerabilities', v.id]" class="self-start text-sm hover:underline">{{ 'ai.backToVuln' | transloco }}</a>
           }
-          @if (context(); as c) {
-            <section class="flex flex-col gap-2">
-              <h2 class="text-sm font-semibold">{{ 'ai.contextTitle' | transloco }}</h2>
-              <dl class="rounded-xl bg-white/70 p-3 text-xs flex flex-col gap-1">
-                <div><dt class="inline text-ink-muted">{{ 'vulns.type' | transloco }}: </dt><dd class="inline">{{ c.findingType }}</dd></div>
-                <div><dt class="inline text-ink-muted">URL: </dt><dd class="inline break-all">{{ c.url }}</dd></div>
-                <div><dt class="inline text-ink-muted">{{ 'vulns.severity' | transloco }}: </dt><dd class="inline">{{ c.severity }}</dd></div>
-                <div><dt class="text-ink-muted">{{ 'vulns.evidence' | transloco }}:</dt><dd class="font-mono whitespace-pre-wrap break-all">{{ c.evidenceSummary }}</dd></div>
-              </dl>
-              <p class="text-xs text-ink-muted">{{ 'ai.neverSent' | transloco }}</p>
-            </section>
-          }
-        </aside>
-
-        <section class="glass p-5 flex flex-col gap-4 min-h-[480px]" aria-live="polite">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <h2 class="font-semibold">{{ 'ai.panelTitle' | transloco }}</h2>
-            <span class="mono px-1.5 border border-line rounded">{{ 'ai.generatedTag' | transloco }}</span>
-          </div>
-          <p class="text-xs text-ink-muted">{{ 'ai.disclaimer' | transloco }}</p>
-
-          <div class="flex-1 flex flex-col gap-4">
-            @for (t of turns(); track t.id) {
-              <div class="self-end max-w-[85%] rounded-2xl rounded-br-md bg-ink text-white px-4 py-2 text-sm whitespace-pre-line">{{ t.question }}</div>
-              @switch (t.state) {
-                @case ('loading') {
-                  <div class="flex items-center gap-3 text-sm text-ink-muted" role="status">
-                    <span>{{ 'ai.loadingLong' | transloco }}</span>
-                    <button type="button" class="btn h-8" (click)="stop(t)">{{ 'ai.stop' | transloco }}</button>
-                  </div>
-                }
-                @case ('error') {
-                  <div role="alert" class="rounded-xl bg-danger-bg text-danger text-sm p-3 flex flex-wrap items-center gap-3">
-                    <span class="flex-1">{{ t.error! | transloco }} {{ 'ai.nothingChanged' | transloco }}</span>
-                    <button type="button" class="btn h-8" (click)="retry(t)">{{ 'common.retry' | transloco }}</button>
-                  </div>
-                }
-                @case ('done') {
-                  <article class="max-w-[95%] rounded-2xl rounded-bl-md bg-sev-info-bg border border-line p-4 text-sm flex flex-col gap-2">
-                    <span class="mono px-1.5 border border-line rounded self-start">{{ 'ai.generatedTag' | transloco }}</span>
-                    <p class="whitespace-pre-line">{{ t.advice!.content }}</p>
-                    <p class="mono">{{ t.advice!.provider }} · {{ t.advice!.model }}</p>
-                    <div class="flex gap-2">
-                      <button type="button" class="btn h-8" (click)="copy(t)">{{ (t.copied ? 'ai.copied' : 'ai.copy') | transloco }}</button>
-                      <button type="button" class="btn h-8" [disabled]="t.saved" (click)="saveNote(t)">{{ (t.saved ? 'ai.noteSaved' : 'ai.saveNote') | transloco }}</button>
-                    </div>
-                  </article>
-                }
-              }
-            } @empty {
-              <div class="flex flex-col gap-3 items-start">
-                <p class="text-sm">{{ (vulnId() ? 'ai.emptyPrompt' : 'ai.pickFirst') | transloco }}</p>
-                @if (vulnId()) {
-                  <div class="flex flex-wrap gap-2">
-                    @for (s of suggestions; track s) {
-                      <button type="button" class="btn h-9" (click)="askSuggestion(s)">{{ s | transloco }}</button>
-                    }
-                  </div>
-                }
-              </div>
-            }
-          </div>
-          @if (actionError()) { <div role="alert" class="px-3 py-2 rounded-xl bg-danger-bg text-danger text-sm">{{ actionError()! | transloco }}</div> }
-
-          <form class="flex flex-col gap-2 border-t border-line pt-4" (ngSubmit)="ask(draft())">
-            <label class="sr-only" for="question">{{ 'ai.questionLabel' | transloco }}</label>
-            <textarea id="question" name="question" class="input h-20 py-2" maxlength="1000" [disabled]="!vulnId()"
-              [placeholder]="'ai.questionLabel' | transloco" [ngModel]="draft()" (ngModelChange)="draft.set($event)"
-              (keydown.enter)="onEnter($event)"></textarea>
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-xs text-ink-muted">{{ 'ai.readOnlyNote' | transloco }}</span>
-              <button type="submit" class="btn btn-primary" [disabled]="!vulnId() || !draft().trim() || busy()">{{ 'vulns.send' | transloco }}</button>
-            </div>
-          </form>
+          <label class="text-[13px] text-ink-muted" [class.pt-2]="selected()" [class.border-t]="selected()" [class.border-line]="selected()" for="ctx">
+            {{ (selected() ? 'ai.changeContext' : 'ai.pickContext') | transloco }}</label>
+          <select id="ctx" class="input" [ngModel]="vulnId()" (ngModelChange)="pick($event)">
+            <option [ngValue]="null" disabled>{{ 'ai.pickContextPh' | transloco }}</option>
+            @for (v of vulns(); track v.id) { <option [ngValue]="v.id">[{{ v.severity }}] {{ v.title }} · {{ v.projectName }}</option> }
+          </select>
+          @if (vulns().length === 0 && !loadingVulns()) { <p class="text-xs text-ink-muted">{{ 'ai.noContext' | transloco }}</p> }
         </section>
-      </div>
+
+        @if (context(); as c) {
+          <section class="glass p-5 flex flex-col gap-3">
+            <h2 class="font-semibold">{{ 'ai.contextTitle' | transloco }}</h2>
+            <ul class="flex flex-col gap-2.5 text-sm">
+              @for (row of [
+                { k: 'vulns.type', v: c.findingType + ' · ' + c.severity, mono: false },
+                { k: 'ai.ctxUrl', v: c.url, mono: true },
+                { k: 'ai.ctxEvidence', v: c.evidenceSummary, mono: true }
+              ]; track row.k) {
+                <li class="flex gap-2.5">
+                  <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" class="mt-0.5 shrink-0 text-ok"><path d="M5 12l5 5 9-10" /></svg>
+                  <span class="min-w-0"><span class="block">{{ row.k | transloco }}</span>
+                    <span class="block text-xs text-ink-muted break-all line-clamp-3" [class.font-mono]="row.mono">{{ row.v }}</span></span>
+                </li>
+              }
+            </ul>
+            <p class="flex gap-2.5 p-3 rounded-xl bg-danger-bg text-danger text-[13px]">
+              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="mt-0.5 shrink-0"><circle cx="12" cy="12" r="9" /><path d="M5.6 5.6l12.8 12.8" /></svg>
+              <span>{{ 'ai.neverSent' | transloco }}</span>
+            </p>
+          </section>
+        }
+      </aside>
+
+      <section class="glass overflow-hidden flex flex-col min-h-[560px]" aria-live="polite">
+        <header class="flex flex-wrap items-center gap-3 px-5 py-4 border-b border-line bg-white/40">
+          <span aria-hidden="true" class="text-lg">✦</span>
+          <span class="flex-1 min-w-0"><b class="block font-semibold">{{ 'ai.advisorTitle' | transloco }}</b>
+            <span class="block text-xs text-ink-muted">{{ 'ai.onlyLeftData' | transloco }}</span></span>
+          <span class="px-2.5 py-1 rounded-full bg-white ring-1 ring-line text-xs font-semibold">{{ 'ai.mayBeWrong' | transloco }}</span>
+        </header>
+
+        <div class="flex-1 flex flex-col gap-4 p-5">
+          @for (t of turns(); track t.id) {
+            <div class="self-end max-w-[85%] rounded-2xl rounded-br-md bg-ink text-white px-4 py-2 text-sm whitespace-pre-line">{{ t.question }}</div>
+            @switch (t.state) {
+              @case ('loading') {
+                <div class="flex items-center gap-3 text-sm text-ink-muted" role="status">
+                  <span>{{ 'ai.loadingLong' | transloco }}</span>
+                  <button type="button" class="btn h-8" (click)="stop(t)">{{ 'ai.stop' | transloco }}</button>
+                </div>
+              }
+              @case ('error') {
+                <div role="alert" class="rounded-xl bg-danger-bg text-danger text-sm p-3 flex flex-wrap items-center gap-3">
+                  <span class="flex-1">{{ t.error! | transloco }} {{ 'ai.nothingChanged' | transloco }}</span>
+                  <button type="button" class="btn h-8" (click)="retry(t)">{{ 'common.retry' | transloco }}</button>
+                </div>
+              }
+              @case ('done') {
+                <article class="max-w-[95%] rounded-2xl rounded-bl-md bg-white/80 ring-1 ring-line p-4 text-sm flex flex-col gap-2">
+                  <span class="self-start px-1.5 py-px rounded bg-ink/[.06] text-[11px] font-medium">✦ {{ 'ai.generatedTag' | transloco }}</span>
+                  <p class="whitespace-pre-line">{{ t.advice!.content }}</p>
+                  <p class="text-xs text-ink-muted">{{ 'ai.disclaimer' | transloco }} · <span class="font-mono">{{ t.advice!.provider }} · {{ t.advice!.model }}</span></p>
+                  <div class="flex gap-2">
+                    <button type="button" class="btn h-8" (click)="copy(t)">{{ (t.copied ? 'ai.copied' : 'ai.copy') | transloco }}</button>
+                    <button type="button" class="btn h-8" [disabled]="t.saved" (click)="saveNote(t)">{{ (t.saved ? 'ai.noteSaved' : 'ai.saveNote') | transloco }}</button>
+                  </div>
+                </article>
+              }
+            }
+          } @empty {
+            <div class="flex flex-col items-center gap-1 pt-6 text-center">
+              <h2 class="text-lg font-semibold">{{ (vulnId() ? 'ai.idleTitle' : 'ai.pickFirst') | transloco }}</h2>
+              @if (vulnId()) {
+                <p class="text-sm text-ink-muted">{{ 'ai.idleSub' | transloco }}</p>
+                <div class="mt-4 w-full grid md:grid-cols-3 gap-3 text-left">
+                  @for (s of suggestions; track s) {
+                    <button type="button" class="rounded-2xl ring-1 ring-line bg-white/70 p-4 text-left cursor-pointer hover:bg-white" (click)="askSuggestion(s)">
+                      <b class="block text-sm font-semibold">{{ s + 'Title' | transloco }}</b>
+                      <span class="block mt-1 text-xs text-ink-muted">{{ s + 'Sub' | transloco }}</span>
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          }
+          @if (actionError()) { <div role="alert" class="px-3 py-2 rounded-xl bg-danger-bg text-danger text-sm">{{ actionError()! | transloco }}</div> }
+        </div>
+
+        <form class="flex items-center gap-3 px-5 py-4 border-t border-line" (ngSubmit)="ask(draft())">
+          <label class="flex-1 min-w-0 flex items-center gap-2 h-12 px-3 rounded-xl border border-line bg-white/85 focus-within:border-focus">
+            @if (selected(); as v) { <span class="max-w-[30%] truncate px-2 py-0.5 rounded-md bg-ink/[.06] font-mono text-xs font-semibold">{{ v.findingType }}</span> }
+            <span class="sr-only">{{ 'ai.questionLabel' | transloco }}</span>
+            <input id="question" name="question" class="flex-1 min-w-0 bg-transparent text-sm outline-none" maxlength="1000" autocomplete="off" [disabled]="!vulnId()"
+              [placeholder]="'ai.questionPh' | transloco" [ngModel]="draft()" (ngModelChange)="draft.set($event)" />
+          </label>
+          <button type="submit" class="btn-key size-12 p-0 rounded-xl" [disabled]="!vulnId() || !draft().trim() || busy()" [attr.aria-label]="'vulns.send' | transloco">
+            <svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4z" /></svg>
+          </button>
+        </form>
+      </section>
     </div>
   `,
 })
@@ -166,13 +178,6 @@ export class AiAssistantPage implements OnInit {
     this.turns.set([]); // a new context starts a new conversation
     this.context.set(null);
     this.aiApi.getContext({ vulnerabilityId: id }).subscribe({ next: (r) => this.context.set(r.data), error: (err) => this.actionError.set(apiErrorMessage(err)) });
-  }
-
-  protected onEnter(e: Event): void {
-    const k = e as KeyboardEvent;
-    if (k.shiftKey || k.isComposing) return; // Shift+Enter = newline; don't submit mid-IME composition (Vietnamese input)
-    k.preventDefault();
-    this.ask(this.draft());
   }
 
   protected ask(question: string): void {
