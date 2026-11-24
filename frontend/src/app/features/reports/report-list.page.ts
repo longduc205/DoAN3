@@ -15,7 +15,9 @@ const STATUS_CLASS: Record<ReportStatus, string> = {
   Generating: 'text-run bg-run-bg', Ready: 'text-ok bg-ok-bg', Failed: 'text-danger bg-danger-bg',
 };
 
-// W11 Reports: list grouped by project + create dialog. Also embedded as the project "Reports" tab (projectId input).
+// W11 Reports: one glass folder per project (click to fan out its reports) + create dialog.
+// shortcut: no date range / section picker / AI summary in the dialog; reports/create takes project, title and template only.
+// Also embedded as the project "Reports" tab (projectId input).
 @Component({
   selector: 'app-report-list',
   imports: [RouterLink, FormsModule, TranslocoPipe, DatePipe, PageState, DialogComponent],
@@ -27,7 +29,8 @@ const STATUS_CLASS: Record<ReportStatus, string> = {
       background: linear-gradient(180deg, #fff, #f2f2f0); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 0 0 0.5px rgb(0 0 0 / 0.1), 0 10px 26px -8px rgb(10 12 20 / 0.28);
       transform-origin: 50% 100%; transform: translate(0, calc(42px - var(--i) * 15px));
       transition: transform 0.75s cubic-bezier(0.34, 1.36, 0.5, 1) calc(var(--i) * 40ms); }
-    .folder:hover .sheet, .folder:focus-within .sheet {
+    .folder.open { --hinge: -11deg; }
+    .folder:hover .sheet, .folder:focus-within .sheet, .folder.open .sheet {
       transform: translate(calc((var(--i) - 1) * 10px), calc(-60px - var(--i) * 14px)) rotate(calc((var(--i) - 1) * 2.5deg)); }
     .sheet:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; }
     .sheet-head { display: flex; justify-content: space-between; gap: 10px; white-space: nowrap; }
@@ -48,61 +51,80 @@ const STATUS_CLASS: Record<ReportStatus, string> = {
           </div>
         } @else { <span></span> }
         @if (canGenerate) {
-          <button type="button" class="btn btn-primary h-10 rounded-[10px] font-semibold" (click)="openCreate()">{{ 'reports.new' | transloco }}</button>
+          <button type="button" class="btn btn-primary h-10 rounded-[10px] font-semibold" (click)="openCreate()">
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>
+            {{ 'reports.new' | transloco }}</button>
         }
       </div>
       @if (actionError()) { <div role="alert" class="px-4 py-3 rounded-xl bg-danger-bg text-danger text-sm">{{ actionError()! | transloco }}</div> }
 
       <app-page-state [loading]="loading()" [error]="error()" [empty]="items().length === 0" emptyKey="reports.empty" (retry)="load()">
-        <div class="flex flex-col gap-5">
+        <ul class="grid grid-cols-[repeat(auto-fill,minmax(265px,1fr))] gap-x-6 gap-y-4 pt-14">
           @for (g of groups(); track g.projectId) {
-            <section class="flex flex-wrap items-start gap-6">
-              <div class="pt-12"><div class="folder-box">
-                <div class="folder">
-                  <div class="stage">
-                    <div class="shadow" aria-hidden="true"></div>
-                    <div class="back" aria-hidden="true"><img [src]="art(g.projectId)" alt="" width="364" height="296" /></div>
-                    <div class="sheets">
-                      @for (r of g.reports.slice(0, 3); track r.id; let i = $index) {
-                        <a class="sheet" [style.--i]="i" [routerLink]="r.status === 'Ready' ? ['/reports', r.id] : null"
-                          [attr.aria-label]="r.title" [attr.tabindex]="r.status === 'Ready' ? 0 : -1">
-                          <span class="sheet-head"><span class="sheet-name">{{ r.title }}</span>
-                            <span class="sheet-meta">{{ 'reportStatus.' + r.status | transloco }}</span></span>
-                          <span class="lines" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-                        </a>
-                      }
-                    </div>
-                    <div class="front">
-                      <div class="tint" aria-hidden="true"></div>
-                      <svg class="rim" viewBox="0 0 340 198" aria-hidden="true">
-                        <path [attr.d]="frontPath" stroke="rgb(255 255 255 / 0.8)" stroke-width="2.4" />
-                      </svg>
-                      <div class="label">
-                        <span class="title">{{ g.projectName }}</span>
-                        <span class="meta">{{ 'reports.count' | transloco: { count: g.reports.length } }}</span>
-                      </div>
+            <li class="folder-box">
+              <div class="folder" [class.open]="openId() === g.projectId">
+                <div class="stage">
+                  <div class="shadow" aria-hidden="true"></div>
+                  <div class="back" aria-hidden="true"><img [src]="art(g.projectId)" alt="" width="364" height="296" /></div>
+                  <div class="sheets">
+                    @for (r of g.reports.slice(0, 3); track r.id; let i = $index) {
+                      <a class="sheet" [style.--i]="i" [routerLink]="r.status === 'Ready' ? ['/reports', r.id] : null"
+                        [attr.aria-label]="r.title" [attr.tabindex]="r.status === 'Ready' && openId() === g.projectId ? 0 : -1">
+                        <span class="sheet-head"><span class="sheet-name">{{ r.title }}</span>
+                          <span class="sheet-meta">{{ 'reportStatus.' + r.status | transloco }}</span></span>
+                        <span class="lines" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+                      </a>
+                    }
+                  </div>
+                  <div class="front">
+                    <div class="tint" aria-hidden="true"></div>
+                    <svg class="rim" viewBox="0 0 340 198" aria-hidden="true">
+                      <path [attr.d]="frontPath" stroke="rgb(255 255 255 / 0.8)" stroke-width="2.4" />
+                    </svg>
+                    <button type="button" class="hit cursor-pointer" [attr.aria-expanded]="openId() === g.projectId" [attr.aria-controls]="'rl-' + g.projectId"
+                      [attr.aria-label]="'reports.openFolder' | transloco: { name: g.projectName, count: g.reports.length }" (click)="toggle(g.projectId)"></button>
+                    <div class="label">
+                      <span class="title">{{ g.projectName }}</span>
+                      <span class="meta">{{ 'reports.count' | transloco: { count: g.reports.length } }} ·
+                        @if (g.reports[0].status === 'Failed') { {{ 'reports.metaFailed' | transloco }} } @else { {{ g.reports[0].createdAt | date: 'dd/MM' }} }</span>
                     </div>
                   </div>
+                  @if (canGenerate) {
+                    <button type="button" class="btn-key key size-[58px] p-0 rounded-[18px]" [attr.aria-label]="'reports.newFor' | transloco: { name: g.projectName }"
+                      (click)="openCreate(g.projectId)">
+                      <svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 4.5v15M4.5 12h15" /></svg>
+                    </button>
+                  }
                 </div>
-              </div></div>
-              <ul class="flex-1 min-w-[260px] flex flex-col gap-2 pt-12">
-                @for (r of g.reports; track r.id) {
-                  <li class="rounded-2xl bg-white/80 border border-line p-3 flex flex-wrap items-center gap-2">
-                    @if (r.status === 'Ready') {
-                      <a [routerLink]="['/reports', r.id]" class="font-medium hover:underline flex-1 min-w-0 truncate">{{ r.title }}</a>
-                    } @else { <span class="font-medium flex-1 min-w-0 truncate">{{ r.title }}</span> }
-                    <span class="px-2 py-0.5 rounded-md text-xs font-medium whitespace-nowrap" [class]="statusClass[r.status]">{{ 'reportStatus.' + r.status | transloco }}</span>
-                    <span class="mono w-full">{{ 'reportTemplate.' + r.template | transloco }} · {{ r.createdAt | date: 'dd/MM/yyyy HH:mm' }} · {{ r.createdByName }}</span>
-                    @if (r.status === 'Failed') {
-                      <span class="text-sm text-danger">{{ r.errorSafe }}</span>
-                      @if (canGenerate) { <button type="button" class="btn h-8" (click)="retry(r)">{{ 'common.retry' | transloco }}</button> }
-                    }
-                  </li>
-                }
-              </ul>
-            </section>
+              </div>
+            </li>
           }
-        </div>
+        </ul>
+        <p class="mt-2 text-[13px] text-ink-muted">{{ 'reports.hint' | transloco }}</p>
+
+        @if (openGroup(); as g) {
+          <section [id]="'rl-' + g.projectId" class="glass mt-4 overflow-hidden" [attr.aria-label]="g.projectName">
+            <h2 class="px-5 pt-4 pb-2 font-semibold">{{ g.projectName }} <span class="font-normal text-ink-muted">{{ g.reports.length }}</span></h2>
+            <ul>
+              @for (r of g.reports; track r.id) {
+                <li class="flex flex-wrap items-center gap-3 px-5 py-3 border-t border-line text-sm">
+                  <span class="flex-1 min-w-0">
+                    @if (r.status === 'Ready') {
+                      <a [routerLink]="['/reports', r.id]" class="block font-medium truncate hover:underline">{{ r.title }}</a>
+                    } @else { <span class="block font-medium truncate">{{ r.title }}</span> }
+                    <span class="block text-xs text-ink-muted">{{ 'reportTemplate.' + r.template | transloco }} · {{ r.createdAt | date: 'dd/MM/yyyy HH:mm' }} · {{ r.createdByName }}</span>
+                  </span>
+                  @if (r.status === 'Failed') {
+                    <span class="text-danger">{{ r.errorSafe }}</span>
+                    @if (canGenerate) { <button type="button" class="btn h-8" (click)="retry(r)">{{ 'common.retry' | transloco }}</button> }
+                  }
+                  <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap" [class]="statusClass[r.status]">
+                    <span aria-hidden="true" class="size-1.5 rounded-full bg-current"></span>{{ 'reportStatus.' + r.status | transloco }}</span>
+                </li>
+              }
+            </ul>
+          </section>
+        }
       </app-page-state>
 
       <app-dialog [open]="createOpen()" [heading]="'reports.new' | transloco" (closed)="createOpen.set(false)">
@@ -162,6 +184,8 @@ export class ReportListPage implements OnInit {
   protected readonly formProject = signal<string | null>(null);
   protected readonly formTemplate = signal<ReportTemplate>('Technical');
   protected readonly formTitle = signal('');
+  protected readonly openId = signal<string | null>(null);
+  protected readonly openGroup = computed(() => this.groups().find((g) => g.projectId === this.openId()) ?? null);
   protected readonly targetProject = computed(() => this.projectId() ?? this.formProject());
   protected readonly groups = computed(() => {
     const map = new Map<string, { projectId: string; projectName: string; reports: Report[] }>();
@@ -192,7 +216,12 @@ export class ReportListPage implements OnInit {
     });
   }
 
-  protected openCreate(): void {
+  protected toggle(id: string): void {
+    this.openId.set(this.openId() === id ? null : id);
+  }
+
+  protected openCreate(projectId: string | null = null): void {
+    this.formProject.set(projectId);
     this.createError.set(null);
     this.formTitle.set('');
     this.createOpen.set(true);

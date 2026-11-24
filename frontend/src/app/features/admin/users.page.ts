@@ -1,7 +1,6 @@
-import { DatePipe } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../core/auth/auth.service';
 import { apiErrorMessage } from '../../core/services/base-api.service';
@@ -14,89 +13,119 @@ import { UsersApi } from '../api.services';
 // shortcut: no create user yet (needs a password / invite flow); add with account lifecycle.
 @Component({
   selector: 'app-users',
-  imports: [FormsModule, TranslocoPipe, DatePipe, PageState, DialogComponent],
+  imports: [FormsModule, TranslocoPipe, PageState, DialogComponent],
   template: `
-    <div class="flex flex-col gap-5">
+    <div class="flex flex-col gap-4">
       <div>
         <h1 class="page-title">{{ 'nav.users' | transloco }}</h1>
         <p class="mt-1 text-sm text-ink-muted">{{ 'users.subtitle' | transloco: { count: users().length } }}</p>
       </div>
 
-      <dl class="grid grid-cols-3 gap-3">
-        <div class="glass p-4"><dt class="text-sm text-ink-muted">{{ 'users.total' | transloco }}</dt><dd class="text-2xl font-semibold">{{ users().length }}</dd></div>
-        <div class="glass p-4"><dt class="text-sm text-ink-muted">{{ 'users.active' | transloco }}</dt><dd class="text-2xl font-semibold">{{ activeCount() }}</dd></div>
-        <div class="glass p-4"><dt class="text-sm text-ink-muted">{{ 'users.locked' | transloco }}</dt><dd class="text-2xl font-semibold" [class.text-danger]="users().length - activeCount() > 0">{{ users().length - activeCount() }}</dd></div>
+      <dl class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div class="glass p-4"><dt class="text-[13px] text-ink-muted">{{ 'users.total' | transloco }}</dt><dd class="text-xl font-semibold">{{ users().length }}</dd></div>
+        <div class="glass p-4"><dt class="text-[13px] text-ink-muted">{{ 'users.active' | transloco }}</dt><dd class="text-xl font-semibold">{{ activeCount() }}</dd></div>
+        <div class="glass p-4"><dt class="text-[13px] text-ink-muted">{{ 'users.locked' | transloco }}</dt><dd class="text-xl font-semibold" [class.text-danger]="users().length - activeCount() > 0">{{ users().length - activeCount() }}</dd></div>
+        <div class="glass p-4 flex flex-col gap-2"><dt class="text-[13px] text-ink-muted">{{ 'users.byRole' | transloco }}</dt>
+          <dd class="flex gap-1 h-1.5" aria-hidden="true">
+            @for (r of matrix(); track r.role) {
+              @if (countByRole()[r.role]) { <span class="rounded-full" [class]="roleBar[r.role] ?? 'bg-ink/30'" [style.flex-grow]="countByRole()[r.role]"></span> }
+            }
+          </dd>
+          <dd class="text-xs text-ink-muted">
+            @for (r of matrix(); track r.role; let last = $last) {
+              @if (countByRole()[r.role]) { {{ 'roles.' + r.role | transloco }} {{ countByRole()[r.role] }}@if (!last) { · } }
+            }
+          </dd></div>
       </dl>
-
-      <div class="flex flex-wrap items-center gap-2.5">
-        <select class="h-9 px-2.5 rounded-[10px] border border-line bg-white text-sm" [attr.aria-label]="'users.role' | transloco"
-          [ngModel]="roleFilter()" (ngModelChange)="roleFilter.set($event)">
-          <option value="">{{ 'users.allRoles' | transloco }}</option>
-          @for (r of matrix(); track r.role) { <option [value]="r.role">{{ 'roles.' + r.role | transloco }} ({{ countByRole()[r.role] ?? 0 }})</option> }
-        </select>
-        <div role="group" [attr.aria-label]="'common.status' | transloco" class="flex p-[3px] rounded-[10px] bg-black/[.04]">
-          @for (f of statusFilters; track f.key) {
-            <button type="button" class="min-h-[34px] px-3 rounded-lg text-[13px] cursor-pointer" [attr.aria-pressed]="statusFilter() === f.value"
-              [class]="statusFilter() === f.value ? 'bg-white font-semibold' : 'text-ink-muted hover:text-ink'" (click)="statusFilter.set(f.value)">{{ f.key | transloco }}</button>
-          }
-        </div>
-      </div>
 
       @if (actionError()) { <div role="alert" class="px-4 py-3 rounded-xl bg-danger-bg text-danger text-sm">{{ actionError()! | transloco }}</div> }
       @if (notice()) { <div role="status" class="px-4 py-3 rounded-xl bg-ok-bg text-ok text-sm">{{ notice()! | transloco }}</div> }
 
-      <div class="grid lg:grid-cols-[1fr_360px] gap-5 items-start">
-        <section class="rounded-2xl border border-line bg-white overflow-x-auto">
-          <app-page-state [loading]="loading()" [error]="error()" (retry)="load()">
-            <table class="table">
-              <thead><tr><th>{{ 'users.name' | transloco }}</th><th>{{ 'users.role' | transloco }}</th><th>{{ 'common.status' | transloco }}</th><th>{{ 'users.lastLogin' | transloco }}</th></tr></thead>
-              <tbody>
-                @for (u of visibleUsers(); track u.id) {
-                  <tr class="cursor-pointer hover:bg-black/[.02]" [class.bg-black/[.04]]="selected()?.id === u.id" (click)="select(u)">
-                    <td>
-                      <button type="button" class="flex items-center gap-3 text-left cursor-pointer" (click)="select(u); $event.stopPropagation()">
-                        <span class="grid place-items-center size-8 shrink-0 rounded-full bg-ink text-white text-xs font-semibold" aria-hidden="true">{{ initials(u.fullName) }}</span>
-                        <span><span class="font-medium">{{ u.fullName }}</span>@if (u.id === meId) { <span class="mono"> · {{ 'users.you' | transloco }}</span> }
-                          <span class="mono block">{{ u.email }}</span></span>
-                      </button>
-                    </td>
-                    <td>{{ 'roles.' + u.role | transloco }}</td>
-                    <td><span class="px-2 py-0.5 rounded-md text-xs font-medium" [class]="u.isActive ? 'text-ok bg-ok-bg' : 'text-danger bg-danger-bg'">{{ (u.isActive ? 'users.active' : 'users.locked') | transloco }}</span></td>
-                    <td class="whitespace-nowrap">{{ u.lastLoginAt ? (u.lastLoginAt | date: 'dd/MM HH:mm') : '—' }}</td>
-                  </tr>
-                }
-              </tbody>
-            </table>
+      <div class="grid lg:grid-cols-[1fr_420px] gap-4 items-start">
+        <section class="glass overflow-hidden">
+          <div class="flex flex-wrap items-center gap-2 p-3 border-b border-line">
+            <label class="flex-[1_1_220px] min-w-0 flex items-center gap-2 h-10 px-3 rounded-xl bg-ink/[.04] text-ink-muted">
+              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
+              <input type="search" class="flex-1 min-w-0 bg-transparent text-sm text-ink outline-none" [placeholder]="'users.searchPh' | transloco"
+                [attr.aria-label]="'users.searchPh' | transloco" [ngModel]="keyword()" (ngModelChange)="keyword.set($event)" />
+            </label>
+            <select class="h-10 px-2.5 rounded-xl border border-line bg-white text-sm" [attr.aria-label]="'users.role' | transloco"
+              [ngModel]="roleFilter()" (ngModelChange)="roleFilter.set($event)">
+              <option value="">{{ 'users.allRoles' | transloco }}</option>
+              @for (r of matrix(); track r.role) { <option [value]="r.role">{{ 'roles.' + r.role | transloco }}</option> }
+            </select>
+            <select class="h-10 px-2.5 rounded-xl border border-line bg-white text-sm" [attr.aria-label]="'common.status' | transloco"
+              [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+              @for (f of statusFilters; track f.key) { <option [ngValue]="f.value">{{ f.key | transloco }}</option> }
+            </select>
+          </div>
+          <app-page-state [loading]="loading()" [error]="error()" [empty]="visibleUsers().length === 0" emptyKey="users.noResults" (retry)="load()">
+            <div class="overflow-x-auto">
+              <table class="table">
+                <thead><tr><th>{{ 'users.name' | transloco }}</th><th>{{ 'users.role' | transloco }}</th><th>{{ 'common.status' | transloco }}</th><th>{{ 'users.lastLogin' | transloco }}</th></tr></thead>
+                <tbody>
+                  @for (u of visibleUsers(); track u.id) {
+                    <tr class="cursor-pointer hover:bg-white/40" [class.bg-ink/[.04]]="selected()?.id === u.id" (click)="select(u)">
+                      <td>
+                        <button type="button" class="flex items-center gap-3 text-left cursor-pointer" (click)="select(u); $event.stopPropagation()">
+                          <span class="grid place-items-center size-8 shrink-0 rounded-full text-[11px] font-bold" [class]="avatar(u.fullName)" aria-hidden="true">{{ initials(u.fullName) }}</span>
+                          <span><span class="font-semibold">{{ u.fullName }}</span>@if (u.id === meId) { <span class="text-xs text-ink-muted"> ({{ 'users.you' | transloco }})</span> }
+                            <span class="block text-xs text-ink-muted">{{ u.email }}</span></span>
+                        </button>
+                      </td>
+                      <td><span class="px-2 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap" [class]="rolePill[u.role] ?? 'bg-ink/[.06]'">{{ 'roles.' + u.role | transloco }}</span></td>
+                      <td>
+                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold" [class]="u.isActive ? 'text-ok' : 'px-2 py-0.5 rounded-full bg-danger-bg text-danger'">
+                          @if (u.isActive) { <span aria-hidden="true" class="size-1.5 rounded-full bg-current"></span> }
+                          @else { <svg aria-hidden="true" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg> }
+                          {{ (u.isActive ? 'users.active' : 'users.locked') | transloco }}</span>
+                      </td>
+                      <td class="whitespace-nowrap text-ink-muted">{{ lastLogin(u.lastLoginAt) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
           </app-page-state>
         </section>
 
         <aside class="glass p-5 flex flex-col gap-4">
           @if (selected(); as u) {
-            <div>
-              <h2 class="font-semibold">{{ u.fullName }}</h2>
-              <p class="mono">{{ u.userName }} · {{ u.email }}</p>
+            <div class="flex items-center gap-3">
+              <span class="grid place-items-center size-12 shrink-0 rounded-full text-sm font-bold" [class]="avatar(u.fullName)" aria-hidden="true">{{ initials(u.fullName) }}</span>
+              <div class="min-w-0"><h2 class="text-lg font-semibold">{{ u.fullName }}</h2><p class="text-[13px] text-ink-muted truncate">{{ u.userName }} · {{ u.email }}</p></div>
             </div>
             <fieldset class="flex flex-col gap-2" [disabled]="u.id === meId">
-              <legend class="label">{{ 'users.role' | transloco }}</legend>
+              <legend class="mb-2 text-sm font-semibold">{{ 'users.role' | transloco }}</legend>
               @for (r of matrix(); track r.role) {
-                <label class="flex items-center gap-2 text-sm rounded-xl border border-line bg-white/70 p-2.5 cursor-pointer">
-                  <input type="radio" name="role" [value]="r.role" [ngModel]="draftRole()" (ngModelChange)="draftRole.set($event)" />
-                  {{ 'roles.' + r.role | transloco }}
+                <label class="flex items-center gap-2.5 text-sm rounded-xl border p-3 cursor-pointer" [class]="draftRole() === r.role ? 'border-ink bg-white' : 'border-line bg-white/60'">
+                  <input type="radio" name="role" class="accent-ink" [value]="r.role" [ngModel]="draftRole()" (ngModelChange)="draftRole.set($event)" />
+                  <span>{{ 'roles.' + r.role | transloco }}
+                    @if (draftRole() === r.role && r.role !== u.role) { <span class="text-xs text-ink-muted"> · {{ 'users.current' | transloco: { role: ('roles.' + u.role | transloco) } }}</span> }</span>
                 </label>
               }
             </fieldset>
-            @if (u.id === meId) { <p class="text-sm text-warn">{{ 'users.ownRole' | transloco }}</p> }
-            <div>
+            <div class="rounded-2xl bg-ink/[.04] p-4">
               <h3 class="text-sm font-semibold mb-2">{{ 'users.permissionsOf' | transloco: { role: ('roles.' + draftRole() | transloco) } }}</h3>
-              <ul class="flex flex-wrap gap-1.5">
-                @for (p of draftPermissions(); track p) { <li class="mono px-2 py-0.5 rounded-md bg-white/80 border border-line text-ink">{{ p }}</li> }
+              <ul class="flex flex-col gap-1.5 text-[13px]">
+                @for (p of draftPermissions(); track p) {
+                  <li class="flex items-center gap-2">
+                    <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" class="shrink-0"><path d="M5 12l5 5 9-10" /></svg>
+                    {{ 'perm.' + p | transloco }}</li>
+                }
               </ul>
-              <p class="text-xs text-ink-muted mt-2">{{ 'users.readOnlyMatrix' | transloco }}</p>
             </div>
-            <button type="button" class="btn btn-primary" [disabled]="u.id === meId || draftRole() === u.role" (click)="confirmOpen.set(true)">{{ 'users.changeRole' | transloco }}</button>
-            @if (u.id !== meId) {
-              <button type="button" class="btn" [class.btn-danger]="u.isActive" (click)="lockOpen.set(true)">{{ (u.isActive ? 'users.lock' : 'users.unlock') | transloco }}</button>
-            }
+            <p class="flex gap-2 text-xs text-ink-muted">
+              <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="mt-px shrink-0"><circle cx="12" cy="12" r="9" /><path d="M12 8h.01M12 11v5" /></svg>
+              {{ (u.id === meId ? 'users.ownRole' : 'users.readOnlyMatrix') | transloco }}</p>
+            <div class="flex flex-wrap items-center gap-2">
+              @if (u.id !== meId) {
+                <button type="button" class="px-1 text-sm cursor-pointer hover:underline" [class]="u.isActive ? 'text-danger' : 'text-ok'" (click)="lockOpen.set(true)">{{ (u.isActive ? 'users.lock' : 'users.unlock') | transloco }}</button>
+              }
+              <span class="flex-1"></span>
+              <button type="button" class="btn h-11" [disabled]="draftRole() === u.role" (click)="draftRole.set(u.role)">{{ 'common.cancel' | transloco }}</button>
+              <button type="button" class="btn btn-primary h-11 font-semibold" [disabled]="u.id === meId || draftRole() === u.role" (click)="confirmOpen.set(true)">{{ 'users.saveChanges' | transloco }}</button>
+            </div>
           } @else {
             <p class="text-sm text-ink-muted">{{ 'users.pick' | transloco }}</p>
           }
@@ -106,13 +135,16 @@ import { UsersApi } from '../api.services';
       <app-dialog [open]="confirmOpen()" [heading]="'users.confirmTitle' | transloco" (closed)="confirmOpen.set(false)">
         @if (selected(); as u) {
           <p class="text-sm">{{ 'users.confirmBody' | transloco: { name: u.fullName, from: ('roles.' + u.role | transloco), to: ('roles.' + draftRole() | transloco) } }}</p>
+          <p class="flex items-center gap-2 text-sm">
+            <span class="px-2.5 py-1 rounded-full bg-ink/[.06] font-semibold">{{ 'roles.' + u.role | transloco }}</span><span aria-hidden="true">→</span>
+            <span class="px-2.5 py-1 rounded-full bg-ink text-white font-semibold">{{ 'roles.' + draftRole() | transloco }}</span></p>
           @if (diff().gained.length) {
             <div><h3 class="text-sm font-semibold text-ok">{{ 'users.gained' | transloco }}</h3>
-              <ul class="flex flex-wrap gap-1.5 mt-1">@for (p of diff().gained; track p) { <li class="mono px-2 py-0.5 rounded-md bg-ok-bg text-ok">+ {{ p }}</li> }</ul></div>
+              <ul class="flex flex-wrap gap-1.5 mt-1">@for (p of diff().gained; track p) { <li class="px-2 py-0.5 rounded-md bg-ok-bg text-ok text-xs">+ {{ 'perm.' + p | transloco }}</li> }</ul></div>
           }
           @if (diff().lost.length) {
             <div><h3 class="text-sm font-semibold text-danger">{{ 'users.lost' | transloco }}</h3>
-              <ul class="flex flex-wrap gap-1.5 mt-1">@for (p of diff().lost; track p) { <li class="mono px-2 py-0.5 rounded-md bg-danger-bg text-danger">− {{ p }}</li> }</ul></div>
+              <ul class="flex flex-wrap gap-1.5 mt-1">@for (p of diff().lost; track p) { <li class="px-2 py-0.5 rounded-md bg-danger-bg text-danger text-xs">− {{ 'perm.' + p | transloco }}</li> }</ul></div>
           }
           <p class="text-xs text-ink-muted">{{ 'users.reloginNote' | transloco }}</p>
           <div class="flex justify-end gap-2">
@@ -136,6 +168,7 @@ import { UsersApi } from '../api.services';
 })
 export class UsersPage implements OnInit {
   private readonly api = inject(UsersApi);
+  private readonly transloco = inject(TranslocoService);
   protected readonly meId = inject(AuthService).user()?.id;
 
   protected readonly users = signal<UserAdmin[]>([]);
@@ -153,9 +186,17 @@ export class UsersPage implements OnInit {
   protected readonly statusFilters: { key: string; value: boolean | null }[] = [
     { key: 'projects.tabAll', value: null }, { key: 'users.active', value: true }, { key: 'users.locked', value: false },
   ];
+  protected readonly keyword = signal('');
+  protected readonly rolePill: Partial<Record<string, string>> = { Admin: 'bg-ink text-white', SecurityAnalyst: 'bg-ink/[.07]', Developer: 'bg-run-bg text-run', Viewer: 'bg-sev-info-bg text-sev-info' };
+  protected readonly roleBar: Partial<Record<string, string>> = { Admin: 'bg-ink', SecurityAnalyst: 'bg-ink/60', Developer: 'bg-run', Viewer: 'bg-ink/25' };
   protected readonly activeCount = computed(() => this.users().filter((u) => u.isActive).length);
-  protected readonly visibleUsers = computed(() => this.users().filter((u) =>
-    (!this.roleFilter() || u.role === this.roleFilter()) && (this.statusFilter() === null || u.isActive === this.statusFilter())));
+  // shortcut: filters run client-side on the first 100 users (lab-sized); move to users/get-all params if the list grows.
+  protected readonly visibleUsers = computed(() => {
+    const kw = this.keyword().trim().toLowerCase();
+    return this.users().filter((u) =>
+      (!this.roleFilter() || u.role === this.roleFilter()) && (this.statusFilter() === null || u.isActive === this.statusFilter()) &&
+      (!kw || u.fullName.toLowerCase().includes(kw) || u.email.toLowerCase().includes(kw) || u.userName.toLowerCase().includes(kw)));
+  });
 
   protected readonly countByRole = computed(() =>
     this.users().reduce<Partial<Record<string, number>>>((m, u) => ({ ...m, [u.role]: (m[u.role] ?? 0) + 1 }), {}));
@@ -191,6 +232,23 @@ export class UsersPage implements OnInit {
     this.selected.set(u);
     this.draftRole.set(u.role);
     this.notice.set(null);
+  }
+
+  /** Stable pastel avatar per name. */
+  protected avatar(name: string): string {
+    const tones = ['bg-sev-medium-bg text-sev-medium', 'bg-sev-high-bg text-sev-high-ink', 'bg-ok-bg text-ok', 'bg-run-bg text-run', 'bg-sev-critical-bg text-sev-critical-ink'];
+    let h = 0;
+    for (const c of name) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+    return tones[h % tones.length];
+  }
+
+  protected lastLogin(at: string | null): string {
+    if (!at) return '—';
+    const d = new Date(at);
+    const days = Math.floor((new Date().setHours(0, 0, 0, 0) - new Date(at).setHours(0, 0, 0, 0)) / 86400000);
+    if (days === 0) return this.transloco.translate('users.today');
+    if (days === 1) return this.transloco.translate('users.yesterday');
+    return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
   }
 
   protected initials(name: string): string {

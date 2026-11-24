@@ -126,6 +126,7 @@
     "allTypes": "Mọi loại", "allAssignees": "Mọi người xử lý", "reasonMin": "Tối thiểu {{min}} ký tự ({{count}}/{{min}})"
   },
   "reports": {
+    "openFolder": "Mở thư mục {{name}}, {{count}} report", "newFor": "Tạo report cho {{name}}", "metaFailed": "LỖI", "hint": "Rê chuột để hé thư mục, bấm để mở và chọn report. Nút + tạo report mới cho project đó.",
     "subtitle": "Báo cáo là ảnh chụp số liệu tại thời điểm tạo; muốn cập nhật thì tạo báo cáo mới.", "new": "Tạo report", "empty": "Chưa có báo cáo nào.", "project": "Project", "pickProject": "Chọn project", "template": "Mẫu báo cáo", "title": "Tiêu đề", "titlePh": "Để trống để tự đặt tên", "systemOnly": "Báo cáo chỉ chứa số liệu hệ thống, không có nội dung do AI tạo.", "generate": "Tạo báo cáo", "generatedBy": "Tạo lúc {{date}} bởi {{name}}", "pdf": "Tải PDF / In", "summary": "Tóm tắt", "systemData": "SYSTEM DATA", "topOpen": "Lỗ hổng đang mở nghiêm trọng nhất", "allVulns": "Tất cả lỗ hổng", "noVulns": "Không có lỗ hổng nào.", "footer": "Số liệu được chụp tại thời điểm tạo báo cáo và không thay đổi về sau.",
     "count": "{{count}} báo cáo"
   },
@@ -139,14 +140,24 @@
     "Admin": "Admin", "SecurityAnalyst": "Security Analyst", "Developer": "Developer", "Viewer": "Viewer"
   },
   "users": {
+    "byRole": "Theo role", "searchPh": "Tìm theo tên hoặc email", "noResults": "Không có user nào khớp bộ lọc.", "current": "hiện tại: {{role}}", "saveChanges": "Lưu thay đổi", "today": "Hôm nay", "yesterday": "Hôm qua",
     "subtitle": "{{count}} tài khoản. Mỗi tài khoản có đúng một vai trò; quyền cố định theo vai trò.", "name": "Người dùng", "role": "Vai trò", "lastLogin": "Đăng nhập gần nhất", "you": "bạn", "active": "Hoạt động", "locked": "Đã khoá", "pick": "Chọn một người dùng để xem và đổi vai trò.", "ownRole": "Bạn không thể đổi vai trò của chính mình.", "permissionsOf": "Quyền của {{role}}", "readOnlyMatrix": "Bảng quyền chỉ đọc; quyền đi theo vai trò.", "changeRole": "Đổi vai trò", "confirmTitle": "Xác nhận đổi vai trò", "confirmBody": "Đổi vai trò của {{name}} từ {{from}} sang {{to}}. Thay đổi được ghi vào audit log.", "gained": "Quyền được thêm", "lost": "Quyền bị mất", "reloginNote": "Quyền mới có hiệu lực khi người dùng đăng nhập lại.", "saved": "Đã đổi vai trò.",
     "total": "Tổng số", "allRoles": "Mọi vai trò", "lock": "Khoá tài khoản", "unlock": "Mở khoá", "lockBody": "{{name}} sẽ không đăng nhập được nữa. Phiên đang mở hết hạn trong tối đa 60 phút. Thao tác được ghi vào audit log.", "unlockBody": "{{name}} sẽ đăng nhập lại được. Thao tác được ghi vào audit log.", "unlocked": "Đã mở khoá tài khoản.", "lockedNotice": "Đã khoá tài khoản."
   },
   "audit": {
+    "subtitleLong": "Nhật ký bất biến của mọi thao tác nhạy cảm. Dữ liệu bí mật luôn được che.", "readOnlyPill": "Chỉ đọc", "blocked403": "Bị chặn", "allResults": "Mọi kết quả", "detailTitle": "Chi tiết sự kiện", "changes": "Thay đổi", "openEntity": "Mở {{entity}}",
+    "rulesTitle": "Quy tắc audit", "rule1": "Log chỉ ghi thêm, không ai sửa hay xoá được, kể cả Admin.", "rule3": "Scan bị từ chối vì target ngoài scope được ghi với kết quả Bị chặn.",
     "subtitle": "{{count}} sự kiện · chỉ đọc", "result": "Kết quả", "result_Success": "Thành công", "result_Blocked": "Bị chặn", "result_Failed": "Thất bại", "entity": "Đối tượng", "allEntities": "Mọi đối tượng", "entity_User": "Người dùng", "entity_Project": "Project", "entity_Target": "Target", "entity_Scan": "Scan", "entity_Vulnerability": "Lỗ hổng", "entity_Report": "Report", "from": "Từ", "to": "Đến", "searchPh": "Tìm trong mô tả…", "empty": "Không có sự kiện khớp bộ lọc.", "time": "Thời gian", "actor": "Người thực hiện", "pick": "Chọn một sự kiện để xem chi tiết.", "readOnly": "Audit log không sửa hay xoá được.", "maskedNote": "Mật khẩu, token, cookie đã được che (••••) trước khi lưu; IP bị ẩn phần cuối.",
     "export": "Xuất CSV", "last7": "Sự kiện 7 ngày", "failedLogins": "Đăng nhập thất bại", "perDay": "Theo ngày (7 ngày)", "allActors": "Mọi người thực hiện"
   },
   "crumb": {
     "projectDetail": "Chi tiết", "scanDetail": "Chi tiết scan", "vulnDetail": "Chi tiết lỗ hổng", "reportDetail": "Chi tiết báo cáo", "targetNew": "Thêm target", "targetEdit": "Sửa target"
+  },
+  "perm": {
+    "AI": { "Ask": "Hỏi AI về lỗ hổng" }, "AuditLog": { "View": "Xem audit log" },
+    "Project": { "Create": "Tạo project", "Update": "Sửa project & target, xác nhận scope", "View": "Xem project & target" },
+    "Report": { "Generate": "Tạo report", "View": "Xem report" }, "Role": { "Manage": "Quản lý role" },
+    "Scan": { "Create": "Chạy / huỷ scan", "View": "Xem scan" }, "User": { "Manage": "Quản lý user" },
+    "Vulnerability": { "Triage": "Triage, giao việc, xác minh, đóng FP / Accepted Risk", "Update": "Cập nhật lỗ hổng được giao", "View": "Xem lỗ hổng" }
   }
 }

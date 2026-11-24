@@ -126,6 +126,7 @@
     "allTypes": "All types", "allAssignees": "All assignees", "reasonMin": "At least {{min}} characters ({{count}}/{{min}})"
   },
   "reports": {
+    "openFolder": "Open folder {{name}}, {{count}} reports", "newFor": "Create a report for {{name}}", "metaFailed": "FAILED", "hint": "Hover to peek into a folder, click to open it and pick a report. The + button creates a new report for that project.",
     "subtitle": "A report is a snapshot taken when it is generated; create a new one to update it.", "new": "New report", "empty": "No reports yet.", "project": "Project", "pickProject": "Choose a project", "template": "Template", "title": "Title", "titlePh": "Leave empty for an automatic title", "systemOnly": "The report only contains system data, no AI-generated text.", "generate": "Generate", "generatedBy": "Generated {{date}} by {{name}}", "pdf": "Download PDF / Print", "summary": "Summary", "systemData": "SYSTEM DATA", "topOpen": "Most severe open vulnerabilities", "allVulns": "All vulnerabilities", "noVulns": "No vulnerabilities.", "footer": "Figures were captured when the report was generated and do not change afterwards.",
     "count": "{{count}} reports"
   },
@@ -139,14 +140,24 @@
     "Admin": "Admin", "SecurityAnalyst": "Security Analyst", "Developer": "Developer", "Viewer": "Viewer"
   },
   "users": {
+    "byRole": "By role", "searchPh": "Search by name or email", "noResults": "No users match the filters.", "current": "current: {{role}}", "saveChanges": "Save changes", "today": "Today", "yesterday": "Yesterday",
     "subtitle": "{{count}} accounts. Each has exactly one role; permissions are fixed per role.", "name": "User", "role": "Role", "lastLogin": "Last sign-in", "you": "you", "active": "Active", "locked": "Locked", "pick": "Pick a user to view and change their role.", "ownRole": "You cannot change your own role.", "permissionsOf": "Permissions of {{role}}", "readOnlyMatrix": "Read-only: permissions come with the role.", "changeRole": "Change role", "confirmTitle": "Confirm role change", "confirmBody": "Change {{name}} from {{from}} to {{to}}. The change is recorded in the audit log.", "gained": "Permissions gained", "lost": "Permissions lost", "reloginNote": "New permissions apply after the user signs in again.", "saved": "Role updated.",
     "total": "Total", "allRoles": "All roles", "lock": "Lock account", "unlock": "Unlock", "lockBody": "{{name}} will no longer be able to sign in. Open sessions expire within 60 minutes. This is recorded in the audit log.", "unlockBody": "{{name}} will be able to sign in again. This is recorded in the audit log.", "unlocked": "Account unlocked.", "lockedNotice": "Account locked."
   },
   "audit": {
+    "subtitleLong": "Immutable log of every sensitive action. Secrets are always masked.", "readOnlyPill": "Read-only", "blocked403": "Blocked", "allResults": "All results", "detailTitle": "Event details", "changes": "Changes", "openEntity": "Open {{entity}}",
+    "rulesTitle": "Audit rules", "rule1": "The log is append-only: nobody can edit or delete it, not even an Admin.", "rule3": "Scans rejected because the target is out of scope are recorded as Blocked.",
     "subtitle": "{{count}} events · read-only", "result": "Result", "result_Success": "Success", "result_Blocked": "Blocked", "result_Failed": "Failed", "entity": "Entity", "allEntities": "All entities", "entity_User": "User", "entity_Project": "Project", "entity_Target": "Target", "entity_Scan": "Scan", "entity_Vulnerability": "Vulnerability", "entity_Report": "Report", "from": "From", "to": "To", "searchPh": "Search descriptions…", "empty": "No events match the filters.", "time": "Time", "actor": "Actor", "pick": "Pick an event to see its details.", "readOnly": "Audit entries cannot be edited or deleted.", "maskedNote": "Passwords, tokens and cookies were masked (••••) before storing; the last part of the IP is hidden.",
     "export": "Export CSV", "last7": "Events, last 7 days", "failedLogins": "Failed sign-ins", "perDay": "Per day (7 days)", "allActors": "All actors"
   },
   "crumb": {
     "projectDetail": "Details", "scanDetail": "Scan details", "vulnDetail": "Vulnerability details", "reportDetail": "Report details", "targetNew": "Add target", "targetEdit": "Edit target"
+  },
+  "perm": {
+    "AI": { "Ask": "Ask AI about vulnerabilities" }, "AuditLog": { "View": "View audit log" },
+    "Project": { "Create": "Create projects", "Update": "Edit projects & targets, confirm scope", "View": "View projects & targets" },
+    "Report": { "Generate": "Generate reports", "View": "View reports" }, "Role": { "Manage": "Manage roles" },
+    "Scan": { "Create": "Run / cancel scans", "View": "View scans" }, "User": { "Manage": "Manage users" },
+    "Vulnerability": { "Triage": "Triage, assign, verify, close as FP / Accepted Risk", "Update": "Update assigned vulnerabilities", "View": "View vulnerabilities" }
   }
 }

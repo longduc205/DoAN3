@@ -34,17 +34,18 @@ const SEV_BAR: Record<Severity, string> = {
               </div>
             </div>
 
-            <section class="glass p-5 flex flex-col gap-4">
-              <div class="flex items-center justify-between gap-2">
-                <h2 class="font-semibold">{{ 'reports.summary' | transloco }}</h2>
+            <div class="rounded-md bg-white px-6 py-8 md:px-12 md:py-10 flex flex-col gap-8 shadow-[0_0_0_.5px_rgb(0_0_0/.1),0_24px_48px_-24px_rgb(10_12_20/.35)]">
+            <section class="flex flex-col gap-4">
+              <div class="flex items-center justify-between gap-2 pb-2 border-b border-line">
+                <h2 class="font-semibold"><span class="text-ink-muted mr-2">1</span>{{ 'reports.summary' | transloco }}</h2>
                 <span class="mono px-1.5 border border-line rounded">{{ 'reports.systemData' | transloco }}</span>
               </div>
               <dl class="grid grid-cols-2 md:grid-cols-5 gap-3">
-                <div class="rounded-xl bg-white/70 p-3"><dt class="text-xs text-ink-muted">{{ 'dashboard.riskScore' | transloco }}</dt><dd class="text-2xl font-semibold">{{ s.riskScore }}/100</dd></div>
-                <div class="rounded-xl bg-white/70 p-3"><dt class="text-xs text-ink-muted">{{ 'dashboard.openVulns' | transloco }}</dt><dd class="text-2xl font-semibold">{{ s.openVulnerabilities }}</dd></div>
-                <div class="rounded-xl bg-white/70 p-3"><dt class="text-xs text-ink-muted">{{ 'nav.targets' | transloco }}</dt><dd class="text-2xl font-semibold">{{ s.targets }}</dd></div>
-                <div class="rounded-xl bg-white/70 p-3"><dt class="text-xs text-ink-muted">{{ 'nav.scans' | transloco }}</dt><dd class="text-2xl font-semibold">{{ s.scans }}</dd></div>
-                <div class="rounded-xl bg-white/70 p-3"><dt class="text-xs text-ink-muted">{{ 'projects.lastScanLabel' | transloco }}</dt><dd class="font-semibold">{{ s.lastScanAt ? (s.lastScanAt | date: 'dd/MM/yyyy') : '—' }}</dd></div>
+                <div class="rounded-xl bg-ink/[.03] p-3"><dt class="text-xs text-ink-muted">{{ 'dashboard.riskScore' | transloco }}</dt><dd class="text-2xl font-semibold">{{ s.riskScore }}/100</dd></div>
+                <div class="rounded-xl bg-ink/[.03] p-3"><dt class="text-xs text-ink-muted">{{ 'dashboard.openVulns' | transloco }}</dt><dd class="text-2xl font-semibold">{{ s.openVulnerabilities }}</dd></div>
+                <div class="rounded-xl bg-ink/[.03] p-3"><dt class="text-xs text-ink-muted">{{ 'nav.targets' | transloco }}</dt><dd class="text-2xl font-semibold">{{ s.targets }}</dd></div>
+                <div class="rounded-xl bg-ink/[.03] p-3"><dt class="text-xs text-ink-muted">{{ 'nav.scans' | transloco }}</dt><dd class="text-2xl font-semibold">{{ s.scans }}</dd></div>
+                <div class="rounded-xl bg-ink/[.03] p-3"><dt class="text-xs text-ink-muted">{{ 'projects.lastScanLabel' | transloco }}</dt><dd class="font-semibold">{{ s.lastScanAt ? (s.lastScanAt | date: 'dd/MM/yyyy') : '—' }}</dd></div>
               </dl>
               @if (s.openVulnerabilities > 0) {
                 <div class="flex h-3 rounded-full overflow-hidden bg-black/5" role="img" [attr.aria-label]="'dashboard.bySeverity' | transloco">
@@ -55,14 +56,14 @@ const SEV_BAR: Record<Severity, string> = {
               }
               <ul class="grid grid-cols-5 gap-2">
                 @for (sev of severities; track sev) {
-                  <li class="rounded-xl bg-white/70 p-3 flex flex-col gap-1 items-start"><app-severity-badge [severity]="sev" /><span class="text-xl font-semibold">{{ s.openBySeverity[sev] ?? 0 }}</span></li>
+                  <li class="rounded-xl bg-ink/[.03] p-3 flex flex-col gap-1 items-start"><app-severity-badge [severity]="sev" /><span class="text-xl font-semibold">{{ s.openBySeverity[sev] ?? 0 }}</span></li>
                 }
               </ul>
             </section>
 
-            <section class="glass overflow-x-auto">
-              <div class="flex items-center justify-between gap-2 px-5 pt-4 pb-2">
-                <h2 class="font-semibold">{{ (r.template === 'Executive' ? 'reports.topOpen' : 'reports.allVulns') | transloco }}</h2>
+            <section class="overflow-x-auto">
+              <div class="flex items-center justify-between gap-2 pb-2 border-b border-line">
+                <h2 class="font-semibold"><span class="text-ink-muted mr-2">2</span>{{ (r.template === 'Executive' ? 'reports.topOpen' : 'reports.allVulns') | transloco }}</h2>
                 <span class="mono px-1.5 border border-line rounded">{{ 'reports.systemData' | transloco }}</span>
               </div>
               <table class="table">
@@ -84,7 +85,8 @@ const SEV_BAR: Record<Severity, string> = {
                 </tbody>
               </table>
             </section>
-            <p class="text-xs text-ink-muted">{{ 'reports.footer' | transloco }}</p>
+            <p class="pt-4 border-t border-line text-xs text-ink-muted">{{ 'reports.footer' | transloco }}</p>
+            </div>
           </article>
         } @else {
           <div role="alert" class="glass p-6 text-danger">{{ r.errorSafe ?? ('reportStatus.' + r.status | transloco) }}</div>
