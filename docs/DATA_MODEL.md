@@ -22,6 +22,13 @@ erDiagram
   targets ||--o{ vulnerabilities : has
   vulnerabilities ||--o{ vulnerability_comments : discussed
   vulnerabilities ||--o{ vulnerability_histories : logged
+  users ||--o{ vulnerabilities : assigned
+  projects ||--o{ reports : reported_in
+  audit_logs {
+    uuid user_id "no FK, survives user changes"
+    string entity_type
+    uuid entity_id
+  }
 ```
 
 | Table | Notes |

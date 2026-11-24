@@ -25,4 +25,4 @@
 1. Passive `SecurityHeadersDetector` with `ICrawler`/`IVulnerabilityDetector`, request limits and redirect scope checks.
 2. Refresh tokens (HttpOnly cookie); create / lock users; log policy 403s to the audit trail.
 3. Real AI provider adapter behind `IAiAdvisor` with timeouts and safe error mapping; AI conversations.
-4. Upgrade to .NET 10 LTS before .NET 8 end of support (10 Nov 2026).
+4. Upgrade to .NET 10 LTS: .NET 8 reached end of support on 10 Nov 2026 and no longer gets security patches.
