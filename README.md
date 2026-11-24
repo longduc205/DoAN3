@@ -45,8 +45,8 @@ Hoặc chạy toàn bộ bằng Docker: `docker compose up --build` rồi mở h
 1. Đăng nhập `analyst`.
 2. Projects → **Tạo project**.
 3. Mở project → **Thêm target**, ví dụ `http://localhost:3000`, tick **"Tôi sở hữu hoặc được ủy quyền…"**.
-4. Bấm **Quét** → trang scan tự cập nhật Queued → Running → Completed, hiện 3 finding mẫu.
-5. Bấm **AI giải thích** / **AI gợi ý khắc phục** → phản hồi mock, gắn nhãn AI-assisted.
+4. Bấm **Chạy scan** → trang scan tự cập nhật Queued → Running → Completed, hiện 3 finding mẫu.
+5. Mở một lỗ hổng → **Phân tích bằng AI** → trang AI Assistant (giải thích / gợi ý khắc phục) → phản hồi mock, gắn nhãn AI-assisted.
 6. Target chưa tick ủy quyền → bấm Quét bị từ chối (`SCAN_SCOPE_REJECTED`), không có job nào được tạo.
 
 Mock engine **không gửi request mạng nào**; findings là dữ liệu mẫu.
@@ -59,4 +59,4 @@ dotnet test backend/WebSecPlatform.sln
 cd frontend && npx ng build && npx ng test --watch=false
 ```
 
-Chi tiết: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) · Quy tắc cho coding agent: [AGENTS.md](AGENTS.md)
+Chi tiết: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) · Bàn giao (§16): [docs/HANDOFF.md](docs/HANDOFF.md) · Quy tắc cho coding agent: [AGENTS.md](AGENTS.md)
