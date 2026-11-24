@@ -80,10 +80,12 @@
   },
   "scopeMode": { "SameHostPathPrefix": "Cùng host + đường dẫn con", "ExactUrl": "Chỉ đúng URL", "hint_SameHostPathPrefix": "Chỉ các URL cùng host và nằm dưới đường dẫn gốc.", "hint_ExactUrl": "Chỉ đúng URL gốc, không đi theo link." },
   "scans": {
+    "titleOn": "Scan trên {{target}}", "startedAt": "bắt đầu {{time}}", "createdAt": "tạo {{time}}", "elapsed": "đã chạy {{min}} phút", "phaseOf": "Phase {{n}}/3 · {{phase}}",
+    "phaseDesc_crawl": "tìm URL & form", "phaseDesc_detect": "chạy check", "phaseDesc_analyze": "đối chiếu", "findingsOfScan": "Findings của scan này", "openInVulns": "Mở trong Vulnerabilities", "autoRefresh": "tự cập nhật",
     "target": "Target", "progress": "Tiến độ", "findings": "Findings", "urls": "URL", "requests": "Request", "cancel": "Huỷ scan",
     "noFindings": "Chưa có finding.", "startFromProject": "Bắt đầu scan từ trang chi tiết project.",
     "mockNotice": "MOCK ENGINE: không gửi request mạng; findings là dữ liệu mẫu.",
-    "subtitle": "{{count}} scan", "findingCount": "{{count}} finding", "retry": "Retry (tạo scan mới)", "bannerQueued": "Scan đang chờ worker nhận. Trang tự cập nhật.", "bannerCancelling": "Đang huỷ: worker sẽ dừng sau bước hiện tại.", "bannerCancelled": "Scan đã bị huỷ lúc {{date}}. Kết quả đến lúc huỷ vẫn được giữ.", "bannerFailed": "Scan thất bại.", "bannerZero": "Không phát hiện vấn đề nào trong phạm vi đã quét. Điều này không đảm bảo ứng dụng an toàn.", "phase_crawl": "Crawl", "phase_detect": "Detect", "phase_analyze": "Analyze", "phaseState_done": "XONG", "phaseState_now": "ĐANG CHẠY", "phaseState_wait": "CHỜ", "phaseState_fail": "LỖI", "phaseState_stop": "DỪNG", "cancelTitle": "Huỷ scan?", "cancelBody": "Scan trên \"{{name}}\" sẽ dừng. Không tiếp tục được; muốn chạy lại thì dùng Retry.",
+    "subtitle": "{{count}} scan", "findingCount": "{{count}} finding", "retry": "Retry (tạo scan mới)", "bannerQueued": "Scan đang chờ worker nhận. Trang tự cập nhật.", "bannerCancelling": "Đang huỷ: worker sẽ dừng sau bước hiện tại.", "bannerCancelled": "Scan đã bị huỷ lúc {{date}}. Kết quả đến lúc huỷ vẫn được giữ.", "bannerFailed": "Scan thất bại.", "bannerZero": "Không phát hiện vấn đề nào trong phạm vi đã quét. Điều này không đảm bảo ứng dụng an toàn.", "phase_crawl": "Crawl", "phase_detect": "Detect", "phase_analyze": "Analyze", "phaseState_done": "xong", "phaseState_now": "đang chạy", "phaseState_wait": "chờ", "phaseState_fail": "lỗi", "phaseState_stop": "dừng", "cancelTitle": "Huỷ scan?", "cancelBody": "Scan trên \"{{name}}\" sẽ dừng. Không tiếp tục được; muốn chạy lại thì dùng Retry.",
     "findingSummary": "Tóm tắt finding", "tag_New": "Mới", "tag_Known": "Đã biết", "tag_Reappeared": "Tái phát", "eventLog": "Nhật ký sự kiện", "evQueued": "Scan được tạo, vào hàng đợi", "evStarted": "Worker nhận job, bắt đầu quét", "evFinding": "Phát hiện {{title}} · {{severity}}", "evCompleted": "Hoàn tất, {{count}} finding", "evFailed": "Thất bại {{error}}", "evCancelled": "Đã huỷ"
   },
   "scanStatus": {
@@ -105,8 +107,9 @@
     "title": "Không đủ quyền", "body": "Tài khoản của bạn không có quyền mở trang này. Liên hệ quản trị viên nếu bạn cần truy cập.", "back": "Về Dashboard"
   },
   "wizard": {
+    "subtitleReview": "Bước cuối: kiểm tra lại mọi thứ trước khi scanner gửi request.", "changeTarget": "Đổi target", "editOnTarget": "Sửa ở trang Target", "network": "Request mạng", "networkNone": "Không", "current": "Bước hiện tại",
     "title": "Scan mới", "subtitle": "Chỉ target đã bật và đã xác nhận ủy quyền mới chọn được.", "steps": "Các bước", "stepTarget": "Target", "stepScope": "Phạm vi", "stepReview": "Review & chạy", "pickTarget": "Chọn target", "scope": "Phạm vi sẽ quét", "engine": "Engine", "engineMock": "Mock (không gửi request)", "review": "Kiểm tra lại trước khi chạy", "back": "Quay lại", "next": "Tiếp", "start": "Bắt đầu scan", "confirmTitle": "Xác nhận chạy scan", "confirmBody": "Scan sẽ chạy trên host {{host}}. Gõ lại host để xác nhận bạn đang chọn đúng target.", "typeHost": "Gõ lại host",
-    "queueInfo": "Hiện có {{count}} scan đang chờ trong hàng đợi."
+    "queueInfo": "Hàng đợi hiện có {{count}} scan, bạn có thể rời trang trong lúc scan chạy."
   },
   "vulnStatus": {
     "Open": "Open", "Triaged": "Triaged", "Assigned": "Đã giao", "InProgress": "Đang xử lý", "PendingVerification": "Chờ xác minh", "Resolved": "Đã xử lý", "Reopened": "Mở lại", "FalsePositive": "False positive", "AcceptedRisk": "Chấp nhận rủi ro"

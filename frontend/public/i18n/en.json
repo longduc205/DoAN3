@@ -80,10 +80,12 @@
   },
   "scopeMode": { "SameHostPathPrefix": "Same host + sub-paths", "ExactUrl": "Exact URL only", "hint_SameHostPathPrefix": "Only URLs on the same host under the base path.", "hint_ExactUrl": "Only the exact base URL, no link following." },
   "scans": {
+    "titleOn": "Scan on {{target}}", "startedAt": "started {{time}}", "createdAt": "created {{time}}", "elapsed": "ran {{min}} min", "phaseOf": "Phase {{n}}/3 · {{phase}}",
+    "phaseDesc_crawl": "find URLs & forms", "phaseDesc_detect": "run checks", "phaseDesc_analyze": "correlate", "findingsOfScan": "Findings of this scan", "openInVulns": "Open in Vulnerabilities", "autoRefresh": "auto-refresh",
     "target": "Target", "progress": "Progress", "findings": "Findings", "urls": "URLs", "requests": "Requests", "cancel": "Cancel scan",
     "noFindings": "No findings yet.", "startFromProject": "Start a scan from a project detail page.",
     "mockNotice": "MOCK ENGINE: no network requests are sent; findings are sample data.",
-    "subtitle": "{{count}} scans", "findingCount": "{{count}} findings", "retry": "Retry (new scan)", "bannerQueued": "Waiting for a worker to pick up the scan. This page refreshes itself.", "bannerCancelling": "Cancelling: the worker stops after the current step.", "bannerCancelled": "Scan cancelled at {{date}}. Results up to that point are kept.", "bannerFailed": "Scan failed.", "bannerZero": "No issues found in the scanned scope. This does not guarantee the app is secure.", "phase_crawl": "Crawl", "phase_detect": "Detect", "phase_analyze": "Analyze", "phaseState_done": "DONE", "phaseState_now": "RUNNING", "phaseState_wait": "WAITING", "phaseState_fail": "FAILED", "phaseState_stop": "STOPPED", "cancelTitle": "Cancel scan?", "cancelBody": "The scan on \"{{name}}\" will stop. It cannot be resumed; use Retry to run it again.",
+    "subtitle": "{{count}} scans", "findingCount": "{{count}} findings", "retry": "Retry (new scan)", "bannerQueued": "Waiting for a worker to pick up the scan. This page refreshes itself.", "bannerCancelling": "Cancelling: the worker stops after the current step.", "bannerCancelled": "Scan cancelled at {{date}}. Results up to that point are kept.", "bannerFailed": "Scan failed.", "bannerZero": "No issues found in the scanned scope. This does not guarantee the app is secure.", "phase_crawl": "Crawl", "phase_detect": "Detect", "phase_analyze": "Analyze", "phaseState_done": "done", "phaseState_now": "running", "phaseState_wait": "waiting", "phaseState_fail": "failed", "phaseState_stop": "stopped", "cancelTitle": "Cancel scan?", "cancelBody": "The scan on \"{{name}}\" will stop. It cannot be resumed; use Retry to run it again.",
     "findingSummary": "Finding summary", "tag_New": "New", "tag_Known": "Known", "tag_Reappeared": "Reappeared", "eventLog": "Event log", "evQueued": "Scan created and queued", "evStarted": "Worker picked up the job and started", "evFinding": "Found {{title}} · {{severity}}", "evCompleted": "Completed with {{count}} findings", "evFailed": "Failed {{error}}", "evCancelled": "Cancelled"
   },
   "scanStatus": {
@@ -105,8 +107,9 @@
     "title": "Not allowed", "body": "Your account cannot open this page. Ask an administrator if you need access.", "back": "Back to dashboard"
   },
   "wizard": {
+    "subtitleReview": "Last step: check everything before the scanner sends a request.", "changeTarget": "Change target", "editOnTarget": "Edit on the target page", "network": "Network requests", "networkNone": "None", "current": "Current step",
     "title": "New scan", "subtitle": "Only enabled targets with confirmed authorization can be selected.", "steps": "Steps", "stepTarget": "Target", "stepScope": "Scope", "stepReview": "Review & run", "pickTarget": "Choose a target", "scope": "Scope to scan", "engine": "Engine", "engineMock": "Mock (no requests sent)", "review": "Check before running", "back": "Back", "next": "Next", "start": "Start scan", "confirmTitle": "Confirm scan", "confirmBody": "The scan will run against {{host}}. Retype the host to confirm this is the right target.", "typeHost": "Retype the host",
-    "queueInfo": "{{count}} scans are waiting in the queue."
+    "queueInfo": "{{count}} scans are in the queue; you can leave this page while the scan runs."
   },
   "vulnStatus": {
     "Open": "Open", "Triaged": "Triaged", "Assigned": "Assigned", "InProgress": "In progress", "PendingVerification": "Pending verification", "Resolved": "Resolved", "Reopened": "Reopened", "FalsePositive": "False positive", "AcceptedRisk": "Accepted risk"

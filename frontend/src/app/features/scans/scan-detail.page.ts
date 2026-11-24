@@ -6,11 +6,11 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { switchMap, takeWhile, timer } from 'rxjs';
 import { AuthService } from '../../core/auth/auth.service';
 import { apiErrorMessage } from '../../core/services/base-api.service';
-import { SeverityBadge, StatusBadge, VulnStatusBadge } from '../../shared/components/badges';
+import { SeverityBadge, StatusBadge } from '../../shared/components/badges';
 import { DialogComponent } from '../../shared/components/dialog';
 import { PageState } from '../../shared/components/page-state';
-import { AiAdvice, OccurrenceTag, Scan, ScanFinding } from '../../shared/models/api.models';
-import { AiApi, ScansApi } from '../api.services';
+import { OccurrenceTag, Scan, ScanFinding, Severity } from '../../shared/models/api.models';
+import { ScansApi } from '../api.services';
 
 const POLL_MS = 1500;
 type PhaseState = 'done' | 'now' | 'wait' | 'fail' | 'stop';
@@ -18,145 +18,152 @@ const PHASE_CLASS: Record<PhaseState, string> = {
   done: 'bg-ok-bg text-ok', now: 'bg-run-bg text-run', wait: 'bg-black/[.04] text-ink-muted',
   fail: 'bg-danger-bg text-danger', stop: 'bg-sev-info-bg text-sev-info',
 };
-const TAG_CLASS: Record<OccurrenceTag, string> = { New: 'text-run bg-run-bg', Known: 'text-sev-info bg-sev-info-bg', Reappeared: 'text-warn bg-warn-bg' };
+const TAG_CLASS: Record<OccurrenceTag, string> = { New: 'text-run bg-run-bg', Known: 'text-ink', Reappeared: 'text-warn bg-warn-bg' };
 type EventLevel = 'INFO' | 'RUN' | 'FIND' | 'OK' | 'FAIL' | 'STOP';
-const EVENT_CLASS: Record<EventLevel, string> = { INFO: 'text-ink-muted', RUN: 'text-run', FIND: 'text-warn', OK: 'text-ok', FAIL: 'text-danger', STOP: 'text-sev-info' };
+const EVENT_CLASS: Record<EventLevel, string> = { INFO: 'text-ink', RUN: 'text-ink', FIND: 'text-danger', OK: 'text-ok', FAIL: 'text-danger', STOP: 'text-sev-info' };
+const SEV_CLASS: Record<Severity, string> = {
+  Critical: 'bg-sev-critical-bg text-sev-critical-ink', High: 'bg-sev-high-bg text-sev-high-ink', Medium: 'bg-sev-medium-bg text-sev-medium',
+  Low: 'bg-sev-low-bg text-sev-low', Info: 'bg-sev-info-bg text-sev-info',
+};
 // shortcut: phases are derived from progress % (mock engine reports 10/40/75/100); add a real phase field with a real engine.
 const PHASES = [{ key: 'crawl', end: 40 }, { key: 'detect', end: 100 }, { key: 'analyze', end: 101 }] as const;
 
 @Component({
   selector: 'app-scan-detail',
-  imports: [RouterLink, TranslocoPipe, DatePipe, PageState, StatusBadge, SeverityBadge, VulnStatusBadge, DialogComponent],
+  imports: [RouterLink, TranslocoPipe, DatePipe, PageState, StatusBadge, SeverityBadge, DialogComponent],
   template: `
     <app-page-state [loading]="loading()" [error]="error()" (retry)="load()">
       @if (scan(); as s) {
-        <div class="flex flex-col gap-5">
-          <div class="flex flex-wrap items-start justify-between gap-4">
-            <div class="min-w-0">
-              <div class="flex flex-wrap items-center gap-2">
-                <h1 class="page-title">{{ s.targetName }}</h1>
-                <app-status-badge [status]="s.status" />
+        <div class="flex flex-col gap-4">
+          <section class="glass p-5 flex flex-col gap-4">
+            <div class="flex flex-wrap items-start gap-4">
+              <span class="grid place-items-center size-12 shrink-0 rounded-2xl bg-run-bg text-run" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="4.5" /><path d="M12 12l6-6" /></svg>
+              </span>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center gap-2">
+                  <h1 class="page-title">{{ 'scans.titleOn' | transloco: { target: s.targetName } }}</h1>
+                  <app-status-badge [status]="s.status" />
+                </div>
+                <p class="mt-1 text-sm text-ink-muted break-all">
+                  <span class="font-mono text-ink">{{ host() }}</span> · {{ s.scanType }}
+                  @if (s.startedAt) { · {{ 'scans.startedAt' | transloco: { time: (s.startedAt | date: 'HH:mm dd/MM') } }} · {{ 'scans.elapsed' | transloco: { min: elapsedMin() } }} }
+                  @else { · {{ 'scans.createdAt' | transloco: { time: (s.createdAt | date: 'HH:mm dd/MM') } }} }
+                </p>
               </div>
-              <p class="mono mt-1 break-all">{{ s.targetBaseUrl }} · {{ s.scanType }} · {{ s.createdAt | date: 'dd/MM/yyyy HH:mm' }}</p>
-            </div>
-            @if (canScan) {
               <div class="flex gap-2">
-                @if (s.status === 'Queued' || s.status === 'Running') {
-                  <button type="button" class="btn btn-danger h-10" (click)="cancelOpen.set(true)">{{ 'scans.cancel' | transloco }}</button>
+                @if (canScan && (s.status === 'Queued' || s.status === 'Running')) {
+                  <button type="button" class="btn h-10 border-danger/40 text-danger hover:bg-danger-bg" (click)="cancelOpen.set(true)">
+                    <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="6" y="6" width="12" height="12" rx="2" /></svg>
+                    {{ 'scans.cancel' | transloco }}</button>
                 }
-                @if (s.status === 'Failed' || s.status === 'Cancelled') {
+                @if (canScan && (s.status === 'Failed' || s.status === 'Cancelled')) {
                   <button type="button" class="btn btn-primary h-10" (click)="retry(s)">{{ 'scans.retry' | transloco }}</button>
                 }
+                @if (s.status === 'Completed' && canReport) {
+                  <a routerLink="/reports" class="btn h-10">{{ 'reports.new' | transloco }}</a>
+                }
               </div>
-            }
-            @if (s.status === 'Completed' && canReport) {
-              <a routerLink="/reports" class="btn h-10">{{ 'reports.new' | transloco }}</a>
-            }
-          </div>
-
-          @switch (s.status) {
-            @case ('Queued') { <div role="status" class="px-4 py-3 rounded-xl bg-run-bg text-run text-sm">{{ 'scans.bannerQueued' | transloco }}</div> }
-            @case ('Cancelling') { <div role="status" class="px-4 py-3 rounded-xl bg-warn-bg text-warn text-sm">{{ 'scans.bannerCancelling' | transloco }}</div> }
-            @case ('Cancelled') { <div role="status" class="px-4 py-3 rounded-xl bg-sev-info-bg text-sev-info text-sm">{{ 'scans.bannerCancelled' | transloco: { date: (s.completedAt | date: 'dd/MM HH:mm') } }}</div> }
-            @case ('Failed') {
-              <div role="alert" class="px-4 py-3 rounded-xl bg-danger-bg text-danger text-sm">
-                <b class="font-semibold">{{ 'scans.bannerFailed' | transloco }}</b>
-                @if (s.errorMessageSafe) { <span class="mono text-danger"> {{ s.errorCode }}</span> · {{ s.errorMessageSafe }} }
-              </div>
-            }
-            @case ('Completed') {
-              @if (s.totalFindings === 0) { <div role="status" class="px-4 py-3 rounded-xl bg-ok-bg text-ok text-sm">{{ 'scans.bannerZero' | transloco }}</div> }
-            }
-          }
-
-          <section class="glass p-5 flex flex-col gap-4">
-            <div class="flex items-center justify-between">
-              <h2 class="font-semibold">{{ 'scans.progress' | transloco }}</h2>
-              <span class="mono">{{ s.progressPercent }}%</span>
             </div>
-            <div class="h-1.5 rounded-full bg-black/10 overflow-hidden" role="progressbar" [attr.aria-valuenow]="s.progressPercent" aria-valuemin="0" aria-valuemax="100" [attr.aria-label]="'scans.progress' | transloco">
-              <div class="h-full bg-ink transition-[width] duration-500" [style.width.%]="s.progressPercent"></div>
+
+            @switch (s.status) {
+              @case ('Queued') { <div role="status" class="px-4 py-3 rounded-xl bg-run-bg text-run text-sm">{{ 'scans.bannerQueued' | transloco }}</div> }
+              @case ('Cancelling') { <div role="status" class="px-4 py-3 rounded-xl bg-warn-bg text-warn text-sm">{{ 'scans.bannerCancelling' | transloco }}</div> }
+              @case ('Cancelled') { <div role="status" class="px-4 py-3 rounded-xl bg-sev-info-bg text-sev-info text-sm">{{ 'scans.bannerCancelled' | transloco: { date: (s.completedAt | date: 'dd/MM HH:mm') } }}</div> }
+              @case ('Failed') {
+                <div role="alert" class="px-4 py-3 rounded-xl bg-danger-bg text-danger text-sm">
+                  <b class="font-semibold">{{ 'scans.bannerFailed' | transloco }}</b>
+                  @if (s.errorMessageSafe) { <span class="font-mono"> {{ s.errorCode }}</span> · {{ s.errorMessageSafe }} }
+                </div>
+              }
+            }
+
+            <div class="flex items-center justify-between text-sm">
+              <b class="font-semibold">
+                @if (currentPhase(); as cp) { {{ 'scans.phaseOf' | transloco: { n: cp.n, phase: ('scans.phase_' + cp.key | transloco) } }} }
+                @else { {{ 'scans.progress' | transloco }} }
+              </b>
+              <b class="font-semibold">{{ s.progressPercent }}%</b>
             </div>
-            <ol class="grid md:grid-cols-3 gap-3">
-              @for (ph of phases(); track ph.key) {
-                <li class="rounded-xl p-3 flex items-center gap-2 text-sm" [class]="phaseClass[ph.state]">
-                  <span class="mono text-inherit">{{ 'scans.phaseState_' + ph.state | transloco }}</span>
-                  <span class="font-medium">{{ 'scans.phase_' + ph.key | transloco }}</span>
+            <div class="h-2 rounded-full bg-black/10 overflow-hidden" role="progressbar" [attr.aria-valuenow]="s.progressPercent" aria-valuemin="0" aria-valuemax="100" [attr.aria-label]="'scans.progress' | transloco">
+              <div class="h-full rounded-full bg-ink transition-[width] duration-500" [style.width.%]="s.progressPercent"></div>
+            </div>
+            <ol class="grid md:grid-cols-3 gap-2.5">
+              @for (ph of phases(); track ph.key; let i = $index) {
+                <li class="rounded-xl px-3 py-2.5 flex items-center gap-2 text-[13px]" [class]="phaseClass[ph.state]">
+                  <b class="font-semibold">{{ i + 1 }}</b>
+                  <span class="flex-1 min-w-0 truncate"><span class="font-medium">{{ 'scans.phase_' + ph.key | transloco }}</span> · {{ 'scans.phaseDesc_' + ph.key | transloco }}</span>
+                  <span>{{ 'scans.phaseState_' + ph.state | transloco }}</span>
                 </li>
               }
             </ol>
-            <dl class="grid grid-cols-3 gap-4 text-sm">
-              <div><dt class="text-ink-muted">{{ 'scans.urls' | transloco }}</dt><dd class="text-xl font-semibold">{{ s.totalUrls }}</dd></div>
-              <div><dt class="text-ink-muted">{{ 'scans.requests' | transloco }}</dt><dd class="text-xl font-semibold">{{ s.totalRequests }}</dd></div>
-              <div><dt class="text-ink-muted">{{ 'scans.findings' | transloco }}</dt><dd class="text-xl font-semibold">{{ s.totalFindings }}</dd></div>
+            <dl class="grid grid-cols-3 gap-4 pt-4 border-t border-line">
+              <div><dt class="text-[13px] text-ink-muted">{{ 'scans.urls' | transloco }}</dt><dd class="text-xl font-semibold">{{ s.totalUrls }}</dd></div>
+              <div><dt class="text-[13px] text-ink-muted">{{ 'scans.requests' | transloco }}</dt><dd class="text-xl font-semibold">{{ s.totalRequests }}</dd></div>
+              <div><dt class="text-[13px] text-ink-muted">{{ 'scans.findings' | transloco }}</dt><dd class="text-xl font-semibold">{{ s.totalFindings }}</dd></div>
             </dl>
             @if (s.scanType === 'Mock') { <p class="mono">{{ 'scans.mockNotice' | transloco }}</p> }
           </section>
 
-          <section class="glass">
-            <div class="flex flex-wrap items-center justify-between gap-3 px-5 pt-4 pb-2">
-              <h2 class="font-semibold">{{ 'scans.findings' | transloco }}</h2>
-              @if (findings().length > 0) {
-                <ul class="flex flex-wrap gap-1.5 text-xs" [attr.aria-label]="'scans.findingSummary' | transloco">
-                  @for (t of tagCounts(); track t.tag) {
-                    <li class="px-2 py-0.5 rounded-md font-medium" [class]="tagClass[t.tag]">{{ 'scans.tag_' + t.tag | transloco }} {{ t.count }}</li>
+          <div class="grid lg:grid-cols-[2fr_1fr] gap-4 items-start">
+            <section class="glass overflow-hidden">
+              <div class="flex flex-col gap-3 px-5 pt-4 pb-3">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <h2 class="font-semibold">{{ 'scans.findingsOfScan' | transloco }}</h2>
+                  <a routerLink="/vulnerabilities" [queryParams]="{ projectId: s.projectId }" class="text-sm font-medium underline underline-offset-4">{{ 'scans.openInVulns' | transloco }} →</a>
+                </div>
+                @if (findings().length > 0) {
+                  <ul class="flex flex-wrap items-center gap-1.5 text-[13px]" [attr.aria-label]="'scans.findingSummary' | transloco">
+                    @for (c of sevCounts(); track c.sev) {
+                      <li class="px-2.5 py-0.5 rounded-full font-medium" [class]="sevClass[c.sev]">{{ 'severity.' + c.sev | transloco }} {{ c.count }}</li>
+                    }
+                    <li aria-hidden="true" class="mx-1 h-5 w-px bg-line"></li>
+                    @for (t of tagCounts(); track t.tag) {
+                      <li class="px-2.5 py-0.5 rounded-full font-medium" [class]="tagClass[t.tag]">{{ 'scans.tag_' + t.tag | transloco }} {{ t.count }}</li>
+                    }
+                  </ul>
+                }
+              </div>
+              @if (findings().length === 0 && s.status === 'Completed') {
+                <div class="mx-5 mb-5 p-5 rounded-2xl bg-ok-bg text-ok text-sm">{{ 'scans.bannerZero' | transloco }}</div>
+              } @else {
+                <ul>
+                  @for (f of findings(); track f.id) {
+                    <li class="flex items-center gap-3 px-5 py-3 border-t border-line">
+                      <app-severity-badge [severity]="f.severity" />
+                      <div class="flex-1 min-w-0">
+                        @if (f.vulnerabilityId) {
+                          <a [routerLink]="['/vulnerabilities', f.vulnerabilityId]" class="block font-medium truncate hover:underline">{{ f.title }} · <span class="font-mono text-[13px]">{{ path(f.url) }}</span></a>
+                        } @else { <span class="block font-medium truncate">{{ f.title }} · <span class="font-mono text-[13px]">{{ path(f.url) }}</span></span> }
+                        <span class="block text-[13px] text-ink-muted truncate">
+                          {{ f.detectorName }} · {{ 'confidence.' + f.confidence | transloco }}
+                          @if (f.vulnerabilityStatus) { · {{ 'vulnStatus.' + f.vulnerabilityStatus | transloco }} }
+                        </span>
+                      </div>
+                      @if (f.occurrenceTag) { <span class="px-2 py-0.5 rounded-full text-xs font-medium" [class]="tagClass[f.occurrenceTag]">{{ 'scans.tag_' + f.occurrenceTag | transloco }}</span> }
+                    </li>
+                  } @empty {
+                    <li class="px-5 py-6 border-t border-line text-sm text-center text-ink-muted">{{ 'scans.noFindings' | transloco }}</li>
                   }
                 </ul>
               }
-            </div>
-            <app-page-state [empty]="findings().length === 0" emptyKey="scans.noFindings">
-              <ul>
-                @for (f of findings(); track f.id) {
-                  <li class="px-5 py-4 border-t border-line">
-                    <div class="flex flex-wrap items-start gap-3">
-                      <app-severity-badge [severity]="f.severity" />
-                      <div class="flex-1 min-w-0">
-                        <div class="flex flex-wrap items-center gap-2">
-                          @if (f.vulnerabilityId) {
-                            <a [routerLink]="['/vulnerabilities', f.vulnerabilityId]" class="font-medium hover:underline">{{ f.title }}</a>
-                          } @else { <span class="font-medium">{{ f.title }}</span> }
-                          @if (f.occurrenceTag) { <span class="px-1.5 py-0.5 rounded text-[11px] font-medium" [class]="tagClass[f.occurrenceTag]">{{ 'scans.tag_' + f.occurrenceTag | transloco }}</span> }
-                          @if (f.vulnerabilityStatus) { <app-vuln-status-badge [status]="f.vulnerabilityStatus" /> }
-                        </div>
-                        <div class="mono break-all">{{ f.url }} · {{ f.detectorName }} · {{ 'confidence.' + f.confidence | transloco }}</div>
-                        <p class="text-sm text-ink-muted mt-1">{{ f.evidenceSummary }}</p>
-                      </div>
-                      @if (canAi) {
-                        <div class="flex gap-1">
-                          <button type="button" class="btn h-8" (click)="askAi(f, 'explain')">{{ 'ai.explain' | transloco }}</button>
-                          <button type="button" class="btn h-8" (click)="askAi(f, 'remediate')">{{ 'ai.remediate' | transloco }}</button>
-                        </div>
-                      }
-                    </div>
-                    @if (ai()[f.id]; as a) {
-                      <div class="mt-3 rounded-xl bg-sev-info-bg border border-line p-4" aria-live="polite">
-                        <div class="mono mb-2">{{ 'ai.advisoryLabel' | transloco }}</div>
-                        @if (a.loading) {
-                          <p class="text-sm text-ink-muted">{{ 'common.loading' | transloco }}</p>
-                        } @else if (a.error) {
-                          <p class="text-sm text-danger">{{ a.error | transloco }}</p>
-                        } @else if (a.advice) {
-                          <p class="text-sm whitespace-pre-line">{{ a.advice.content }}</p>
-                          <p class="mono mt-2">{{ a.advice.provider }} · {{ a.advice.model }}</p>
-                        }
-                      </div>
-                    }
-                  </li>
-                }
-              </ul>
-            </app-page-state>
-          </section>
+            </section>
 
-          <section class="glass p-5 flex flex-col gap-3">
-            <h2 class="font-semibold">{{ 'scans.eventLog' | transloco }}</h2>
-            <ol class="flex flex-col gap-1.5 font-mono text-xs" aria-live="polite">
-              @for (e of events(); track $index) {
-                <li class="flex gap-3"><span class="text-ink-muted shrink-0">{{ e.at | date: 'HH:mm:ss' }}</span>
-                  <span class="w-12 shrink-0 font-semibold" [class]="eventClass[e.level]">{{ e.level }}</span>
-                  <span class="text-ink">{{ e.key | transloco: e.params }}</span></li>
-              }
-            </ol>
-          </section>
+            <section class="rounded-[20px] bg-white/45 p-5 flex flex-col gap-3">
+              <div class="flex items-center justify-between gap-2">
+                <h2 class="font-semibold">{{ 'scans.eventLog' | transloco }}</h2>
+                @if (!terminal()) {
+                  <span class="flex items-center gap-1.5 text-[13px] text-ink-muted"><span aria-hidden="true" class="size-1.5 rounded-full bg-ink animate-pulse"></span>{{ 'scans.autoRefresh' | transloco }}</span>
+                }
+              </div>
+              <ol class="flex flex-col gap-1.5 font-mono text-[13px] leading-5" aria-live="polite">
+                @for (e of events(); track $index) {
+                  <li class="flex gap-3"><span class="text-ink-muted shrink-0">{{ e.at | date: 'HH:mm:ss' }}</span>
+                    <span [class]="eventClass[e.level]">{{ e.key | transloco: e.params }}</span></li>
+                }
+              </ol>
+            </section>
+          </div>
         </div>
 
         <app-dialog [open]="cancelOpen()" [heading]="'scans.cancelTitle' | transloco" (closed)="cancelOpen.set(false)">
@@ -172,16 +179,36 @@ const PHASES = [{ key: 'crawl', end: 40 }, { key: 'detect', end: 100 }, { key: '
 })
 export class ScanDetailPage implements OnInit {
   private readonly scansApi = inject(ScansApi);
-  private readonly aiApi = inject(AiApi);
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
   private readonly auth = inject(AuthService);
   protected readonly canScan = this.auth.hasPermission('Scan.Create');
-  protected readonly canAi = this.auth.hasPermission('AI.Ask');
   protected readonly phaseClass = PHASE_CLASS;
   protected readonly cancelOpen = signal(false);
   protected readonly canReport = this.auth.hasPermission('Report.Generate');
   protected readonly tagClass = TAG_CLASS;
+  protected readonly sevClass = SEV_CLASS;
+  protected readonly sevCounts = computed(() => (['Critical', 'High', 'Medium', 'Low', 'Info'] as const)
+    .map((sev) => ({ sev, count: this.findings().filter((f) => f.severity === sev).length })).filter((c) => c.count > 0));
+  protected readonly terminal = computed(() => ['Completed', 'Failed', 'Cancelled'].includes(this.scan()?.status ?? ''));
+  protected readonly host = computed(() => {
+    try { return new URL(this.scan()?.targetBaseUrl ?? '').host; } catch { return this.scan()?.targetBaseUrl ?? ''; }
+  });
+  protected readonly currentPhase = computed(() => {
+    const i = this.phases().findIndex((p) => p.state === 'now');
+    return i < 0 ? null : { n: i + 1, key: this.phases()[i].key };
+  });
+  /** Minutes from start to end (or now while running); refreshed by each poll tick. */
+  protected readonly elapsedMin = computed(() => {
+    const s = this.scan();
+    if (!s?.startedAt) return 0;
+    const end = s.completedAt ? Date.parse(s.completedAt) : Date.now();
+    return Math.max(0, Math.round((end - Date.parse(s.startedAt)) / 60000));
+  });
+
+  protected path(url: string): string {
+    try { const u = new URL(url); return u.pathname + u.search; } catch { return url; }
+  }
   protected readonly eventClass = EVENT_CLASS;
   protected readonly tagCounts = computed(() => (['New', 'Known', 'Reappeared'] as const)
     .map((tag) => ({ tag, count: this.findings().filter((f) => f.occurrenceTag === tag).length })).filter((t) => t.count > 0));
@@ -204,7 +231,6 @@ export class ScanDetailPage implements OnInit {
   protected readonly findings = signal<ScanFinding[]>([]);
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
-  protected readonly ai = signal<Record<string, { loading: boolean; advice?: AiAdvice; error?: string }>>({});
 
   protected readonly phases = computed(() => {
     const s = this.scan();
@@ -257,15 +283,6 @@ export class ScanDetailPage implements OnInit {
     this.scansApi.cancel(this.id()).subscribe({
       next: (res) => res.data && this.scan.set(res.data),
       error: (err) => this.error.set(apiErrorMessage(err)),
-    });
-  }
-
-  protected askAi(f: ScanFinding, kind: 'explain' | 'remediate'): void {
-    this.ai.update((m) => ({ ...m, [f.id]: { loading: true } }));
-    const req = kind === 'explain' ? this.aiApi.explain({ findingId: f.id }) : this.aiApi.suggestRemediation({ findingId: f.id });
-    req.subscribe({
-      next: (res) => this.ai.update((m) => ({ ...m, [f.id]: { loading: false, advice: res.data ?? undefined } })),
-      error: (err) => this.ai.update((m) => ({ ...m, [f.id]: { loading: false, error: apiErrorMessage(err) } })),
     });
   }
 
