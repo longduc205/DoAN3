@@ -20,14 +20,14 @@ export const routes: Routes = [
         path: 'projects/new', canActivate: [permissionGuard], data: { openCreate: true, permission: 'Project.Create' },
         loadComponent: () => import('./features/projects/project-list.page').then((m) => m.ProjectListPage),
       },
-      { path: 'projects/:id', loadComponent: () => import('./features/projects/project-detail.page').then((m) => m.ProjectDetailPage) },
+      { path: 'projects/:id', data: { crumb: 'crumb.projectDetail' }, loadComponent: () => import('./features/projects/project-detail.page').then((m) => m.ProjectDetailPage) },
       { path: 'targets', loadComponent: () => import('./features/targets/target-list.page').then((m) => m.TargetListPage) },
       { path: 'scans', canActivate: [permissionGuard], data: { permission: 'Scan.View' }, loadComponent: () => import('./features/scans/scan-list.page').then((m) => m.ScanListPage) },
       {
         path: 'scans/new', canActivate: [permissionGuard], data: { permission: 'Scan.Create' },
         loadComponent: () => import('./features/scans/scan-wizard.page').then((m) => m.ScanWizardPage),
       },
-      { path: 'scans/:id', canActivate: [permissionGuard], data: { permission: 'Scan.View' }, loadComponent: () => import('./features/scans/scan-detail.page').then((m) => m.ScanDetailPage) },
+      { path: 'scans/:id', canActivate: [permissionGuard], data: { permission: 'Scan.View', crumb: 'crumb.scanDetail' }, loadComponent: () => import('./features/scans/scan-detail.page').then((m) => m.ScanDetailPage) },
       {
         path: 'vulnerabilities', canActivate: [permissionGuard], data: { permission: 'Vulnerability.View' },
         loadComponent: () => import('./features/vulnerabilities/vuln-list.page').then((m) => m.VulnListPage),
@@ -37,7 +37,7 @@ export const routes: Routes = [
         loadComponent: () => import('./features/vulnerabilities/vuln-list.page').then((m) => m.VulnListPage),
       },
       {
-        path: 'vulnerabilities/:id', canActivate: [permissionGuard], data: { permission: 'Vulnerability.View' },
+        path: 'vulnerabilities/:id', canActivate: [permissionGuard], data: { permission: 'Vulnerability.View', crumb: 'crumb.vulnDetail' },
         loadComponent: () => import('./features/vulnerabilities/vuln-detail.page').then((m) => m.VulnDetailPage),
       },
       {
@@ -45,7 +45,7 @@ export const routes: Routes = [
         loadComponent: () => import('./features/reports/report-list.page').then((m) => m.ReportListPage),
       },
       {
-        path: 'reports/:id', canActivate: [permissionGuard], data: { permission: 'Report.View' },
+        path: 'reports/:id', canActivate: [permissionGuard], data: { permission: 'Report.View', crumb: 'crumb.reportDetail' },
         loadComponent: () => import('./features/reports/report-detail.page').then((m) => m.ReportDetailPage),
       },
       {

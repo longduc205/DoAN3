@@ -11,25 +11,14 @@
   },
   "auth": { "logout": "Sign out" },
   "login": {
-    "systemOk": "SYSTEM OK", "welcome": "Welcome", "welcomeBold": "back",
-    "sub": "Open your lab workspace to keep scanning, triaging and verifying vulnerabilities.",
-    "userName": "Email or username", "userNamePh": "name@lab.local",
-    "password": "Password", "passwordPh": "Enter your password", "showPw": "Show password", "hidePw": "Hide password",
+    "lab": "Internal lab", "language": "Language", "title": "Sign in to WebSec AI", "sub": "Use the account your administrator gave you.",
+    "userName": "Email or username", "password": "Password", "showPw": "Show password", "hidePw": "Hide password",
     "pwCleared": "Your password was cleared, please enter it again.",
-    "remember": "Remember me on this device", "forgot": "Forgot password?", "askAdmin": "Ask an admin",
-    "submit": "Sign in", "submitting": "Opening workspace…",
-    "sessionSecurity": "SESSION SECURITY",
-    "securityNote": "Sessions expire after 60 minutes. Repeated failed sign-ins are temporarily blocked.",
-    "noAccount": "No account yet?", "noAccountBold": "An administrator will create one for you.",
-    "authorizedOnly": "AUTHORIZED LABS ONLY",
-    "devHint": "DEV: see README for local seed accounts",
-    "heroLabel": "Recent workspace activity",
-    "quote": "Each project is a folder: targets, scans, vulnerabilities and reports live inside. Scan within authorized scope, verify before closing.",
-    "cards": {
-      "scan": { "title": "Scan #128 completed", "meta": "SHOP-STAGING · 10:41", "body": "8 new findings, 1 critical SQL Injection to triage." },
-      "dev": { "title": "Phạm Long", "meta": "VULN-0118 · DEVELOPER", "body": "Output encoded, resubmitted for verification." },
-      "ai": { "title": "AI Advisor", "meta": "SUGGESTION · SECRETS MASKED", "body": "Use a parameterized query for /search?q." }
-    }
+    "remember": "Remember my email on this device", "forgot": "Forgot password?", "askAdmin": "Contact an admin",
+    "submit": "Sign in", "submitting": "Signing in…",
+    "securityNote": "Sessions expire after 60 minutes. Too many failed sign-ins temporarily lock the account.",
+    "noAccount": "No account yet? Contact your lab administrator.",
+    "version": "WebSec AI · v0.1", "authorizedOnly": "For authorized lab environments only"
   },
   "common": {
     "loading": "Loading…", "retry": "Retry", "empty": "No data yet.", "search": "Search…", "edit": "Edit", "delete": "Delete",
@@ -136,5 +125,8 @@
   "audit": {
     "subtitle": "{{count}} events · read-only", "result": "Result", "result_Success": "Success", "result_Blocked": "Blocked", "result_Failed": "Failed", "entity": "Entity", "allEntities": "All entities", "entity_User": "User", "entity_Project": "Project", "entity_Target": "Target", "entity_Scan": "Scan", "entity_Vulnerability": "Vulnerability", "entity_Report": "Report", "from": "From", "to": "To", "searchPh": "Search descriptions…", "empty": "No events match the filters.", "time": "Time", "actor": "Actor", "pick": "Pick an event to see its details.", "readOnly": "Audit entries cannot be edited or deleted.", "maskedNote": "Passwords, tokens and cookies were masked (••••) before storing; the last part of the IP is hidden.",
     "export": "Export CSV", "last7": "Events, last 7 days", "failedLogins": "Failed sign-ins", "perDay": "Per day (7 days)", "allActors": "All actors"
+  },
+  "crumb": {
+    "projectDetail": "Details", "scanDetail": "Scan details", "vulnDetail": "Vulnerability details", "reportDetail": "Report details", "targetNew": "Add target", "targetEdit": "Edit target"
   }
 }

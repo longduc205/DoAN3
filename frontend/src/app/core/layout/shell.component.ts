@@ -1,6 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { catchError, filter, map, of, startWith, switchMap } from 'rxjs';
 import { VulnerabilitiesApi } from '../../features/api.services';
@@ -59,7 +59,7 @@ const NAV: NavGroup[] = [
                   <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-ink-muted"><path [attr.d]="item.icon" /></svg>
                   <span class="flex-1">{{ item.labelKey | transloco }}</span>
                   @if (item.path === '/my-items' && myItems()) {
-                    <span class="min-w-5 h-5 px-1.5 grid place-items-center rounded-full bg-accent text-white text-[11px] font-semibold"
+                    <span class="min-w-5 h-5 px-1.5 grid place-items-center rounded-full bg-ink/10 text-ink text-[11px] font-semibold"
                       [attr.aria-label]="'nav.myItemsCount' | transloco: { count: myItems() }">{{ myItems() }}</span>
                   }
                 </a>
@@ -73,7 +73,10 @@ const NAV: NavGroup[] = [
             <div class="text-sm font-medium truncate">{{ auth.user()?.fullName }}</div>
             <div class="text-xs text-ink-muted truncate">{{ auth.user()?.roles?.join(', ') }}</div>
           </div>
-          <button type="button" class="btn h-8 px-2" (click)="auth.logout()">{{ 'auth.logout' | transloco }}</button>
+          <button type="button" class="grid place-items-center size-8 rounded-lg text-ink-muted hover:text-ink hover:bg-black/5 cursor-pointer"
+            (click)="auth.logout()" [attr.aria-label]="'auth.logout' | transloco" [title]="'auth.logout' | transloco">
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3" /></svg>
+          </button>
         </div>
       </aside>
 
@@ -87,8 +90,13 @@ const NAV: NavGroup[] = [
           </nav>
           @if (crumb(); as c) {
             <nav class="hidden md:flex items-center gap-1.5 text-sm text-ink-muted" [attr.aria-label]="'nav.breadcrumb' | transloco">
-              <span>{{ c.group | transloco }}</span><span aria-hidden="true">/</span>
-              <a [routerLink]="c.path" class="text-ink hover:underline">{{ c.label | transloco }}</a>
+              <span>{{ c.group | transloco }}</span>
+              <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6" /></svg>
+              <a [routerLink]="c.path" [class]="c.leaf ? 'hover:underline' : 'text-ink hover:underline'">{{ c.label | transloco }}</a>
+              @if (c.leaf) {
+                <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6" /></svg>
+                <span class="text-ink" aria-current="page">{{ c.leaf | transloco }}</span>
+              }
             </nav>
           }
           <span class="flex-1"></span>
@@ -105,6 +113,7 @@ export class ShellComponent {
   protected readonly auth = inject(AuthService);
   protected readonly transloco = inject(TranslocoService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly vulnApi = inject(VulnerabilitiesApi);
 
   // Sitemap: Developers work from My items, the dashboard and AI only.
@@ -135,14 +144,17 @@ export class ShellComponent {
     { initialValue: 0 },
   );
 
-  /** Group / page of the longest nav path that prefixes the current URL. */
+  /** Group › page of the longest nav path that prefixes the current URL, plus the child route's `data.crumb` as a third level. */
   protected readonly crumb = computed(() => {
     const url = this.url().split('?')[0];
-    let best: { group: string; label: string; path: string } | null = null;
+    let best: { group: string; label: string; path: string; leaf?: string } | null = null;
     for (const g of NAV) for (const i of g.items)
       if ((url === i.path || url.startsWith(i.path + '/')) && i.path.length > (best?.path.length ?? 0))
         best = { group: g.labelKey, label: i.labelKey, path: i.path };
-    return best;
+    let r = this.route;
+    while (r.firstChild) r = r.firstChild;
+    const leaf = r.snapshot.data['crumb'] as string | undefined;
+    return best && leaf && url !== best.path ? { ...best, leaf } : best;
   });
 
   protected toggleLang(): void {

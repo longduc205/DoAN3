@@ -5,7 +5,7 @@
   --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
 
-  --color-desk: #ededef;
+  --color-desk: #ecedf1;
   --color-ink: #141416;
   --color-ink-muted: #55555c;
   --color-line: rgb(20 20 22 / 0.12);
@@ -13,9 +13,13 @@
   --color-accent: #ef4a2b;
   --color-focus: #4c8dff;
 
-  /* Severity per canvas DS-Tokens: Critical/High solid, the rest light fill + dark text. */
+  /* Severity pills per canvas W08: light fill + dark text for every level; the solid tones are for bars and dots. */
   --color-sev-critical: #b42318;
+  --color-sev-critical-ink: #831c1e;
+  --color-sev-critical-bg: #feeceb;
   --color-sev-high: #c2410c;
+  --color-sev-high-ink: #7c2d12;
+  --color-sev-high-bg: #fff0e6;
   --color-sev-medium: #7a4a00;
   --color-sev-medium-bg: #fef0c7;
   --color-sev-low: #1f4fa8;
@@ -37,8 +41,10 @@
 @layer base {
   body {
     @apply bg-desk text-ink font-sans antialiased;
-    background-image: radial-gradient(rgb(20 20 22 / 0.13) 1.1px, transparent 1.4px);
-    background-size: 22px 22px;
+    background-image: radial-gradient(60% 50% at 88% 0%, rgb(111 151 194 / 0.3), transparent 70%),
+      radial-gradient(55% 50% at 0% 100%, rgb(233 194 184 / 0.5), transparent 70%),
+      radial-gradient(45% 40% at 50% 45%, rgb(255 255 255 / 0.65), transparent 70%);
+    background-attachment: fixed;
     font-variant-numeric: tabular-nums;
   }
   :focus-visible {
@@ -89,6 +95,14 @@
     box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 0 0 4px rgb(76 141 255 / 0.12);
   }
   .field-glass input { @apply flex-1 min-w-0 p-4 bg-transparent text-[15px] text-ink outline-none placeholder:text-ink-muted; }
+  /* Compact login field (W01): 44px, white, focus ring. */
+  .lg-field {
+    @apply flex items-center h-11 pl-3.5 pr-1.5 rounded-xl border border-ink/15 bg-white/85;
+    box-shadow: inset 0 1px 2px rgb(10 12 20 / 0.04);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .lg-field:focus-within { @apply border-focus; box-shadow: 0 0 0 3px rgb(76 141 255 / 0.18); }
+  .lg-field input { @apply flex-1 min-w-0 h-full bg-transparent text-[15px] text-ink outline-none; }
   .check {
     @apply grid place-items-center size-5 m-0 rounded-[7px] border border-ink/20 bg-white/70 cursor-pointer appearance-none
       checked:bg-ink checked:border-ink;

@@ -11,25 +11,14 @@
   },
   "auth": { "logout": "Đăng xuất" },
   "login": {
-    "systemOk": "SYSTEM OK", "welcome": "Chào mừng", "welcomeBold": "trở lại",
-    "sub": "Mở workspace của lab để tiếp tục scan, triage và xác minh lỗ hổng.",
-    "userName": "Email hoặc tên đăng nhập", "userNamePh": "ten@lab.local",
-    "password": "Mật khẩu", "passwordPh": "Nhập mật khẩu", "showPw": "Hiện mật khẩu", "hidePw": "Ẩn mật khẩu",
+    "lab": "Lab nội bộ", "language": "Ngôn ngữ", "title": "Đăng nhập WebSec AI", "sub": "Dùng tài khoản do quản trị viên cấp.",
+    "userName": "Email hoặc tên đăng nhập", "password": "Mật khẩu", "showPw": "Hiện mật khẩu", "hidePw": "Ẩn mật khẩu",
     "pwCleared": "Mật khẩu đã được xoá, hãy nhập lại.",
-    "remember": "Ghi nhớ trên máy này", "forgot": "Quên mật khẩu?", "askAdmin": "Hỏi Admin",
-    "submit": "Đăng nhập", "submitting": "Đang mở workspace…",
-    "sessionSecurity": "BẢO MẬT PHIÊN",
-    "securityNote": "Phiên hết hạn sau 60 phút. Đăng nhập sai nhiều lần liên tiếp sẽ bị tạm chặn.",
-    "noAccount": "Chưa có tài khoản?", "noAccountBold": "Quản trị viên sẽ cấp cho bạn.",
-    "authorizedOnly": "CHỈ DÙNG CHO LAB ĐÃ ỦY QUYỀN",
-    "devHint": "DEV: xem README để lấy tài khoản seed cục bộ",
-    "heroLabel": "Hoạt động gần đây trong workspace",
-    "quote": "Mỗi project là một thư mục: target, scan, lỗ hổng và report nằm bên trong. Quét trong phạm vi được ủy quyền, xác minh rồi mới đóng.",
-    "cards": {
-      "scan": { "title": "Scan #128 hoàn tất", "meta": "SHOP-STAGING · 10:41", "body": "8 finding mới, 1 SQL Injection Critical cần triage." },
-      "dev": { "title": "Phạm Long", "meta": "VULN-0118 · DEVELOPER", "body": "Đã encode output, gửi lại để xác minh." },
-      "ai": { "title": "AI Advisor", "meta": "GỢI Ý · ĐÃ CHE SECRET", "body": "Dùng truy vấn tham số hoá cho /search?q." }
-    }
+    "remember": "Ghi nhớ email trên thiết bị này", "forgot": "Quên mật khẩu?", "askAdmin": "Liên hệ Admin",
+    "submit": "Đăng nhập", "submitting": "Đang đăng nhập…",
+    "securityNote": "Phiên đăng nhập hết hạn sau 60 phút. Đăng nhập sai nhiều lần, tài khoản sẽ bị tạm khoá.",
+    "noAccount": "Chưa có tài khoản? Liên hệ quản trị viên của lab.",
+    "version": "WebSec AI · v0.1", "authorizedOnly": "Chỉ dùng cho môi trường lab đã được ủy quyền"
   },
   "common": {
     "loading": "Đang tải…", "retry": "Thử lại", "empty": "Chưa có dữ liệu.", "search": "Tìm kiếm…", "edit": "Sửa", "delete": "Xoá",
@@ -136,5 +125,8 @@
   "audit": {
     "subtitle": "{{count}} sự kiện · chỉ đọc", "result": "Kết quả", "result_Success": "Thành công", "result_Blocked": "Bị chặn", "result_Failed": "Thất bại", "entity": "Đối tượng", "allEntities": "Mọi đối tượng", "entity_User": "Người dùng", "entity_Project": "Project", "entity_Target": "Target", "entity_Scan": "Scan", "entity_Vulnerability": "Lỗ hổng", "entity_Report": "Report", "from": "Từ", "to": "Đến", "searchPh": "Tìm trong mô tả…", "empty": "Không có sự kiện khớp bộ lọc.", "time": "Thời gian", "actor": "Người thực hiện", "pick": "Chọn một sự kiện để xem chi tiết.", "readOnly": "Audit log không sửa hay xoá được.", "maskedNote": "Mật khẩu, token, cookie đã được che (••••) trước khi lưu; IP bị ẩn phần cuối.",
     "export": "Xuất CSV", "last7": "Sự kiện 7 ngày", "failedLogins": "Đăng nhập thất bại", "perDay": "Theo ngày (7 ngày)", "allActors": "Mọi người thực hiện"
+  },
+  "crumb": {
+    "projectDetail": "Chi tiết", "scanDetail": "Chi tiết scan", "vulnDetail": "Chi tiết lỗ hổng", "reportDetail": "Chi tiết báo cáo", "targetNew": "Thêm target", "targetEdit": "Sửa target"
   }
 }

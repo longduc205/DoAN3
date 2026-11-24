@@ -1,7 +1,8 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../core/auth/auth.service';
 import { apiErrorMessage } from '../../core/services/base-api.service';
 
@@ -9,140 +10,118 @@ import { apiErrorMessage } from '../../core/services/base-api.service';
   selector: 'app-login',
   imports: [ReactiveFormsModule, TranslocoPipe],
   styles: `
-    .a-in { opacity: 0; filter: blur(4px); transform: translateY(12px); animation: fade-slide-in 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
-    .a-right { opacity: 0; filter: blur(6px); transform: translateX(28px); animation: slide-right-in 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s forwards; }
-    .a-card { opacity: 0; filter: blur(6px); transform: translateY(18px) scale(0.96); animation: card-in 0.8s cubic-bezier(0.34, 1.36, 0.5, 1) forwards; }
-    @keyframes fade-slide-in { to { opacity: 1; filter: blur(0); transform: translateY(0); } }
-    @keyframes slide-right-in { to { opacity: 1; filter: blur(0); transform: translateX(0); } }
-    @keyframes card-in { to { opacity: 1; filter: blur(0); transform: translateY(0) scale(1); } }
-    @media (prefers-reduced-motion: reduce) {
-      .a-in, .a-right, .a-card { animation: none; opacity: 1; filter: none; transform: none; }
-    }
+    .lg-card { animation: lg-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+    @keyframes lg-in { from { opacity: 0; transform: translateY(10px); } }
+    @media (prefers-reduced-motion: reduce) { .lg-card { animation: none; } }
   `,
   template: `
-    <div class="min-h-screen flex">
-      <section class="flex-1 min-w-0 flex flex-col px-5 py-5 md:px-10 md:py-7">
-        <div class="a-in flex items-center justify-between gap-4">
-          <span class="inline-flex items-center gap-2.5">
-            <svg aria-hidden="true" width="26" height="26" viewBox="0 0 26 26">
-              <path d="M3 6.5l5 14 5-10 5 10 5-14" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />
+    <div class="min-h-screen flex flex-col px-4 py-4 sm:px-7 sm:py-5">
+      <header class="flex items-center gap-3">
+        <span class="inline-flex items-center gap-2.5">
+          <svg aria-hidden="true" width="24" height="24" viewBox="0 0 26 26">
+            <path d="M3 6.5l5 14 5-10 5 10 5-14" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />
+            <circle cx="13" cy="4" r="2.2" fill="currentColor" />
+          </svg>
+          <b class="text-[15px] font-semibold">WebSec AI</b>
+        </span>
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/70 ring-1 ring-ink/10 text-xs font-medium text-ink-muted">
+          <span aria-hidden="true" class="size-1.5 rounded-full bg-ok"></span>{{ 'login.lab' | transloco }}
+        </span>
+        <span class="ml-auto flex p-0.5 rounded-[9px] bg-ink/5" role="group" [attr.aria-label]="'login.language' | transloco">
+          @for (l of langs; track l) {
+            <button type="button" class="h-7 px-2.5 rounded-[7px] text-xs cursor-pointer" [attr.aria-pressed]="lang() === l"
+              [class]="lang() === l ? 'bg-white font-semibold shadow-sm' : 'text-ink-muted'" (click)="setLang(l)">{{ l.toUpperCase() }}</button>
+          }
+        </span>
+      </header>
+
+      <main class="flex-1 flex flex-col items-center justify-center gap-[18px] py-8">
+        <section class="lg-card glass w-full max-w-[400px] flex flex-col gap-4 rounded-3xl px-5 pt-6 pb-5 sm:px-7 sm:pt-7" aria-labelledby="login-title">
+          <div class="flex flex-col items-center gap-2.5 pb-1 text-center">
+            <svg aria-hidden="true" width="44" height="44" viewBox="0 0 26 26">
+              <path d="M3 6.5l5 14 5-10 5 10 5-14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
               <circle cx="13" cy="4" r="2.2" class="fill-accent" />
             </svg>
-            <b class="text-[17px] font-semibold tracking-tight">WebSec AI</b>
-          </span>
-          <span class="mono inline-flex items-center gap-2">
-            <span aria-hidden="true" class="size-[7px] rounded-full bg-ok"></span>{{ 'login.systemOk' | transloco }}
-          </span>
-        </div>
-
-        <main class="flex-1 flex items-center justify-center py-10">
-          <div class="w-full max-w-[420px] flex flex-col gap-[22px]">
-            <h1 class="a-in [animation-delay:.1s] m-0 text-[38px] md:text-5xl leading-[1.08] font-light tracking-[-0.045em]">
-              {{ 'login.welcome' | transloco }} <b class="font-semibold">{{ 'login.welcomeBold' | transloco }}</b>
-            </h1>
-            <p class="a-in [animation-delay:.2s] -mt-2 text-[15px] leading-relaxed text-ink-muted">{{ 'login.sub' | transloco }}</p>
-
-            @if (error()) {
-              <div role="alert" class="a-in flex gap-2.5 px-3.5 py-3 rounded-2xl bg-danger/10 text-danger text-sm leading-[21px]">
-                <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="flex-none mt-0.5">
-                  <circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16h.01" />
-                </svg>
-                <b class="font-semibold">{{ error()! | transloco }}</b>
-              </div>
-            }
-
-            <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-[18px]" novalidate>
-              <div class="a-in [animation-delay:.3s]">
-                <label class="block mb-2 text-[13px] font-medium text-ink-muted" for="userName">{{ 'login.userName' | transloco }}</label>
-                <div class="field-glass">
-                  <input id="userName" formControlName="userName" autocomplete="username" [placeholder]="'login.userNamePh' | transloco"
-                    [attr.aria-invalid]="form.controls.userName.touched && form.controls.userName.invalid" />
-                </div>
-                @if (form.controls.userName.touched && form.controls.userName.invalid) {
-                  <p class="field-error">{{ 'validation.required' | transloco }}</p>
-                }
-              </div>
-
-              <div class="a-in [animation-delay:.4s]">
-                <label class="block mb-2 text-[13px] font-medium text-ink-muted" for="password">{{ 'login.password' | transloco }}</label>
-                <div class="field-glass" [class.border-danger]="error()">
-                  <input id="password" [type]="showPw() ? 'text' : 'password'" formControlName="password" autocomplete="current-password"
-                    [placeholder]="'login.passwordPh' | transloco" [attr.aria-describedby]="error() ? 'pw-hint' : null"
-                    [attr.aria-invalid]="form.controls.password.touched && form.controls.password.invalid" />
-                  <button type="button" class="grid place-items-center size-10 mr-1.5 rounded-xl text-ink-muted hover:text-ink hover:bg-ink/5 cursor-pointer"
-                    [attr.aria-label]="(showPw() ? 'login.hidePw' : 'login.showPw') | transloco" [attr.aria-pressed]="showPw()" (click)="showPw.set(!showPw())">
-                    @if (showPw()) {
-                      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M10.7 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-2.2 3.2M6.6 6.6A17.4 17.4 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.4-1.6M3 3l18 18M9.9 9.9a3 3 0 0 0 4.2 4.2" />
-                      </svg>
-                    } @else {
-                      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" />
-                      </svg>
-                    }
-                  </button>
-                </div>
-                @if (error()) {
-                  <span id="pw-hint" class="block mt-1.5 text-[13px] text-danger">{{ 'login.pwCleared' | transloco }}</span>
-                } @else if (form.controls.password.touched && form.controls.password.invalid) {
-                  <p class="field-error">{{ 'validation.required' | transloco }}</p>
-                }
-              </div>
-
-              <div class="a-in [animation-delay:.5s] flex flex-wrap items-center justify-between gap-3 text-sm">
-                <label class="inline-flex items-center gap-2.5 cursor-pointer">
-                  <input type="checkbox" class="check" formControlName="remember" />{{ 'login.remember' | transloco }}
-                </label>
-                <span class="text-ink-muted">{{ 'login.forgot' | transloco }} <b class="font-medium text-ink">{{ 'login.askAdmin' | transloco }}</b></span>
-              </div>
-
-              <button type="submit" class="btn-key a-in [animation-delay:.6s]" [disabled]="loading()" [attr.aria-busy]="loading()">
-                @if (loading()) {
-                  {{ 'login.submitting' | transloco }}
-                } @else {
-                  {{ 'login.submit' | transloco }}<span aria-hidden="true">→</span>
-                }
-              </button>
-            </form>
-
-            <div class="a-in [animation-delay:.7s] flex items-center gap-3.5">
-              <span class="flex-1 h-px bg-line"></span><span class="mono">{{ 'login.sessionSecurity' | transloco }}</span><span class="flex-1 h-px bg-line"></span>
-            </div>
-            <p class="a-in [animation-delay:.7s] -mt-1.5 text-center text-[13px] leading-relaxed text-ink-muted">
-              {{ 'login.securityNote' | transloco }}<br />
-              {{ 'login.noAccount' | transloco }} <b class="font-medium text-ink">{{ 'login.noAccountBold' | transloco }}</b>
-            </p>
-            <p class="mono text-center">{{ 'login.devHint' | transloco }}</p>
+            <h1 id="login-title" class="m-0 text-[22px] font-semibold tracking-tight">{{ 'login.title' | transloco }}</h1>
+            <p class="m-0 -mt-1.5 text-sm text-ink-muted">{{ 'login.sub' | transloco }}</p>
           </div>
-        </main>
 
-        <p class="mono m-0 flex flex-wrap justify-between gap-3">
-          <span>© 2026 WEBSEC AI</span><span>{{ 'login.authorizedOnly' | transloco }}</span>
-        </p>
-      </section>
-
-      <section class="hidden md:block flex-[1.05] min-w-0 relative" [attr.aria-label]="'login.heroLabel' | transloco">
-        <div class="a-right absolute inset-[14px] left-0 rounded-[30px] overflow-hidden shadow-[0_0_0_.5px_rgb(0_0_0/.1),0_30px_60px_-30px_rgb(10_12_20/.45)]">
-          <img src="/art/aurora-8.png" alt="" width="720" height="900" class="size-full object-cover" />
-          <div class="absolute inset-0 bg-linear-to-b from-transparent from-45% to-black/30"></div>
-        </div>
-        <p class="a-in [animation-delay:.6s] absolute left-10 top-10 right-10 z-[1] max-w-[380px] text-white text-[15px] leading-normal [text-shadow:0_1px_12px_rgb(0_0_0/.35)]">
-          {{ 'login.quote' | transloco }}
-        </p>
-        <div class="absolute left-0 right-[14px] bottom-11 z-[1] flex justify-center gap-3.5 px-8">
-          @for (c of cards; track c.key; let i = $index) {
-            <div class="glass a-card w-[300px] flex gap-3 items-start p-4 rounded-3xl text-[13px] leading-snug" [class]="c.hide"
-              [style.animation-delay]="1 + i * 0.2 + 's'">
-              <span class="flex-none size-10 rounded-[14px] grid place-items-center text-[13px] font-semibold" [class]="c.avatar">{{ c.badge }}</span>
-              <span>
-                <b class="font-semibold">{{ 'login.cards.' + c.key + '.title' | transloco }}</b><br />
-                <span class="mono">{{ 'login.cards.' + c.key + '.meta' | transloco }}</span><br />
-                <span class="text-ink/80">{{ 'login.cards.' + c.key + '.body' | transloco }}</span>
-              </span>
+          @if (error()) {
+            <div role="alert" class="flex gap-2.5 px-3 py-2.5 rounded-xl bg-danger-bg text-danger text-[13px] leading-[19px]">
+              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="flex-none mt-px">
+                <circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16h.01" />
+              </svg>
+              <b class="font-semibold">{{ error()! | transloco }}</b>
             </div>
           }
-        </div>
-      </section>
+
+          <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4" novalidate>
+            <div>
+              <label class="block mb-1.5 text-[13px] font-medium" for="userName">{{ 'login.userName' | transloco }}</label>
+              <div class="lg-field">
+                <input id="userName" formControlName="userName" autocomplete="username"
+                  [attr.aria-invalid]="form.controls.userName.touched && form.controls.userName.invalid" />
+              </div>
+              @if (form.controls.userName.touched && form.controls.userName.invalid) {
+                <p class="field-error">{{ 'validation.required' | transloco }}</p>
+              }
+            </div>
+
+            <div>
+              <span class="flex justify-between items-baseline gap-2">
+                <label class="block mb-1.5 text-[13px] font-medium" for="password">{{ 'login.password' | transloco }}</label>
+                <span class="text-xs text-ink-muted">{{ 'login.forgot' | transloco }} <span class="text-ink">{{ 'login.askAdmin' | transloco }}</span></span>
+              </span>
+              <div class="lg-field" [class.border-danger]="error()">
+                <input id="password" [type]="showPw() ? 'text' : 'password'" formControlName="password" autocomplete="current-password"
+                  [attr.aria-describedby]="error() ? 'pw-hint' : null"
+                  [attr.aria-invalid]="form.controls.password.touched && form.controls.password.invalid" />
+                <button type="button" class="grid place-items-center flex-none size-[34px] rounded-[9px] text-ink-muted hover:text-ink cursor-pointer"
+                  [attr.aria-label]="(showPw() ? 'login.hidePw' : 'login.showPw') | transloco" [attr.aria-pressed]="showPw()" (click)="showPw.set(!showPw())">
+                  @if (showPw()) {
+                    <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M3 3l18 18M10.6 5.1A10.4 10.4 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.1M6.6 6.6A17.4 17.4 0 0 0 2 12s3.6 7 10 7a9.8 9.8 0 0 0 5.4-1.6" /><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+                    </svg>
+                  } @else {
+                    <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" />
+                    </svg>
+                  }
+                </button>
+              </div>
+              @if (error()) {
+                <span id="pw-hint" class="block mt-1.5 text-xs text-danger">{{ 'login.pwCleared' | transloco }}</span>
+              } @else if (form.controls.password.touched && form.controls.password.invalid) {
+                <p class="field-error">{{ 'validation.required' | transloco }}</p>
+              }
+            </div>
+
+            <label class="flex items-center gap-2 text-[13px] cursor-pointer">
+              <input type="checkbox" class="check" formControlName="remember" />{{ 'login.remember' | transloco }}
+            </label>
+
+            <button type="submit" class="btn-key h-[46px] p-0 rounded-xl font-semibold" [disabled]="loading()" [attr.aria-busy]="loading()">
+              @if (loading()) {
+                <span aria-hidden="true" class="size-4 rounded-full border-2 border-white/35 border-t-white animate-spin"></span>{{ 'login.submitting' | transloco }}
+              } @else {
+                {{ 'login.submit' | transloco }}
+              }
+            </button>
+          </form>
+
+          <p class="m-0 pt-3 border-t border-line flex gap-2 text-xs leading-[18px] text-ink-muted">
+            <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-none mt-0.5">
+              <rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" />
+            </svg>
+            <span>{{ 'login.securityNote' | transloco }}</span>
+          </p>
+        </section>
+        <p class="m-0 text-[13px] text-ink-muted">{{ 'login.noAccount' | transloco }}</p>
+      </main>
+
+      <footer class="flex flex-wrap justify-between gap-2 text-xs text-ink-muted">
+        <span>{{ 'login.version' | transloco }}</span><span class="max-sm:hidden">{{ 'login.authorizedOnly' | transloco }}</span>
+      </footer>
     </div>
   `,
 })
@@ -159,12 +138,13 @@ export class LoginPage {
     remember: [true],
   });
 
-  // Decorative activity cards from the design; narrower screens show fewer of them.
-  protected readonly cards = [
-    { key: 'scan', badge: '#128', avatar: 'bg-sky-100 text-sky-800', hide: '' },
-    { key: 'dev', badge: 'PL', avatar: 'bg-green-100 text-green-800', hide: 'max-xl:hidden' },
-    { key: 'ai', badge: 'AI', avatar: 'bg-ink text-white', hide: 'max-2xl:hidden' },
-  ];
+  private readonly transloco = inject(TranslocoService);
+  protected readonly langs = ['vi', 'en'] as const;
+  protected readonly lang = toSignal(this.transloco.langChanges$, { initialValue: this.transloco.getActiveLang() });
+
+  protected setLang(l: string): void {
+    this.transloco.setActiveLang(l);
+  }
 
   protected submit(): void {
     if (this.form.invalid) {

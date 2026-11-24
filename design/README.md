@@ -10,9 +10,11 @@ Bản xuất từ canvas thiết kế, dùng để đối chiếu khi code.
 | `source/` | File `.dc.html` gốc: có đủ các trạng thái (lỗi, rỗng, dialog, thư mục mở…) trong `sc-if` và `renderVals()` |
 | `source/art/`, `screens/art/` | Ảnh nền sinh bằng thuật toán `createArtJob` của Glass Folder Cards |
 
+> `source/` khớp bản canvas live. `screens/` và `screenshots/` là bản xuất cũ: nền chấm lưới và Login 2 cột (W01 giờ là card căn giữa) — đối chiếu `source/` khi hai nơi khác nhau.
+
 ## Design tokens
 
-- Nền mặt bàn: `#EDEDEF` + `radial-gradient(rgba(20,20,22,.13) 1.1px, transparent 1.4px)` / `22px 22px`
+- Nền: `#ECEDF1` + 3 `radial-gradient` (xanh `rgba(111,151,194,.30)` góc phải trên, hồng `rgba(233,194,184,.50)` góc trái dưới, trắng `.65` giữa), `background-attachment: fixed`
 - Kính sữa: `background: rgba(255,255,255,.62)`; `backdrop-filter: blur(22px) saturate(1.5)`; `border: 1px solid rgba(255,255,255,.8)`; `box-shadow: 0 0 0 .5px rgba(0,0,0,.1), 0 10px 26px -8px rgba(10,12,20,.18)`; `border-radius: 20px` (menu trái 22px)
 - Nút chính: `radial-gradient(120% 90% at 50% 0%, #3a3a3f 0%, #121214 55%, #050506 100%)` + inset highlight (như `.gf-key--add`)
 - Chữ: `#141416`, phụ `#55555c`; font `ui-sans-serif, system-ui, …`; mono `ui-monospace, …` cho ID, host, meta

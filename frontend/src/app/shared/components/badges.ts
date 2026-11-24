@@ -3,8 +3,8 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { ScanStatus, Severity, VulnerabilityStatus } from '../models/api.models';
 
 const SEVERITY_CLASS: Record<Severity, string> = {
-  Critical: 'text-white bg-sev-critical',
-  High: 'text-white bg-sev-high',
+  Critical: 'text-sev-critical-ink bg-sev-critical-bg',
+  High: 'text-sev-high-ink bg-sev-high-bg',
   Medium: 'text-sev-medium bg-sev-medium-bg',
   Low: 'text-sev-low bg-sev-low-bg',
   Info: 'text-sev-info bg-sev-info-bg',
@@ -32,8 +32,8 @@ export class SeverityBadge {
 @Component({
   selector: 'app-status-badge',
   imports: [TranslocoPipe],
-  template: `<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium" [class]="cls()">
-    @if (status() === 'Running') { <span aria-hidden="true" class="size-1.5 rounded-full bg-current animate-pulse"></span> }
+  template: `<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap" [class]="cls()">
+    <span aria-hidden="true" class="size-1.5 rounded-full bg-current" [class.animate-pulse]="status() === 'Running'"></span>
     {{ 'scanStatus.' + status() | transloco }}</span>`,
 })
 export class StatusBadge {
@@ -50,8 +50,8 @@ const VULN_CLASS: Record<VulnerabilityStatus, string> = {
 @Component({
   selector: 'app-vuln-status-badge',
   imports: [TranslocoPipe],
-  template: `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium whitespace-nowrap" [class]="cls()">
-    {{ 'vulnStatus.' + status() | transloco }}
+  template: `<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap" [class]="cls()">
+    <span aria-hidden="true" class="size-1.5 rounded-full bg-current"></span>{{ 'vulnStatus.' + status() | transloco }}
     @if (reappeared()) { <span class="text-warn">· {{ 'vulns.reappeared' | transloco }}</span> }</span>`,
 })
 export class VulnStatusBadge {
